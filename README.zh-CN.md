@@ -6,7 +6,7 @@
 
 本仓库通过逆向Sony Image Edit，把 Sony α7 V（ILCE-7M5）的 12 种 Creative Look移植成 Capture One、Camera Raw / Lightroom 和 DxO PhotoLab 的配置，并通过对比检验，色度上基本没有差异。
 
-讲解视频：[Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/)
+讲解视频：[Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube（英文）](https://youtu.be/LeK9HhhYosQ)
 
 ![Edit / Capture One / Camera Raw 对照](images/compare_ST.jpg)
 

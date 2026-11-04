@@ -6,7 +6,7 @@ Camera Raw still has no profiles for the A7M5's Creative Looks. This repository 
 
 The profiles reproduce the look's colour and tone. Compared with Edit, the remaining chroma difference is below what the eye can see.
 
-Video walkthrough (in Chinese): [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/)
+Video walkthrough: [YouTube (English)](https://youtu.be/LeK9HhhYosQ) · [Bilibili (Chinese)](https://www.bilibili.com/video/BV1VUH56pECK/)
 
 ![Edit / Capture One / Camera Raw comparison](images/compare_ST.jpg)
 
