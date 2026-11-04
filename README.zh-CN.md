@@ -159,9 +159,9 @@ DxO PhotoLab（底座 DCP `SonyA7M5 Linear Base v2`，DCP 曲线 = Adobe，LUT �
 
 ## 重新生成
 
-需要：Python 3.11+、`pip install -r requirements.txt`、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312**（macOS）。可选：Rust 工具链（`cargo`），用于加速的 `--rust` 解码；NumPy 路径不需要 Rust。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
+需要：Python 3.11+、`pip install -r requirements.txt`、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312 或 4.1.00.03062**（macOS）。可选：Rust 工具链（`cargo`），用于加速的 `--rust` 解码；NumPy 路径不需要 Rust。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
 
-外观链用到的一些常量表（色相 atan 表、对比度曲线族等）是在运行时从你本机安装的 Edit 里读取的（`sonylook/edit_binary.py`），本仓库不包含任何 Sony 的二进制或数据。脚本会校验 arm64 部分的 SHA-256；其他版本的表地址不同，无法使用。路径可以用 `SONY_EDIT_BINARY` 指定。
+外观链用到的一些常量表（色相 atan 表、对比度曲线族等）是在运行时从你本机安装的 Edit 里读取的（`sonylook/edit_binary.py`），本仓库不包含任何 Sony 的二进制或数据。脚本会校验 arm64 部分的 SHA-256；4.0.00.10312 与 4.1.00.03062 的表地址不同，`edit_binary.py` 里以 4.0 地址为准、对两者都做了映射。路径可以用 `SONY_EDIT_BINARY` 指定。
 
 ```bash
 python3 capture_one/c1_look_profile.py /path/to/A7M5.ARW
@@ -193,6 +193,16 @@ python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
 输出 7008×4672 的解码器矩形，可选 16 位 TIFF 或 8 位 JPEG / PNG，色彩空间 sRGB 或 Adobe RGB（`--color-space srgb|adobe`、`--bits 8|16`），并嵌入你本机 Edit 自带的 ICC 配置。外观、可选阶段、Edit 的 Creative Look 滑块（对比度、高光、阴影、色相、饱和度、黑白位、锐度精细度和曝光）、曲线工具（Y/R/G/B）和周辺光量补偿按 ARW 里 Edit 保存的显影设置决定；没保存过的文件，按 Edit 首次打开时的初始值（拍摄时的外观、相机的降噪和 DRO、镜头校正开、该外观的默认清晰度、滑块为 0）；`--no-nr`、`--no-dro`、`--no-marble`、`--no-detail`、`--no-lens`、`--no-sscs` 可分别关闭。
 
 可选的 Rust 内核（`rust/sonylook_core`）把渲染 band 中的逐像素部分、Sharpness / YGamma / Spica / YCC2RGB 融合在一起，并移植了 GeoCorr、ITP 去马赛克、Marble 和 SSCS。用 `cargo build --release --manifest-path rust/sonylook_core/Cargo.toml` 构建，然后加 `--rust`。输出与 NumPy 路径逐位相同；测试图上融合阶段从 21 s 降到 0.5 s，GeoCorr 从 6.9 s 降到 0.5 s，ITP 从 5.8 s 降到 0.6 s，Marble 从 5 s 降到 0.5 s，SSCS 从 1.4 s 降到 0.1 s，完整 decode 从 42 s 降到 3.2 s。NumPy 仍是默认后端和参考实现；开启降噪时 Marble 的 chroma 分支仍走 NumPy。一次性 LUT 构造也做了优化：MainGamma 和 Effect 表在 Rust 里构建，LinearMatrix16/YGamma 表缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。线程数由 `SONYLOOK_THREADS`、`SONYLOOK_BAND_THREADS`、`SONYLOOK_MARBLE_THREADS` 控制，详见 `rust/README.md`。
+
+### Viewer 的 AI 超分（Extended Hi-Res）：技术笔记
+
+Viewer 4.1 的 *文件 → 扩展 RAW 处理 → Extended Hi-Res* 用一个按相机下载的深度学习模型把长宽各放大一倍（A7M5 全幅为 14016×9344）。本仓库**不提供**实现、模型或获取模型所需的任何东西，这里只记录在自己的安装上测到的这一步在管线里的位置和做法，细节见 [docs/sdm.md](docs/sdm.md)。
+
+- **分块**：RAW 按 512×512 分块、步长 416（重叠 96）。每块以 8×256×256 输入、3×1024×1024 输出，即 2× 线性去马赛克。
+- **输入**：通道 0–3 是 `(raw − black)/16384` 的四个 RGGB 相位，不做白平衡、不乘 0x7311；其中 R/B 先按镜头的横向色差重采样，G 是基准、不插值。通道 4–7 是噪声图 `sqrt(13/64·(raw−black)+4)/16384`。绿色相位和噪声图与 Viewer 实际的输入张量逐位相同。
+- **网络之后**：白平衡在输出上做，`linear = y × (s7311/32) × gain`，然后是 DRO、只做畸变的 GeoCorr（色差前面已经处理）和外观链。
+- **颗粒**：Viewer 导出图里的颗粒不是网络产生的，而是在 YCC 域加的一层抖动（`ZcTaskDither`，每个平面 σ ≈ 83），回到 RGB 时经过一张非线性 LUT，所以中间调最明显、暗部几乎没有。
+- **还没解决**：DRO 的确切参数（增益混合约 0.45 拟合最好）、噪声图常数是否随 ISO 变化、Viewer 怎样融合分块重叠区、抖动前后的两张 LUT。
 
 ### 重新标定（换软件版本时）
 

@@ -50,6 +50,7 @@ def fma(a,b,c): return _fmaf(a,b,c)
 def read_constants(target=None):
     import edit_binary
     data = Path(target).read_bytes() if target else edit_binary.arm64_slice()
+    sha = hashlib.sha256(data).hexdigest()
     magic,cpu,subtype,filetype,ncmds,sizeofcmds,flags,reserved = struct.unpack_from('<8I',data)
     if magic != 0xfeedfacf or cpu != 0x100000c:
         raise ValueError('Expected the selected thin ARM64 Mach-O')
@@ -63,7 +64,8 @@ def read_constants(target=None):
                              'vmsize':vmsize,'fileoff':fileoff,'filesize':filesize})
         offset += size
     result = {}
-    for name,addr in CONSTANT_ADDRESSES.items():
+    for name,addr40 in CONSTANT_ADDRESSES.items():
+        addr = edit_binary.resolve_va(addr40, sha)
         matches = [s for s in segments if s['vmaddr']<=addr and addr+36<=s['vmaddr']+s['filesize']]
         if len(matches)!=1:
             raise ValueError('Matrix source does not have a unique file-backed mapping')
@@ -73,7 +75,7 @@ def read_constants(target=None):
         result[name] = {'vmaddr':f'0x{addr:x}','segment':segment['name'],
                         'file_offset':file_offset,'raw_hex':raw.hex(),
                         'values':list(struct.unpack('<9f',raw))}
-    return result,{'path':str(target),'sha256':hashlib.sha256(data).hexdigest(),
+    return result,{'path':str(target),'sha256':sha,
                    'segments':segments,'matrices':result}
 
 _CONSTANTS = None

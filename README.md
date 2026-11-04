@@ -167,10 +167,10 @@ The pipeline is summarised in [docs/pipeline.md](docs/pipeline.md) (final conclu
 
 - Python 3.11+ with `pip install -r requirements.txt`.
 - Any A7M5 ARW.
-- **Imaging Edge Edit 4.0.00.10312** installed locally (macOS).
+- **Imaging Edge Edit 4.0.00.10312 or 4.1.00.03062** installed locally (macOS).
 - Optional: a Rust toolchain (`cargo`) for the accelerated `--rust` decoder. The NumPy path needs no Rust; the one-time LUTs are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it).
 
-A few constant tables used by the look chain are read at run time from your own Edit installation (`sonylook/edit_binary.py`); examples are the hue atan table and the contrast curve family. This repository contains no Sony binaries or data. The script checks the SHA-256 of the arm64 slice, because table addresses differ between builds. Set `SONY_EDIT_BINARY` to use a different path.
+A few constant tables used by the look chain are read at run time from your own Edit installation (`sonylook/edit_binary.py`); examples are the hue atan table and the contrast curve family. This repository contains no Sony binaries or data. The script checks the SHA-256 of the arm64 slice, because table addresses differ between builds. Both 4.0.00.10312 and 4.1.00.03062 are supported: the project keeps the 4.0 addresses and `edit_binary.py` maps them to the installed build. Set `SONY_EDIT_BINARY` to use a different path.
 
 ### Commands
 
@@ -211,6 +211,16 @@ python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
 It writes the 7008×4672 decoder rectangle as a 16-bit TIFF, or an 8-bit JPEG / PNG, in sRGB or Adobe RGB (`--color-space srgb|adobe`, `--bits 8|16`), with the ICC profile bundled with your Edit installation. The look, the optional stages and Edit's Creative Look sliders (contrast, highlights, shadows, hue, saturation, black/white level, sharpness fineness and exposure), plus the tone-curve tool (Y/R/G/B) and peripheral-illumination correction, follow Edit's saved develop settings when the ARW has them, and otherwise the values Edit starts from for an unsaved file (as-shot look, NR and DRO from the camera, lens corrections on, the look's default clarity, sliders at 0); `--no-nr`, `--no-dro`, `--no-marble`, `--no-detail`, `--no-lens` and `--no-sscs` turn them off.
 
 An optional Rust core (`rust/sonylook_core`) fuses the pointwise part of the render band, Sharpness / YGamma / Spica / YCC2RGB, and ports GeoCorr, the ITP demosaic, Marble and SSCS. Build it with `cargo build --release --manifest-path rust/sonylook_core/Cargo.toml`, then add `--rust`. Its output is bit-identical to the NumPy path; on the test image the fused stages drop from 21 s to 0.5 s, GeoCorr from 6.9 s to 0.5 s, ITP from 5.8 s to 0.6 s, Marble from 5 s to 0.5 s, SSCS from 1.4 s to 0.1 s, and the whole decode from 42 s to 3.2 s. The NumPy path remains the default and the reference; the NR/chroma branch of Marble still runs in NumPy. One-time LUT construction is included too: MainGamma and the Effect tables are built in Rust, while the LinearMatrix16/YGamma tables are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it). Thread counts are controlled by `SONYLOOK_THREADS`, `SONYLOOK_BAND_THREADS` and `SONYLOOK_MARBLE_THREADS`; see `rust/README.md`.
+
+### Notes on Viewer's AI super-resolution (Extended Hi-Res)
+
+Viewer 4.1's *File → Extended RAW Processing → Extended Hi-Res* runs a camera-specific deep-learning model that doubles each dimension (14016×9344 for a full A7M5 frame). This repository does **not** ship an implementation, the model or anything needed to obtain it; these are research notes on how the step fits into the pipeline, measured on the user's own installation. Details in [docs/sdm.md](docs/sdm.md).
+
+- **Tiling:** the RAW is processed in 512×512 tiles with a 416 px step (96 px overlap). Each tile goes in as 8×256×256 and comes out as 3×1024×1024, i.e. 2× linear demosaicing.
+- **Input:** channels 0–3 are the four RGGB phases of `(raw − black)/16384`, with no white balance and no 0x7311 scale. R and B are first resampled for the lens' lateral chromatic aberration; green is the reference and is not interpolated. Channels 4–7 are a noise map, `sqrt(13/64·(raw−black)+4)/16384`. The green phases and the noise maps match Viewer's tensors bit for bit.
+- **After the network:** white balance is applied to the output, `linear = y × (s7311/32) × gain`, followed by DRO, the distortion-only part of GeoCorr (CA was handled before the network) and the look chain.
+- **Grain:** the grain in Viewer's export is not from the network. It is a dither added in YCC (`ZcTaskDither`, σ ≈ 83 per plane) and shaped by a non-linear LUT on the way back to RGB, which is why it is strongest in the midtones and vanishes in the shadows.
+- **Open questions:** the exact DRO parameters (a gain blend of about 0.45 fits best), whether the noise-map constants change with ISO, how Viewer blends tile overlaps, and the two LUTs around the dither.
 
 ### Recalibration (for new software versions)
 
