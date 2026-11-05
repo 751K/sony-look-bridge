@@ -1,0 +1,172 @@
+{
+  "measured_at": "2026-11-05T14:50:24.609429+00:00",
+  "look": "ST",
+  "camera": "Sony ILCE-7M5",
+  "sscs": true,
+  "reference": {
+    "file": "DSC03591.TIF",
+    "sha256": "730bdd77cec2c1c1330349f3cafd21a8d0d90c67df378495dcc60e7d321d0c38",
+    "shape": [
+      4672,
+      7008,
+      3
+    ],
+    "dtype": "uint16",
+    "Software": "Edit 4.0.00.10312",
+    "DateTime": "2026:10:16 11:49:15"
+  },
+  "reference_colour_space": "sRGB",
+  "method": {
+    "units": "8-bit sRGB channel values",
+    "box_reduction": 8,
+    "registration": "Cubic displacement fitted to gradient phase correlations; bilinear sampling",
+    "mask": "Intersection of both host exports; all source pixels in each 8x8 block must be valid",
+    "common_blocks": 488573,
+    "total_blocks": 511584,
+    "lab_white": "D65 (Xn=0.95047, Yn=1, Zn=1.08883)",
+    "lab_conversion": "sRGB to CIELAB after the 8x8 encoded-sRGB box average; no intermediate 8-bit quantization",
+    "lightness_error": "abs(L*_host - L*_edit)",
+    "chromaticity_error": "sqrt((a*_host-a*_edit)^2 + (b*_host-b*_edit)^2); includes hue and chroma changes, excludes the L* component",
+    "error_maps": {
+      "display_max": 4.0,
+      "lightness": "linear grayscale; black at 0, white at 4 or above",
+      "chromaticity": {
+        "kind": "signed a*,b* residual; host minus reference",
+        "neutral_L": 65.0,
+        "chroma_gain": 15.0,
+        "magnitude_cap": 4.0,
+        "gamut": "chroma compression at fixed L* and Lab hue; no per-host normalization"
+      }
+    },
+    "roi_xywh": [
+      3500,
+      1400,
+      1752,
+      876
+    ],
+    "limitation": "One photograph and ST only. Edge residuals include geometry, demosaic and sharpening differences.",
+    "component_units": "CIELAB coordinate units; L* spans 0 to 100"
+  },
+  "hosts": {
+    "c1": {
+      "source": {
+        "file": "DSC03591.tif",
+        "sha256": "93c3ca2dd04a745ebf98319bf3caba30b141d061e56329113cf86cc6e9336605",
+        "shape": [
+          4672,
+          7008,
+          3
+        ],
+        "dtype": "uint16",
+        "Software": "Capture One Macintosh"
+      },
+      "source_colour_space": "Adobe RGB (1998)",
+      "fit_points": 105,
+      "fit_residual_px": 1.0135549531809462,
+      "sign": 1,
+      "displacement_x": [
+        0.2541780782131254,
+        -1.2219923237493475,
+        -1.7211484134277628,
+        2.458535606467964,
+        130.55973299543496,
+        0.25338838184807405,
+        44.1299613927553,
+        -0.31542463464625836,
+        6.946766286067091,
+        93.35115141915254
+      ],
+      "displacement_y": [
+        0.4992524386438169,
+        87.05907538076387,
+        -3.7819873068686594,
+        31.96085930182284,
+        0.1690503268093162,
+        -2.3390977508708564,
+        -7.344543736577528,
+        0.8152882822995551,
+        59.05934459446503,
+        2.9940109312836887
+      ],
+      "mae_box8": 0.7784552574157715,
+      "p95_absolute_channel_error": 2.13588547706604,
+      "mean_lightness_error": 0.2408113994914617,
+      "p95_lightness_error": 0.5596001401917465,
+      "mean_chromaticity_error": 0.5772291838344495,
+      "p95_chromaticity_error": 1.2747635859547852
+    },
+    "acr": {
+      "source": {
+        "file": "DSC03591_STSCCS.TIF",
+        "sha256": "ab69107b71a92c447785b95d0259ea096cd5b00eb0ca0a95d4434369febf85ac",
+        "shape": [
+          4672,
+          7008,
+          3
+        ],
+        "dtype": "uint16",
+        "Software": "Adobe Photoshop Camera Raw 18.7 (Macintosh)",
+        "DateTime": "2026:10:17 11:56:11"
+      },
+      "source_colour_space": "ProPhoto RGB",
+      "fit_points": 101,
+      "fit_residual_px": 1.8802284261512887,
+      "sign": 1,
+      "displacement_x": [
+        0.3590594343289367,
+        -2.833529519457797,
+        -2.749084628589151,
+        25.728724988379458,
+        101.02658983151082,
+        1.8173310264427038,
+        -407.58018096769473,
+        -2.6410597994568725,
+        7.868704417754475,
+        -831.3522459887938
+      ],
+      "displacement_y": [
+        -0.20588025409741853,
+        76.09302582617262,
+        1.250000721322713,
+        -306.3781197382828,
+        0.9112280838628973,
+        -1.2394493113066636,
+        8.3153094555291,
+        1.1167782034591587,
+        -603.5065093782348,
+        -8.34477554994931
+      ],
+      "mae_box8": 1.2038002014160156,
+      "p95_absolute_channel_error": 3.0704798698425293,
+      "mean_lightness_error": 0.4447922624441129,
+      "p95_lightness_error": 1.1960578627265819,
+      "mean_chromaticity_error": 0.491203208509427,
+      "p95_chromaticity_error": 1.4358718346953114
+    }
+  },
+  "configuration_evidence": {
+    "c1": {
+      "current_profile": "profiles/capture_one/SonyA7M5-Look-ST.icc",
+      "used_profile": "SonyA7M5-Look-ST-SSCS.icm",
+      "A2B0_identical_to_current_profile": true,
+      "A2B0_sha256": "24d73620e7dd49ccf3faf3d3b870a0b70e7c796737dcd75ceac156888e1ebcab",
+      "application_version": "16.8.6.25 Pro Mac",
+      "exported_on": "2026-11-05",
+      "film_curve": "Linear Response",
+      "white_balance": "Shot",
+      "exposure": 0
+    },
+    "acr": {
+      "current_profile": "profiles/camera_raw/SonyA7M5 Look ST.xmp",
+      "RGBTable": "33E06EAAB047FB008C76F470FEE7C752",
+      "RGBTable_matches_export_metadata": true,
+      "base_profile": "SonyA7M5 Linear Base",
+      "white_balance": "As Shot",
+      "exposure": 0
+    }
+  },
+  "raw": {
+    "file": "DSC03591.ARW",
+    "sha256": "cfb421a992f2105b9387134b37fc08a3d1880c9ceb8497de89120d1e3b23f00b"
+  }
+}

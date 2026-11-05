@@ -101,28 +101,22 @@ Sony added native FL2/FL3 to the α1 II and α9 III in firmware 4.00. Their pack
 [a1ii-fw]: https://www.sony.com/electronics/support/software/00349486
 [a9iii-fw]: https://www.sony.com/electronics/support/software/00341218
 
-![Edit / Capture One / Camera Raw comparison](images/compare_ST.jpg)
-
 ## Results
 
-These results use the α7 V test image DSC03591. Each profile was rendered from the same ARW and compared with Edit's export of that look. The images were registered, reduced 8×, and compared as mean absolute error in 8-bit units. The reference column is the complete Edit pipeline ported in this repository (`sonylook/sony_decode.py`: demosaicing, lens correction, sharpening and Spica, Marble), so unlike the profiles it also contains the spatial processing.
+The comparison below uses the ST look on one α7 V RAW file, DSC03591, with Sony Imaging Edge Edit as the reference. Capture One and Camera Raw both use the current ST colour tables, including SSCS, and as-shot white balance.
 
-| Look | Capture One | Camera Raw | Reference: full Edit chain |
-| --- | --- | --- | --- |
-| ST | 1.17 | 1.27 | 0.08 |
-| FL2 | 1.05 | 1.15 | 0.08 |
-| FL3 | 1.21 | 1.27 | 0.09 |
+![Sony ST comparison: full frames, brickwork and cloud details, and lightness / signed colour residuals](images/compare_ST_en.png)
 
-*The Capture One and Camera Raw columns are exports from 2026-10-16, made before SSCS entered the profiles in v1.1.0; the SSCS bullet below measures that change.*
+| Host | Mean lightness difference | Mean chromaticity difference |
+| --- | ---: | ---: |
+| Capture One | 0.24 | 0.58 |
+| Camera Raw | 0.44 | 0.49 |
 
-- **Colour and tone:** the full chain matches Edit to ΔE₀₀ 0.02–0.03 in flat areas and 0.04–0.05 on texture. The look mapping and the stages around it are essentially exact.
-- **Flat areas:** the host exports differ from Edit by ΔE₀₀ ≈ 0.5 for ST (both hosts) and 0.6–0.9 for FL2/FL3 in Camera Raw. That error is the profiles' interpolation plus the hosts' own rendering, not the look mapping.
-- **Global colour shift:** over flat areas the mean Lab difference in Camera Raw is ΔE₀₀ 0.25–0.79 across the three looks, with chroma difference ΔC* of +0.00 / +0.09 / +0.11 (ST / FL2 / FL3). In Capture One (ST) the chroma difference is ≈ −0.20. None is visible.
-- **Edges and fine texture:** this is where the host difference sits. In Camera Raw the error is 0.6–0.9 in flat areas and 5.6–6.1 in textured ones; the full chain stays at ~0.1 in the same textured areas. It comes from each program's own demosaicing and sharpening, not from the look.
-- **Synthetic chart:** profile vs. Sony look target is 0.10–0.15 for Capture One and 0.14 for Camera Raw (64³ table).
-- **Bright, saturated colours (v1.1.0):** the profiles now include Sony's SSCS stage, which pulls bright, saturated colours towards their luma. On the ~5% of DSC03591 that it touches, ST's colour error against Edit drops from 0.64 to 0.16 in Capture One and from 0.61 to 0.33 in Camera Raw.
-- **DxO PhotoLab (v1.2.0):** an ST export of DSC03591 from PhotoLab 10.1 (base DCP + look LUT, as-shot white balance) matches the look chain rendered with the same white balance to 1.18, with a mean colour shift of 0.25–0.67 per channel. It has not yet been compared with an Edit export. Up to about 1.7 stops below clipping PhotoLab passes colours through linearly (chart error 0.11); above that its own highlight handling takes over, and colour patches there differ by 4.6 on average (26 at most).
-- **Coverage:** only ST, FL2 and FL3 have Edit exports to compare against; the other nine looks run through the same verified code with their own data but have not been checked against a Sony rendering. The FL2/FL3 numbers above are for Fade 0, which is what Edit uses for them. Since v1.0.2 the profiles apply the camera's default Fade (FL2/FL3 = 1, IN = 3, SH = 6), which Edit omits for FL2/FL3. That change has not yet been checked against in-camera JPEGs.
+The errors are separated in CIELAB (D65): lightness is the absolute L* difference; chromaticity is the a*, b* plane distance Δab, capturing hue and chroma differences without the L* component. The table reports their pixelwise means over the shared valid area; lower is better.
+
+The exports are converted to sRGB, geometrically registered, averaged in 8 × 8 pixel blocks, then converted to CIELAB. The detail crop shows sunlit brickwork and cloud texture. The lightness maps run from black at 0 to white at 4 and above. In the chromaticity maps, neutral gray means no colour shift; colour indicates the host's shift relative to Sony Edit, and saturation increases with its size. Both hosts use the same amplification.
+
+The profiles reproduce colour and tone within each host's rendering pipeline. Demosaicing, lens correction and sharpening still differ between programs and contribute to the visible residuals. These results describe this photograph and ST. Measurement sources, the full decoder's accuracy, and additional look and DxO validation are documented in the [measurement notes](docs/measurements.md).
 
 ## Installation
 
@@ -212,7 +206,7 @@ Further points:
 - Sharpening, noise reduction, clarity and DRO depend on neighbouring pixels, so they are not per-pixel mappings and are left out of the profiles.
 - The decoder's demosaic (ZcTaskITP) is ported bit-exactly in `sonylook/sony_itp.py`, including Sony's 1024-pixel tiling; it is not part of the profiles.
 - The whole decoder is wired end to end in `sonylook/sony_decode.py`: `decode(arw)` runs RawNR, ITP, DRO, lens geometry, SSCS, the look chain and Marble. Against Edit's export of DSC03591 the whole 7008×4672 image matches at 0.13 (8-bit MAE). `--rust` runs the same stages through the optional Rust core, with bit-identical output.
-- The profiles also include SSCS (`sonylook/sony_sscs.py`). Strictly speaking it is a decoder stage that runs before the look, but it is per pixel and improves both hosts (see above). Edit's 3D LUT stage is off at default settings; hue/saturation runs only when those sliders are non-zero. The tone-curve tool (Y/R/G/B) and peripheral-illumination correction are ported bit-exactly in `sonylook/sony_tonecurve.py` / `sony_shade.py` and run at the end of the chain when their settings are non-default.
+- The profiles also include SSCS (`sonylook/sony_sscs.py`). Strictly speaking it is a decoder stage that runs before the look, but it is per pixel and improves both hosts (see the [measurement notes](docs/measurements.md)). Edit's 3D LUT stage is off at default settings; hue/saturation runs only when those sliders are non-zero. The tone-curve tool (Y/R/G/B) and peripheral-illumination correction are ported bit-exactly in `sonylook/sony_tonecurve.py` / `sony_shade.py` and run at the end of the chain when their settings are non-default.
 
 ### 2. Lookup-table representation
 
