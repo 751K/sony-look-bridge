@@ -1,18 +1,111 @@
-# Sony A7M5 Creative Looks → Capture One / Camera Raw / DxO PhotoLab
+# Sony Creative Looks → Capture One / Camera Raw / DxO PhotoLab
 
 English | [中文](README.zh-CN.md)
 
 Camera Raw still has no profiles for the A7M5's Creative Looks. This repository ports all 12 Creative Looks of the Sony α7 V (ILCE-7M5) to Capture One, Adobe Camera Raw / Lightroom and DxO PhotoLab, based on a reverse-engineered model of Sony Imaging Edge Edit — ST, VV, NT, PT, FL, VV2, IN, SH, BW, SE, FL2 and FL3.
 
-The profiles reproduce the look's colour and tone. Compared with Edit, the remaining chroma difference is below what the eye can see.
+The profiles reproduce the look's colour and tone. On the tested α7 V images, the remaining chroma difference compared with Edit is below what the eye can see.
+
+v1.3.0 provides packs for 17 Sony cameras, with one ZIP per camera containing profiles for all three applications.
 
 Video walkthrough: [YouTube (English)](https://youtu.be/LeK9HhhYosQ) · [Bilibili (Chinese)](https://www.bilibili.com/video/BV1VUH56pECK/)
+
+## Camera coverage
+
+Each listed pack covers Capture One, Adobe Camera Raw / Lightroom and DxO PhotoLab.
+
+**✅** Pack built. **❌** No dedicated pack.
+
+| Sony series | Camera model | Look pack |
+| --- | --- | :---: |
+| **α1** | [α1][sony-a1] | ✅ |
+| &nbsp; | [α1 II][sony-a1-ii] | ✅ |
+| **α9** | α9 | ❌ |
+| &nbsp; | α9 II | ❌ |
+| &nbsp; | [α9 III][sony-a9-iii] | ✅ |
+| **α7** | α7 | ❌ |
+| &nbsp; | α7 II | ❌ |
+| &nbsp; | α7 III | ❌ |
+| &nbsp; | [α7 IV][sony-a7-iv] | ✅ |
+| &nbsp; | [α7 V][sony-a7-v] | ✅ |
+| **α7R** | α7R | ❌ |
+| &nbsp; | α7R II | ❌ |
+| &nbsp; | α7R III | ❌ |
+| &nbsp; | α7R IIIA | ❌ |
+| &nbsp; | α7R IV | ❌ |
+| &nbsp; | α7R IVA | ❌ |
+| &nbsp; | [α7R V][sony-a7r-v] | ✅ |
+| &nbsp; | [α7R VI][sony-a7r-vi] | ✅ |
+| **α7S** | α7S | ❌ |
+| &nbsp; | α7S II | ❌ |
+| &nbsp; | [α7S III][sony-a7s-iii] | ✅ |
+| **α7C** | α7C | ❌ |
+| &nbsp; | [α7C II][sony-a7c-ii] | ✅ |
+| &nbsp; | [α7CR][sony-a7cr] | ✅ |
+| **α6000** | α6000 | ❌ |
+| &nbsp; | α6100 | ❌ |
+| &nbsp; | α6100A | ❌ |
+| &nbsp; | α6300 | ❌ |
+| &nbsp; | α6400 | ❌ |
+| &nbsp; | α6400A | ❌ |
+| &nbsp; | α6500 | ❌ |
+| &nbsp; | α6600 | ❌ |
+| &nbsp; | [α6700][sony-a6700] | ✅ |
+| **Cinema Line FX** | [FX2][sony-fx2] | ✅ |
+| &nbsp; | [FX3][sony-fx3] | ✅ |
+| &nbsp; | FX3A | ❌ |
+| &nbsp; | FX5 | ❌ |
+| &nbsp; | FX6 | ❌ |
+| &nbsp; | FX9 | ❌ |
+| &nbsp; | [FX30][sony-fx30] | ✅ |
+| **RX1** | RX1 | ❌ |
+| &nbsp; | RX1R | ❌ |
+| &nbsp; | RX1R II | ❌ |
+| &nbsp; | [RX1R III][sony-rx1r-iii] | ✅ |
+| **ZV-E** | [ZV-E1][sony-zv-e1] | ✅ |
+| &nbsp; | ZV-E10 | ❌ |
+| &nbsp; | [ZV-E10 II][sony-zv-e10-ii] | ✅ |
+| **ZV-1** | ZV-1 | ❌ |
+| &nbsp; | ZV-1 II | ❌ |
+| &nbsp; | ZV-1F | ❌ |
+
+Click a camera name in the table to download its ZIP. All 17 packs and release notes are on the [v1.3.0 release page][release], with SHA-256 hashes in the [checksum file][checksums]. Each ZIP includes profiles for all three applications and installation instructions.
+
+The α7 V, α7R VI, FX2 and RX1R III packs contain 12 native looks. The other packs contain 10 native looks plus FL2 and FL3 ported from α7 V.
+
+The new camera packs have passed file checks and use the α7 V input calibration. ST and FL2 have been tested in ACR on the α7C II. The other new cameras await in-app validation. The project currently has no dedicated packs for unlisted models.
+
+The α7S III and FX3 samples contain four SSCS weights of 255. Their packs use the default weights 32/64/32, with highlight colours awaiting measurement. A ZV-1 II RAW sample is available, but its older colour matrix pipeline requires a rendering path the generator has yet to implement.
+
+Sony added native FL2/FL3 to the α1 II and α9 III in firmware 4.00. Their packs use RAW samples from firmware 2.00 and 1.00, respectively. [α1 II firmware notes][a1ii-fw] · [α9 III firmware notes][a9iii-fw]
+
+[sony-a1]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A1-Creative-Looks.zip
+[sony-a1-ii]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A1-II-Creative-Looks.zip
+[sony-a9-iii]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A9-III-Creative-Looks.zip
+[sony-a7-iv]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A7-IV-Creative-Looks.zip
+[sony-a7-v]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A7-V-Creative-Looks.zip
+[sony-a7r-v]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A7R-V-Creative-Looks.zip
+[sony-a7r-vi]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A7R-VI-Creative-Looks.zip
+[sony-a7s-iii]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A7S-III-Creative-Looks.zip
+[sony-a7c-ii]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A7C-II-Creative-Looks.zip
+[sony-a7cr]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A7CR-Creative-Looks.zip
+[sony-a6700]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-A6700-Creative-Looks.zip
+[sony-fx2]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-FX2-Creative-Looks.zip
+[sony-fx3]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-FX3-Creative-Looks.zip
+[sony-fx30]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-FX30-Creative-Looks.zip
+[sony-rx1r-iii]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-RX1R-III-Creative-Looks.zip
+[sony-zv-e1]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-ZV-E1-Creative-Looks.zip
+[sony-zv-e10-ii]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/Sony-ZV-E10-II-Creative-Looks.zip
+[release]: https://github.com/751K/sony-a7m5-looks/releases/tag/v1.3.0
+[checksums]: https://github.com/751K/sony-a7m5-looks/releases/download/v1.3.0/SHA256SUMS.txt
+[a1ii-fw]: https://www.sony.com/electronics/support/software/00349486
+[a9iii-fw]: https://www.sony.com/electronics/support/software/00341218
 
 ![Edit / Capture One / Camera Raw comparison](images/compare_ST.jpg)
 
 ## Results
 
-Each profile was rendered from the same ARW and compared with Edit's export of that look. Test image DSC03591; the images were registered, reduced 8×, and compared as mean absolute error in 8-bit units. The reference column is the complete Edit pipeline ported in this repository (`sonylook/sony_decode.py`: demosaicing, lens correction, sharpening and Spica, Marble), so unlike the profiles it also contains the spatial processing.
+These results use the α7 V test image DSC03591. Each profile was rendered from the same ARW and compared with Edit's export of that look. The images were registered, reduced 8×, and compared as mean absolute error in 8-bit units. The reference column is the complete Edit pipeline ported in this repository (`sonylook/sony_decode.py`: demosaicing, lens correction, sharpening and Spica, Marble), so unlike the profiles it also contains the spatial processing.
 
 | Look | Capture One | Camera Raw | Reference: full Edit chain |
 | --- | --- | --- | --- |
@@ -32,6 +125,8 @@ Each profile was rendered from the same ARW and compared with Edit's export of t
 - **Coverage:** only ST, FL2 and FL3 have Edit exports to compare against; the other nine looks run through the same verified code with their own data but have not been checked against a Sony rendering. The FL2/FL3 numbers above are for Fade 0, which is what Edit uses for them. Since v1.0.2 the profiles apply the camera's default Fade (FL2/FL3 = 1, IN = 3, SH = 6), which Edit omits for FL2/FL3. That change has not yet been checked against in-camera JPEGs.
 
 ## Installation
+
+The steps below use the α7 V filenames. Each camera ZIP includes its own installation instructions.
 
 ### Capture One
 
@@ -62,7 +157,7 @@ Requires **Elite** PhotoLab (the *LUT Grading* palette is Elite-only); tested wi
 
 ### Scope
 
-- The profiles are made for A7M5 raw files. Other cameras show some colour difference, though within visual tolerance.
+- Use the pack for your camera's RAW files. See [Camera coverage](#camera-coverage) for availability.
 - The profiles replace only the look's colour and tone. DRO, sharpening and noise reduction are not included.
 
 ## How it works
