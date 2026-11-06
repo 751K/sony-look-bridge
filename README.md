@@ -120,6 +120,8 @@ The profiles reproduce colour and tone within each host's rendering pipeline. De
 
 ## Installation
 
+**Video LUTs (v2.0.0):** [Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-a7m5-looks/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip) makes S-Log3 footage imitate the tone of the α7 V Creative Looks in photos. It covers all 12 looks for S-Log3 / S-Gamut3 and S-Gamut3.Cine as 65³ LUTs with Rec.709 / Gamma 2.4 output. Mid-grey differs from conventional S-Log3 LUTs: the input assumes footage exposed at +1⅔ EV (+1.7 on the camera; 18% grey at 547 / 1023 rather than 420), and the output places 18% grey at 0.607, as in the photos, rather than about 0.40. See the [files and usage](profiles/video/README.md) and [generation notes](docs/video.md) (both Chinese).
+
 The steps below use the α7 V filenames. Each camera ZIP includes its own installation instructions.
 
 ### Capture One
@@ -248,13 +250,13 @@ Two further points:
 - In Capture One, *E* depends on the selected tone curve, so the profiles are valid only with Linear Response.
 - The Camera Raw base DCP sets its ForwardMatrix to linear ProPhoto → XYZ D50 and its tone curve to identity. Camera Raw's working space then equals white-balanced camera RGB, and Adobe's own colour and tone are not added.
 
-The pipeline is summarised in [docs/pipeline.md](docs/pipeline.md) (final conclusions; the derivations are in its git history), and the host calibrations in [docs/capture_one.md](docs/capture_one.md), [docs/camera_raw.md](docs/camera_raw.md) and [docs/dxo.md](docs/dxo.md) (all Chinese).
+The pipeline is summarised in [docs/pipeline.md](docs/pipeline.md), and the host calibrations in [docs/capture_one.md](docs/capture_one.md), [docs/camera_raw.md](docs/camera_raw.md) and [docs/dxo.md](docs/dxo.md) (all Chinese). See the [documentation index](docs/README.md) for an overview and the [research index](docs/research.md) for local experiments and verification scripts.
 
 ## Regenerating the profiles
 
 ### Requirements
 
-- Python 3.11+ with `pip install -r requirements.txt`.
+- Python 3.11+ with `python3 -m pip install -r requirements.txt` in your chosen Python environment (a virtual environment is recommended).
 - Any A7M5 ARW.
 - **Imaging Edge Edit 4.0.00.10312 or 4.1.00.03062** installed locally (macOS).
 - Optional: a Rust toolchain (`cargo`) for the accelerated `--rust` decoder. The NumPy path needs no Rust; the one-time LUTs are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it).
@@ -338,7 +340,9 @@ Viewer 4.1's *File → Extended RAW Processing → Extended Hi-Res* runs a camer
 | `capture_one/` | Capture One profile generation, synthetic chart, measurement and comparison |
 | `camera_raw/` | Camera Raw table format, DCP read/write, profile generation, measurement and comparison |
 | `dxo/` | DxO PhotoLab model of the LUT input (`dxo_model.py`), probe and base-DCP generation, LUT generation |
-| `docs/` | Research notes in Chinese: pipeline details and the calibration of Capture One, Camera Raw and DxO PhotoLab. Evidence files and test exports mentioned there are not included |
+| `video/` | S-Log3 input transforms, sensor-matrix calibration, video LUT generation and tests |
+| `site/` | Three.js interactive explanation, “一张照片的诞生”, and asset export scripts; deployed to GitHub Pages |
+| `docs/` | [Documentation index](docs/README.md): pipeline, host calibrations, measurement protocols and local research references. Evidence files and test exports are kept outside the repository |
 
 ## Synthetic chart
 

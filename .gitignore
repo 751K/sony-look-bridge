@@ -22,3 +22,6 @@ profiles/dxo/SonyA7M5 Linear Base v3.dcp
 profiles/dxo/SonyA7M5 Test*.dcp
 profiles/dxo/e_a7m5_*
 dxo/body/
+
+# video LUTs are published as release assets (render with video/video_look.py)
+profiles/video/**/*.cube

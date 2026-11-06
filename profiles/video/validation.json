@@ -1,0 +1,219 @@
+{
+  "independent_library": "colour-science 0.4.7",
+  "files": [
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_BW_Rec709_G24_65.cube",
+      "sha256": "bf9d4f8dce2d888158df5d3250608ffc9e00ca5e656f1dd0b354bd092d1a01f5",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL2_Rec709_G24_65.cube",
+      "sha256": "c13748a0adf989f223c2a0c7a5da0aa3633705e14229c2eaa02fc5eaf47ef26e",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL3_Rec709_G24_65.cube",
+      "sha256": "734978dec38b71fe13a4dca9741ad9e41a8db231d62182d720f4926b3f673ad2",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL_Rec709_G24_65.cube",
+      "sha256": "7f63a4894f41d82e38eda87ee22c1d91dd3ea1d6b3f8d5c67139b62f356270af",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_IN_Rec709_G24_65.cube",
+      "sha256": "b4b65c5ee1a698e9508dc1fa7e757d89bf74a2a7429eaa2fa0da962e62df18e9",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_NT_Rec709_G24_65.cube",
+      "sha256": "5b93ad2e1c2eee1f9133093e30bfbed364c3b751ec84e73354ad61949f27720f",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_PT_Rec709_G24_65.cube",
+      "sha256": "d16eb43c4493de9eb1e4b500d7bec0173ca91fa08ed256257bbc981a2ca7070d",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_SH_Rec709_G24_65.cube",
+      "sha256": "49ac47e9d066c943179b5effa838302b592465d855b19cbd7619aa9eb3d620b9",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_ST_Rec709_G24_65.cube",
+      "sha256": "2c7fb667a58708d04df4c3a20c10ed7e0b820e6a48c49b178c2b5fa1b93d3be0",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_Sepia_Rec709_G24_65.cube",
+      "sha256": "ce2aae4a304779d3ca6570bd1eba626825d53523eec52d1be2732d5d186f7347",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_VV2_Rec709_G24_65.cube",
+      "sha256": "f46254c59d69f749450374406c5f927aeffdf20ef470213479c35ef2cbb8db0d",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_VV_Rec709_G24_65.cube",
+      "sha256": "572e9c9c25909e6e7078eb4e14760959a5ae7aa355860e7ae4fad945e2a8e0ec",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_BW_Rec709_G24_65.cube",
+      "sha256": "fec2421ec079026abc48496bdc6c07e7cf5740ae22713512be66783058b419fc",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL2_Rec709_G24_65.cube",
+      "sha256": "9c4cdc2d8901738f1298db6fd96f83ecd623ea6233b86b1954345853f619fe20",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL3_Rec709_G24_65.cube",
+      "sha256": "89b776500384f24dc374af87e09b4dd9e51556e5f0aa6a8f880b5513a5353740",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL_Rec709_G24_65.cube",
+      "sha256": "fbe540d393cba2f14ddde1137d3c731bb92bb3faf55fce3aa2ffe50be27032e8",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_IN_Rec709_G24_65.cube",
+      "sha256": "a20b20daa73a7262ed9b9a0fdec76bc6938ca326899ff52708d337497b688a63",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_NT_Rec709_G24_65.cube",
+      "sha256": "c7e78b68e949a09e4d4d5d8baacf5cee40143c0c1dfac74cec48eb4f2f09245a",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_PT_Rec709_G24_65.cube",
+      "sha256": "b24813cf214b91ee8e0b3c2972212739ece0a181f4b73febed9199f71608e806",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_SH_Rec709_G24_65.cube",
+      "sha256": "6a4f76f32cfe4f7a2e360d91f5d63e017af8533d69ad564000186c344cf46810",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_ST_Rec709_G24_65.cube",
+      "sha256": "f04eceb8f303d7d239e932b646811b5811f504f34aef098b0ad8c60dbbc10210",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_Sepia_Rec709_G24_65.cube",
+      "sha256": "2190a2d58d91488a0b6572483e66762c513d5ba44e1d7bb6adedb7167c1ca8a9",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_VV2_Rec709_G24_65.cube",
+      "sha256": "d59892904f8ad72850af9ce5abc122cc6284ff63a627ba021f8ff6561dbb7fb6",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_VV_Rec709_G24_65.cube",
+      "sha256": "b07bed6548c92ec58474e21abe0b8d6b7bcc6b39523aefa4f95975e2079c8ebb",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    }
+  ],
+  "input_transforms": {
+    "SGamut3": {
+      "matrix_max_abs_error": 7.803348939239285e-11
+    },
+    "SGamut3Cine": {
+      "matrix_max_abs_error": 7.515832400883937e-11
+    }
+  },
+  "cross_gamut": {
+    "BW": {
+      "samples": 12000,
+      "mae_8bit": 0.06163509360904599,
+      "p99_8bit": 0.24640036288674266
+    },
+    "FL": {
+      "samples": 12000,
+      "mae_8bit": 0.10754428748725285,
+      "p99_8bit": 0.9823125932241099
+    },
+    "FL2": {
+      "samples": 12000,
+      "mae_8bit": 0.09096226038916835,
+      "p99_8bit": 0.553272961182285
+    },
+    "FL3": {
+      "samples": 12000,
+      "mae_8bit": 0.09493263598593396,
+      "p99_8bit": 0.646315458653149
+    },
+    "IN": {
+      "samples": 12000,
+      "mae_8bit": 0.07259433600670745,
+      "p99_8bit": 0.356927451799312
+    },
+    "NT": {
+      "samples": 12000,
+      "mae_8bit": 0.09294540237856952,
+      "p99_8bit": 0.4695019935819658
+    },
+    "PT": {
+      "samples": 12000,
+      "mae_8bit": 0.12753536674236662,
+      "p99_8bit": 1.1578536796552519
+    },
+    "SH": {
+      "samples": 12000,
+      "mae_8bit": 0.08600905181618777,
+      "p99_8bit": 0.5252633843975028
+    },
+    "ST": {
+      "samples": 12000,
+      "mae_8bit": 0.11695958638538781,
+      "p99_8bit": 0.9038292874041289
+    },
+    "Sepia": {
+      "samples": 12000,
+      "mae_8bit": 0.103393016422872,
+      "p99_8bit": 0.8565433046205657
+    },
+    "VV": {
+      "samples": 12000,
+      "mae_8bit": 0.15963834251595668,
+      "p99_8bit": 1.7548012372360233
+    },
+    "VV2": {
+      "samples": 12000,
+      "mae_8bit": 0.13808065574063902,
+      "p99_8bit": 1.5682624877736915
+    }
+  }
+}

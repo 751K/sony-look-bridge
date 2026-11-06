@@ -120,6 +120,8 @@ Sony 从 4.00 固件开始为 α1 II 和 α9 III 提供原生 FL2/FL3。表中�
 
 ## 安装使用
 
+**视频 LUT（v2.0.0）**：[Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-a7m5-looks/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip) 使 S-Log3 视频的输出模仿 α7 V 照片 Creative Look 的色调，覆盖全部 12 种外观，输入为 S-Log3 / S-Gamut3 或 S-Gamut3.Cine，输出为 Rec.709 / Gamma 2.4，网格 65³。其中灰位置与常规 S-Log3 LUT 不同：输入按测光 +1⅔ 档（相机显示 +1.7）拍摄的素材设计，18% 灰码值为 547 / 1023 而非 420；输出按照片的影调将 18% 灰置于 0.607，而非约 0.40。见[文件与使用方法](profiles/video/README.md)和[生成原理](docs/video.md)。
+
 以下步骤使用 α7 V 的文件名。各机型 ZIP 内附对应的安装说明。
 
 ### Capture One
@@ -243,11 +245,11 @@ DxO PhotoLab（底座 DCP `SonyA7M5 Linear Base v2`，DCP 曲线 = Adobe，LUT �
 - Capture One 的 *E* 依赖所选影调曲线，配置只在 Linear Response 下有效。
 - Camera Raw 的底座 DCP 将 ForwardMatrix 设为线性 ProPhoto → XYZ D50，影调曲线设为恒等，使 Camera Raw 的工作空间与白平衡后的相机 RGB 一致，避免叠加 Adobe 自身的色彩和影调。
 
-处理管线的最终结论见 [docs/pipeline.md](docs/pipeline.md)（推导过程在它的 git 历史里），各宿主软件的标定见 [docs/capture_one.md](docs/capture_one.md)、[docs/camera_raw.md](docs/camera_raw.md)、[docs/dxo.md](docs/dxo.md)。
+处理管线的当前结论见 [docs/pipeline.md](docs/pipeline.md)，各宿主软件的标定见 [docs/capture_one.md](docs/capture_one.md)、[docs/camera_raw.md](docs/camera_raw.md)、[docs/dxo.md](docs/dxo.md)。完整目录见[文档导航](docs/README.md)，本地实验和验证脚本见[研究资料索引](docs/research.md)。
 
 ## 重新生成
 
-需要：Python 3.11+、`pip install -r requirements.txt`、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312 或 4.1.00.03062**（macOS）。可选：Rust 工具链（`cargo`），用于加速的 `--rust` 解码；NumPy 路径不需要 Rust。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
+需要：Python 3.11+、在选定的 Python 环境中运行 `python3 -m pip install -r requirements.txt`（建议使用虚拟环境）、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312 或 4.1.00.03062**（macOS）。可选：Rust 工具链（`cargo`），用于加速的 `--rust` 解码；NumPy 路径不需要 Rust。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
 
 外观链用到的一些常量表（色相 atan 表、对比度曲线族等）是在运行时从你本机安装的 Edit 里读取的（`sonylook/edit_binary.py`），本仓库不包含任何 Sony 的二进制或数据。脚本会校验 arm64 部分的 SHA-256；4.0.00.10312 与 4.1.00.03062 的表地址不同，`edit_binary.py` 里以 4.0 地址为准、对两者都做了映射。路径可以用 `SONY_EDIT_BINARY` 指定。
 
@@ -322,7 +324,9 @@ Viewer 4.1 的 *文件 → 扩展 RAW 处理 → Extended Hi-Res* 用一个按�
 | `capture_one/` | C1 配置生成、合成色卡、测量与对比                                                          |
 | `camera_raw/`  | ACR 表格式、DCP 读写、配置生成、测量与对比                                                   |
 | `dxo/`         | DxO PhotoLab 的 LUT 输入模型（`dxo_model.py`）、探针和底座 DCP 生成、LUT 生成                      |
-| `docs/`        | 研究记录：处理链细节、C1、ACR 和 DxO 的标定过程。文中提到的证据文件、测试导出不在本仓库                               |
+| `video/`       | S-Log3 输入转换、传感器矩阵标定、视频 LUT 生成和测试 |
+| `site/`        | Three.js 交互讲解网页“一张照片的诞生”和资源导出脚本，通过 GitHub Pages 部署 |
+| `docs/`        | [文档导航](docs/README.md)：处理链、宿主标定、测量方法与本地研究资料索引。原始证据文件和测试导出保存在仓库之外 |
 
 ## 说明
 
