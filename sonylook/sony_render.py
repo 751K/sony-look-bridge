@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-"""End-to-end reference renderer: Sony front end + bit-verified Sony look chain.
+"""Preview renderer and reusable Sony look chain; full decoding is in sony_decode.py.
 
-    RAW --(raw-0x7310 black)*0x7311*WB_RGGBLevels*(0x7809/256)/2^19 --ITP--> --GeoCorr(0x7984/0x7980)--> (front_end_sony)--> camera RGB (int16 scale)
+    RAW --black/WB/scale + CFA block average + optional DRO/GeoCorr--> camera RGB
         --LinearMatrix16(0x780f, works directly on WB'd camera RGB)--> --MainGamma(0x7805/0x7806)-->
         --RGB2YCC(0x7842+0x7844, 0x7801)--> --AreaComp--> --ChromaSuppress(0x787e-0x7881)-->
         --YGamma(0x780c/d knee, 0x780e gain)--> --YCC2RGB--> [Marble] --> [Effect: BW / Sepia only]
         --> 14-bit encoded RGB in the output space (sRGB, or AdobeRGB via LM16 output_mode 1)
-    optional, both bit-exact: RawNR on the raw before ITP (sony_rawnr.py, setting 0x801e = 1) and
-    Marble after YCC2RGB (sony_marble.py, 0x801e = 1 or 0x901c != 0); both are spatial, never in LUTs.
+    Look also supports optional Sharpness/Spica, Marble, ToneCurve and ShadeCorrection.
+    The full decoder wires RawNR and ITP before this chain; spatial stages never enter LUTs.
 
 All look parameters come from the ARW itself (arw_looks.py); constant tables from the user's own
 Imaging Edge Edit install (edit_binary.py).
-Not Sony: the demosaic interpolation (CFA samples are block-averaged instead) and SSCS (near-clip
-highlights). YNR and the YCC NR task FUN_1000b83e8 are not inserted for this camera (README 10.15).
+The preview front end block-averages CFA samples instead of running ITP demosaicing.
+SSCS is the ported Sony stage and runs when its parameters are supplied to Look.
+The full decoder includes ITP and SSCS; see docs/pipeline.md. YNR and the YCC NR
+task FUN_1000b83e8 are not inserted for this camera.
 
 usage: sony_render.py ARW LOOK [LOOK ...] [--scale N] [--out DIR]
 """

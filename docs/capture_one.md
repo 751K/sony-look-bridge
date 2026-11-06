@@ -1,24 +1,28 @@
-# Sony A7M5 Creative Look → Capture One 输入配置（原型）
+# Sony Creative Look → Capture One 输入配置
 
-> 研究记录，按时间顺序保留了当时的推断和更正。文中提到的测试导出、`c1_test/`、`photo_test/`、`chart/` 测量结果、REA 证据和反编译文件属于原研究工作区，不在本仓库中；脚本名和用法以仓库根目录 README 为准。
+原始导出和实验脚本在本地 `sony/analysis/c1/`，见[研究资料索引](research.md)。安装步骤见[中文 README](../README.zh-CN.md)。
+
+## 当前状态
+
+当前配置为 65³ ICC，包含 SSCS，输入模型使用合成色卡测得的 `capture_one/c1_encoding_table.json`。当前 ST 成片对比见[测量说明](measurements.md#current-readme-figure)。下文保留 2026-10-16 的标定记录，当时尚未加入 SSCS，FL2/FL3 使用 Fade 0；当前配置使用 Fade 1。
 
 ## 原理
 
-- C1 送进相机输入 ICC 的数据是**已做白平衡、按 γ1.8 编码的相机 RGB**，输出要求是 Lab（D50）。证据来自 C1 自带的 `SonyA7M5-ProStandard.icm`：
-  - 格式为 ICC v2.4 scanner 类，A2B0 是 lut16：33³ 网格，每通道 1025 点输入曲线。
-  - 灰轴输入 v 对应 Y = v^1.8，且 a = b = 0。
-- Sony 外观链的输入同样是白平衡后的相机 RGB（无相机矩阵），输出为 sRGB 编码。外观链包括 LM16 0x780f、MainGamma、RGB2YCC、AreaComp、ChromaSuppress、YGamma、YCC2RGB，都是逐像素运算，并已逐位验证（`../reverse/pixel_pipeline`）。
-- 因此每个网格节点的计算为：`v → Sony 线性 = 8183.6·v^1.8 → 外观链 → sRGB → Lab D50`。
+- C1 送进相机输入 ICC 的是**已白平衡、经内部编码 E 的相机 RGB**，输出要求是 Lab D50。三个通道共用同一条一维曲线，暗部近似线性、高光逐渐压缩。早期从自带配置灰轴推断出的 γ1.8 假设已被探针测量推翻。
+- 每个网格节点的计算为：`v → E⁻¹(v) → Sony 线性相机 RGB → SSCS → 外观链 → sRGB → Lab D50`。E⁻¹ 在 log 域插值并按端点斜率外推。
+- 外观链包含 LM16、MainGamma、RGB2YCC、AreaComp、ChromaSuppress、YGamma、YCC2RGB 和 BW/SE 的 Effect。映射使用相机默认褪色值：FL2/FL3 = 1、IN = 3、SH = 6，其他色彩滑块为 0。
 - 在 C1 里选这个 ICC，并把曲线设为 **Linear Response**，显示出来的就是外观的 sRGB 结果。
-- 唯一的特例：LM16 选色相时会先对像素做 3 抽头水平模糊，LUT 里改用像素自身的值。两者在大面积纯色上完全相同。
+- LM16 选色相时可先做水平 `[1 8 14 8 1]/32` 低通；LUT 使用像素自身的颜色。空间阶段不进入配置，见[处理管线](pipeline.md)。
 
 ## 文件
 
-- `c1_look_profile.py`：生成 12 种外观的 ICC，放在 `profiles/SonyA7M5-Look-*.icc`。默认 65³ 网格、lut16，输入形状曲线为 s = √v。
-- `validate_profiles.py`：离线验证。
-- `reference/`：C1 自带 A7M5 配置和曲线的副本，仅用于分析格式。
+- `capture_one/c1_look_profile.py`：生成 12 种外观的 ICC，放在 `profiles/capture_one/SonyA7M5-Look-*.icc`。默认 65³ 网格、lut16，每通道 1025 点输入形状曲线 `s = √v`，用于加密暗部采样；它不是宿主编码 E。
+- `capture_one/measure_chart.py`、`fit_c1_encoding.py`：色卡测量与输入模型拟合。
+- `validate_profiles.py`、`reference/`、`curves/` 及照片编码旧表 `c1_encoding_table_photo.json` 在本地研究目录。
 
 ## 离线验证（DSC03591，scale 4，8 位单位 MAE）
+
+以下为早期原型的离线结果，使用逐像素外观链。
 
 | | ST | FL2 | FL3 |
 | --- | --- | --- | --- |
@@ -65,7 +69,7 @@
 
 - **MAE 1.17**，p95 3.4，偏差 (+0.15, +0.63, +1.09)。之前的照片测试是 5.3。
 - 各亮度段的偏差都在约 ±1 级以内，只有最暗段的蓝通道 +2.2。
-- 参照：逐像素外观链对 Edit 是 0.90；完整解码器（加入 ITP、锐化/Spica、Marble 后）对 Edit 是 **0.08**（同样的 8× 口径，见 README）。因此 C1 多出的约 1.1 来自 C1 自己的去马赛克、锐化等与 Sony 不同的处理。
+- 参照：逐像素外观链对 Edit 是 0.90；后续完整解码器加入 ITP、锐化/Spica、Marble 后降至 **0.08**（8×，见[测量说明](measurements.md#archived-validation-results)）。
 
 随后又用 FL、FL2、FL3 各导出一张（`c1_test/final_FL_vs_edit.json`）。文件名没有标明外观，按与各外观预测图的误差判定，每张都能明确对上（约 1.2 对 2.8–6.5）：
 
@@ -90,6 +94,6 @@
 
 ## 用法
 
-1. 运行 `c1_look_profile.py` 生成配置，复制到 `~/Library/ColorSync/Profiles/`，然后重启 C1。
+1. 从仓库根目录运行 `python3 capture_one/c1_look_profile.py /path/to/A7M5.ARW`，把 `profiles/capture_one/SonyA7M5-Look-*.icc` 复制到 `~/Library/ColorSync/Profiles/`，然后重启 C1。
 2. 在 Base Characteristics 中，ICC Profile 选 `SonyA7M5 Look XX`，Curve 选 **Linear Response**。
 3. 曝光、白平衡等调整照常在 C1 里做。配置只替代 Sony 的外观色彩，不包含 DRO、锐化、降噪。

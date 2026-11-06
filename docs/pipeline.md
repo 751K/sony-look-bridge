@@ -1,6 +1,6 @@
 # Sony Imaging Edge Edit 的 RAW 处理管线（A7M5）
 
-本文只记录最终结论：各阶段做什么、参数从哪里来、移植在哪里、怎样验证。推导过程和被推翻的中间结论都在 git 历史里（2026-10-18 之前的版本）。文中的 `verify_*.py` 脚本、模拟器和证据文件属于研究工作区，不在本仓库。
+本文记录各阶段的作用、参数来源、实现和验证结果。推导过程保存在 git 历史及本地研究目录，`verify_*.py` 脚本和报告的位置见[研究资料索引](research.md)。
 
 - **目标程序**：Imaging Edge Edit 4.0.00.10312，arm64 切片 SHA-256 `a03b2449…5da442`。4.1.00.03062 的颜色链与之相同（§10.2）；`sonylook/edit_binary.py` 以 4.0 地址为准，并为 4.1 的常量表地址做了映射。
 - **验证方式**：在 Unicorn 模拟器里运行 Edit 的原始 ARM64 函数，使用 Sony 自己的 ARW 解析器和对象，与 Python 移植逐位比较；整图再与 Edit 的导出图比较。
@@ -10,7 +10,7 @@
 
 | 阶段 | 移植 | 默认运行 | 进入配置文件 | 节 |
 | --- | --- | --- | --- | --- |
-| 前端：黑电平、缩放、白平衡（全部模式） | `sony_frontend.py` | 是 | 否（宿主软件负责） | §2 |
+| 前端：黑电平、缩放、白平衡（自定义模式数据来源待确认） | `sony_frontend.py` | 是 | 否（宿主软件负责） | §2 |
 | RawNR | `sony_rawnr.py` | 按设置 | 否 | §3.1 |
 | ITP 去马赛克 | `sony_itp.py` | 是 | 否 | §3.2 |
 | DRO（ZcTaskVatr） | `sony_dro.py` | 按设置 | 否 | §3.3 |
@@ -31,7 +31,7 @@
 
 不运行、也没有移植的阶段：TrinityLPF（需要存储类型 4）、YNR（dev+0x22c = 0）、`FUN_1000b83e8` 降噪任务（本机型条件不满足）、ZcTaskDemosaic（只用于 GRBG 传感器）。
 
-**与 Edit 导出图的对照**（DSC03591，Edit 保存过的会话设置，ST 外观）：全图 7008×4672 的 8 位 MAE **0.125**（sRGB），AdobeRGB 为 **0.133**。10 块全分辨率裁块（含 4 块最亮区域）：ST 0.153、FL2 0.138、FL3 0.138。按 README 的 8× 缩小口径（整图）：ST 0.078、FL2 0.082、FL3 0.093。其余 9 种外观没有 Edit 参考图，只验证了与 Sony 函数逐位一致。
+**与 Edit 导出图的对照**（DSC03591，Edit 保存过的会话设置，ST 外观）：全图 7008×4672 的 8 位 MAE **0.125**（sRGB），AdobeRGB 为 **0.133**。10 块全分辨率裁块（含 4 块最亮区域）：ST 0.153、FL2 0.138、FL3 0.138。2026-10-25 的整图重测在 8× 缩小后为 ST 0.078、FL2 0.082、FL3 0.093；测量条件见[历史测量说明](measurements.md#archived-validation-results)。上述误差单位为 8 位 RGB MAE。其余 9 种外观没有 Edit 参考图，只验证了与 Sony 函数逐位一致。
 
 **仍未完成**：3DLut 表的构建链；自定义白平衡（模式 0xd）的数据来源；非 RGGB 传感器；更多参考图（其余外观、NR/DRO 开启、调过滑块、高 ISO）。
 
@@ -411,10 +411,10 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 
 | 后端 | 全流程 |
 | --- | --- |
-| NumPy | 约 45 s（ITP 6、GeoCorr 8、外观链与空间处理约 30 s） |
-| Rust（`--rust`） | 约 3.5 s |
+| NumPy | 42.1 s |
+| Rust（`--rust`） | 3.2 s |
 
-RawNR、DRO 和 Marble 的色度路径目前只有 NumPy 实现，打开时各增加约 5–9 s。
+测量环境为 M4、A7M5 7008×4672、NR/DRO 关闭，详见 [Rust README](../rust/README.md#measured-on-an-m4-a7m5-7008x4672-nrdro-off)。RawNR、DRO 和 Marble 的色度路径目前只有 NumPy 实现。
 
 ### 9.4 Rust 核心（`rust/sonylook_core`）
 
@@ -437,10 +437,10 @@ C ABI 动态库，由 `sonylook/fused_rust.py` 通过 ctypes 加载（`SONYLOOK_
 
 4.0 的 10021 个函数中有 9683 个在 4.1 里完全相同。本文引用的函数中，改动只涉及结构体偏移（解码器对象增大约 0x888 字节）、ARW 解析器的新机型支持、DRO 内置强度表扩展到 0–150（Lv6–8；ARW 自带 0x781b/0x781c 时不用这段），以及取色白平衡新增的两个辅助函数（未验证）。外观结构、默认参数表、白平衡主函数和全部颜色阶段与 4.0 相同。
 
-## 11. 与配置文件（Capture One / Camera Raw）有关的结论
+## 11. 与配置文件（Capture One / Camera Raw / DxO）有关的结论
 
 - **进入配置文件**的是逐像素阶段：SSCS、LinearMatrix16、MainGamma、RGB2YCC、AreaComp、ChromaSuppress、YGamma、YCC2RGB、Effect。前端（白平衡、去马赛克）由宿主软件完成；空间阶段（RawNR、DRO、GeoCorr、Sharpness、Spica、Marble）不进入。
 - 配置文件按相机默认参数渲染：褪色 FL2/FL3 = 1、IN = 3、SH = 6，其余滑块为 0。
-- **SSCS**：在两家实际导出上都降低了亮区色度误差（Capture One 0.64 → 0.16，Camera Raw 0.61 → 0.33），从 v1.1.0 起包含。
+- **SSCS**：在 C1 / ACR 实际导出上都降低了亮区色度误差（Capture One 0.64 → 0.16，Camera Raw 0.61 → 0.33），从 v1.1.0 起包含；DxO 配置同样包含 SSCS。测量使用约 5% 的亮区掩码，色度分量指标的定义见[测量说明](measurements.md#interpreting-earlier-scores)。
 - **Camera Raw 亮区偏亮约 0.5–0.7 级**：来自 Camera Raw 按画面内容自适应的高光压缩，固定的 RGBTable 无法修正。
-- 宿主软件各自的标定见 [capture_one.md](capture_one.md) 和 [camera_raw.md](camera_raw.md)。
+- 宿主软件各自的标定见 [Capture One](capture_one.md)、[Camera Raw](camera_raw.md) 和 [DxO PhotoLab](dxo.md)。

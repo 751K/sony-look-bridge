@@ -5,12 +5,14 @@ Pipeline, in the builder's order:
 
     RAW -> [RawNR] -> ITP demosaic -> [DRO/Vatr] -> GeoCorr -> SSCS
         -> LinearMatrix16 + MainGamma -> RGB2YCC -> AreaComp -> ChromaSuppress
-        -> [Sharpness] -> YGamma -> [Spica] -> YCC2RGB -> [Marble] -> [Effect]
+        -> [Sharpness] -> YGamma -> [HueSaturation] -> [Spica] -> YCC2RGB
+        -> [Marble] -> [Effect] -> [ToneCurve] -> [ShadeCorrection]
 
 Every stage is the bit-exact port in this directory.  Optional stages follow the
 develop settings when Edit saved the ARW (sonylook/develop_settings.py); for a
-camera-original ARW they default off (except SSCS, which the builder always
-inserts).  Edit's creative-look sliders are applied too: contrast / highlights /
+camera-original ARW they follow Edit's initial values derived from the camera's
+NR, DRO, lens settings and the look's default clarity. SSCS is enabled unless
+explicitly disabled. Edit's creative-look sliders are applied too: contrast / highlights /
 shadows in MainGamma's second curve family, hue + saturation in ZcTaskHueSaturation,
 black / white level in the YGamma pixel path, Fineness in Sharpness, and the
 exposure setting in both the WB gains and the ChromaSuppress thresholds
@@ -23,8 +25,8 @@ the A7M5, as uint16 0..16383 in the requested output color space
 ("srgb" or "adobe", LinearMatrix16 output_mode 0/1).  sony_export.write_image()
 turns that into Edit's 8/16-bit TIFF or JPEG with the bundled ICC profile.
 
-Not ported (and not running for the current files): ToneCurve, ShadeCorrection,
-3DLut construction, the 4.1 picker helpers.
+Not ported: 3DLut construction, the 4.1 picker helpers and non-RGGB demosaicing.
+ToneCurve and ShadeCorrection are ported and run when their settings are active.
 """
 from __future__ import annotations
 

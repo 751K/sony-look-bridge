@@ -1,6 +1,6 @@
 # DxO PhotoLab 10.1 适配
 
-> 最终结论。逆向与实验过程记录在研究工作区，不在本仓库。数值都来自 `chart/SonyChart.ARW` 的导出测量和 PhotoLab 运行时读取。
+本文记录 A7M5 在 macOS PhotoLab 10.1 的适配，LUT Grading 需要 Elite 版。数值来自合成色卡导出和 PhotoLab 运行时测量。实验在本地 `sony/analysis/dxo/`，见[研究资料索引](research.md)。
 
 ## 1. 结构
 
@@ -20,6 +20,8 @@ LUT 之后对色域内的颜色没有任何处理，所以 LUT 输出就是导�
 | LUT | LUT 色彩空间 **ProPhoto RGB**，强度 100 |
 | 其他 | 以"6 - 无校正"为起点：Smart Lighting、ClearView、对比度、镜头校正关闭 |
 | 探针导出 | TIFF 16 位，ProPhoto RGB（嵌入 ROMM RGB），不勾 Preserve color details |
+
+上表关闭镜头校正是为了标定。正常使用可重新开启畸变、色差和镜头锐度校正；它们不改变 LUT 的逐像素颜色映射，但会影响几何和细节对比。PhotoLab 按路径引用 DCP 和 LUT，安装时应保存在固定目录，完整步骤见[中文 README](../README.zh-CN.md#dxo-photolab)。
 
 底座 v2：
 - ColorMatrix1/2 用 Adobe Standard 的；

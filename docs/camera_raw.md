@@ -1,6 +1,10 @@
-# Sony A7M5 Creative Look → Camera Raw 配置（进行中）
+# Sony Creative Look → Camera Raw / Lightroom 配置
 
-> 研究记录，按时间顺序保留了当时的推断和更正。文中提到的测试导出、`c1_test/`、`photo_test/`、`chart/` 测量结果、REA 证据和反编译文件属于原研究工作区，不在本仓库中；脚本名和用法以仓库根目录 README 为准。
+测试导出和原始实验在本地 `sony/analysis/acr/`，见[研究资料索引](research.md)。安装步骤见[中文 README](../README.zh-CN.md)。
+
+## 当前状态
+
+当前配置是线性底座 DCP + **64³** XMP RGBTable，包含 SSCS，已通过 ACR 导出验证。当前 ST 成片对比见[测量说明](measurements.md#current-readme-figure)。下文保留 2026-10-16 的标定记录，当时尚未加入 SSCS，FL2/FL3 使用 Fade 0；当前配置使用 Fade 1。
 
 ## 思路
 
@@ -41,7 +45,7 @@ ACR 设置：PV 15.4，白平衡"拍摄时设置"，镜头校正和色差校正�
   - 白平衡与 Sony 一致，灰阶三通道相等。
   - 中间调严格线性：x = v^1.8 = Sony 线性 / 6422。线性值 1500 以上有肩部压缩，传感器饱和点对应 v = 0.905。线性值 5 以下有轻微的暗部压暗。
   - **压缩是保色相的**：最大和最小通道走同一条 1D 曲线，中间通道在线性空间保持比例，同 DNG SDK RefBaselineRGBTone。这个模型对 264 个色块的误差：平均 0.04、最大 0.37 级（8 位）。只用逐通道模型时，饱和高光的误差可达 19 级。
-- 外观表（`acr_look.py`）的每个节点：先用 `inverse(v)` 反算出 Sony 线性值，再走外观链，然后 sRGB → ProPhoto γ1.8。
+- 当前外观表（`camera_raw/acr_look.py`）的每个节点：先用 `inverse(v)` 反算 Sony 线性值并钳至传感器饱和点，再依次运行 SSCS、外观链，然后 sRGB → ProPhoto γ1.8。
 
 照片上的离线插值误差（scale 4，8 位 MAE，四面体插值 / 三线性插值）：
 
@@ -51,7 +55,7 @@ ACR 设置：PV 15.4，白平衡"拍摄时设置"，镜头校正和色差校正�
 | 48 | 0.26 / 0.32 | — | 0.61 / 0.66 |
 | 64 | 0.20 / 0.24 | — | 0.46 / 0.51 |
 
-Adobe 自带配置最大只用到 32；ACR 是否接受 64 还需要用 `Look ST g64` 实测。
+上述 Adobe 配置样本最大网格为 32；`Look ST g64` 实测确认 ACR 接受 64³，见下一节。
 
 ## 色卡验证（2026-10-16，外观导出 `../c1/chart/SonyChart_{ST,STg64,FL2,FL3}.TIF`）
 
@@ -71,17 +75,19 @@ Adobe 自带配置最大只用到 32；ACR 是否接受 64 还需要用 `Look ST
 - **必须关闭"使用配置文件校正"**。开着时 ACR 会做暗角补偿：中心与 Edit 的亮度比为 1.004，四角为 1.2–1.27，整体偏亮约 3 级。Edit 没有做暗角补偿。
 - 关闭校正后桶形畸变还在，仿射配准对不齐，所以 `compare_acr_export.py` 改用三次多项式变形（约 100 个点，残差 1.9 px）。
 
-| 外观 | ACR vs Edit | 对照：C1 vs Edit | 外观链 vs Edit |
+| 外观 | ACR vs Edit | 对照：C1 vs Edit | 逐像素链 vs Edit |
 | --- | --- | --- | --- |
 | ST | **1.27**（p95 3.3，偏差 +0.5/+0.7/+0.6） | 1.17 | 0.90 |
 | FL2 | **1.15** | 1.05 | 0.89 |
 | FL3 | **1.27** | 1.21 | 1.00 |
 
+加入空间处理后，完整解码器对 Edit 的 ST / FL2 / FL3 误差为 0.078 / 0.082 / 0.093（8×），见[测量说明](measurements.md#archived-validation-results)。
+
 - 和 C1 的水平相当。G 通道整体偏 +0.5–0.8 级。中间调主要是 Edit 自身偏暗（见下文）；亮区是 Camera Raw 按画面自适应的高光压缩（`pipeline.md` §11）。比外观链多出的误差来自 ACR 自己的去马赛克、锐化（默认 40）和降噪。
 
 ## 用法
 
-1. `acr_look.py --write` 生成外观。复制 `profiles/SonyA7M5 Linear Base.dcp` 到 `~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/`，复制 `profiles/SonyA7M5 Look *.xmp` 到 `~/Library/Application Support/Adobe/CameraRaw/Settings/`，然后重启 Photoshop / Lightroom。
+1. 从仓库根目录运行 `python3 camera_raw/acr_look.py /path/to/A7M5.ARW --write`，同时生成底座 DCP 和 XMP。复制 `profiles/camera_raw/SonyA7M5 Linear Base.dcp` 到 `~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/`，复制 `profiles/camera_raw/SonyA7M5 Look *.xmp` 到 `~/Library/Application Support/Adobe/CameraRaw/Settings/`，然后重启 Photoshop / Lightroom。不加 `--write` 不写配置；`--eval` 可评估插值误差。
 2. 在配置文件浏览器的 "Sony A7M5" 组里选外观。不要叠加别的影调曲线；如果要和 Sony 原片一致，关闭"使用配置文件校正"里的暗角补偿。
 3. 曝光、白平衡照常调整。配置只替代 Sony 的外观色彩，不包含 DRO、锐化、降噪。
 

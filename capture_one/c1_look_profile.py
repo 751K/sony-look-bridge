@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """Build Capture One input ICC profiles that reproduce Sony Creative Looks (A7M5).
 
-Capture One feeds an input profile with white-balanced camera RGB, gamma 1.8 encoded
-(its own SonyA7M5-*.icm: neutral input v gives Y = v^1.8, a = b = 0), and expects Lab (D50).
-Sony's look chain (pixel_pipeline: LM16 0x780f -> MainGamma -> RGB2YCC -> AreaComp ->
-ChromaSuppress -> YGamma -> YCC2RGB, all per-pixel and bit-verified) takes white-balanced
-camera RGB on its ITP scale and returns display-encoded RGB (sRGB, as Edit exports).
+With Linear Response, Capture One feeds the input ICC white-balanced camera RGB
+through a measured encoding E and expects Lab D50. Each profile node is:
 
-So each profile node is   v -> Sony linear = SCALE * v^1.8 -> look -> sRGB -> XYZ D50 -> Lab,
-and Capture One with the "Linear Response" curve shows the look's sRGB result.
-SCALE: Sony G = 0.515625 (raw - 512); C1 normalises (raw - black) / (white - black) = /15871,
-so SCALE = 0.515625 * 15871 = 8183.6 was the first assumption. The real encoding was measured with a
-probe profile on the synthetic chart (fit_c1_encoding.py -> c1_encoding_table.json) and is used when present: roughly
-linear in the shadows (v ~ lin / 1950) and compressive above, not a gamma-1.8 power law.
+    v -> E inverse -> Sony linear camera RGB -> SSCS -> pointwise look
+      -> sRGB -> XYZ D50 -> Lab
+
+The synthetic-chart calibration (fit_c1_encoding.py -> c1_encoding_table.json)
+is roughly linear in the shadows and compressive above. It supersedes the early
+gamma-1.8 assumption; that assumption remains only as the fallback when the
+calibration file is absent. The ICC's sqrt input shaper is separate from E.
+See docs/capture_one.md for the calibration and validation conditions.
 
 usage: c1_look_profile.py ARW [--grid 65] [--looks Standard,FL2,...] [--out DIR]
        c1_look_profile.py --probes [--out DIR]     (calibration profiles, no ARW needed)

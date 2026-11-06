@@ -1,5 +1,7 @@
 # Measurement notes
 
+Local exports, experiments and verification scripts are listed in the [research index](research.md).
+
 ## Current README figure
 
 The current Chinese and English figures are generated from real 16-bit TIFF exports of DSC03591 using ST. Image panels and residual maps are rebuilt from those TIFFs, rather than extracted from the previous comparison JPEG. Full source hashes, fitted displacements, profile identity checks and unrounded scores are in [the measurement manifest](../images/compare_ST.measurements.json).

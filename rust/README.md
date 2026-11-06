@@ -96,3 +96,8 @@ the `debug_stage` argument of `marble_slab_u16` expose intermediate planes for
 that comparison; they are not used by the decode path.  Files with NR enabled
 take Marble's chroma path, which is not ported: the FFI returns 0 and the
 caller uses NumPy for that slab.
+
+Verification scripts and reports live in the separate local research workspace,
+including `analysis/reverse/pixel_pipeline/verify_marble_rust.py` and the
+`verify_rust_*.py` checks. Locations and environment setup are listed in the
+[research index](../docs/research.md).
