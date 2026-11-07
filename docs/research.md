@@ -1,10 +1,10 @@
 # 本地研究资料与验证索引
 
-代码在 `sony-a7m5-looks/`，原始 RAW、宿主导出、实验脚本和验证报告在同级 `sony/`。目录如下：
+代码在 `sony-look-bridge/`，原始 RAW、宿主导出、实验脚本和验证报告在同级 `sony/`。目录如下：
 
 ```text
 Code/
-├── sony-a7m5-looks/          当前代码、生成配置、公开文档
+├── sony-look-bridge/         当前代码、生成配置、公开文档
 └── sony/
     ├── DSC03591.ARW         A7M5 测试输入
     ├── Test/               其他测试素材

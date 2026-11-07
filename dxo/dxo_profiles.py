@@ -51,7 +51,7 @@ def write_base2(name=BASE2_NAME, offset=None):
            ("CalibrationIlluminant2", 3, a["CalibrationIlluminant2"]),
            ("ForwardMatrix1", 10, fm), ("ForwardMatrix2", 10, fm),
            ("ProfileToneCurve", 11, [0.0, 0.0, 1.0, 1.0]), ("ProfileEmbedPolicy", 4, [0]),
-           ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "sony-a7m5-looks (not an Adobe profile)")]
+           ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "Sony Look Bridge (not an Adobe profile)")]
     if offset is not None:
         ent.append(("BaselineExposureOffset", 10, [offset]))
     path = OUT / f"{name}.dcp"

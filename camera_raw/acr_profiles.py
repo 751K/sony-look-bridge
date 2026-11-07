@@ -44,7 +44,7 @@ def write_base():
            ("CalibrationIlluminant2", 3, a["CalibrationIlluminant2"]),
            ("ForwardMatrix1", 10, PROPHOTO_TO_XYZ), ("ForwardMatrix2", 10, PROPHOTO_TO_XYZ),
            ("ProfileToneCurve", 11, [0.0, 0.0, 1.0, 1.0]), ("ProfileEmbedPolicy", 4, [0]),
-           ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "sony-a7m5-looks (not an Adobe profile)")]
+           ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "Sony Look Bridge (not an Adobe profile)")]
     path = OUT / f"{BASE_NAME}.dcp"
     dcp.write(path, ent)
     return path
