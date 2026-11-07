@@ -28,6 +28,7 @@ import dcp  # noqa: E402
 OUT = HERE.parent / "profiles" / "camera_raw"
 ADOBE_STD = Path("/Library/Application Support/Adobe/CameraRaw/CameraProfiles/Adobe Standard/Sony ILCE-7M5 Adobe Standard.dcp")
 MODEL = "Sony ILCE-7M5"
+PREFIX = "SonyA7M5"                  # file / profile name prefix (camera_packs/build_packs.py sets it per camera)
 BASE_NAME = "SonyA7M5 Linear Base"
 GROUP = "Sony A7M5"
 PROPHOTO_TO_XYZ = np.array([[0.7976749, 0.1351917, 0.0313534],
@@ -124,10 +125,10 @@ XMP = """<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 7.0-c000 1.
 def write_look(name, values, **kw):
     data = table_bytes(values, **kw)
     md5 = T.fingerprint(data)
-    uuid = hashlib.md5(("SonyA7M5/" + name).encode()).hexdigest().upper()
-    path = OUT / f"SonyA7M5 {name}.xmp"
+    uuid = hashlib.md5((PREFIX + "/" + name).encode()).hexdigest().upper()
+    path = OUT / f"{PREFIX} {name}.xmp"
     path.write_text(XMP.format(uuid=uuid, model=MODEL, base=BASE_NAME, md5=md5, table=T.encode(data),
-                               name=f"SonyA7M5 {name}", group=GROUP))
+                               name=f"{PREFIX} {name}", group=GROUP))
     return path
 
 

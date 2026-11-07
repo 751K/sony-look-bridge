@@ -58,34 +58,36 @@ Each listed pack covers Capture One, Adobe Camera Raw / Lightroom and DxO PhotoL
 | &nbsp; | ZV-1 II | ❌ |
 | &nbsp; | ZV-1F | ❌ |
 
-Click a camera name in the table to download its ZIP. All 17 packs and release notes are on the [v1.3.0 release page][release], with SHA-256 hashes in the [checksum file][checksums]. Each ZIP includes profiles for all three applications and installation instructions.
+Click a camera name in the table to download its ZIP. All 17 packs and release notes are on the [v2.1.0 release page][release], with SHA-256 hashes in the [checksum file][checksums]. Each ZIP includes profiles for all three applications and installation instructions.
 
 The α7 V, α7R VI, FX2 and RX1R III packs contain 12 native looks. The other packs contain 10 native looks plus FL2 and FL3 ported from α7 V.
 
 The new camera packs have passed file checks and use the α7 V input calibration. ST and FL2 have been tested in ACR on the α7C II. The other new cameras await in-app validation. The project currently has no dedicated packs for unlisted models.
 
+All packs use the daylight look colour parameters (RGB2YCC blend weights `0 1024 0 0`). The camera blends a warm-light and a daylight parameter set according to each photo's as-shot white balance (see [pipeline §4.3](pipeline.md#43-rgb2ycc-与-ycc2rgb0x1000ee0cc0x1000fb500)), so photos taken under warm light will differ in colour between these profiles and Edit. All packs are built by `camera_packs/build_packs.py`.
+
 The α7S III and FX3 samples contain four SSCS weights of 255. Their packs use the default weights 32/64/32, with highlight colours awaiting measurement. A ZV-1 II RAW sample is available, but its older colour matrix pipeline requires a rendering path the generator has yet to implement.
 
 Sony added native FL2/FL3 to the α1 II and α9 III in firmware 4.00. Their packs use RAW samples from firmware 2.00 and 1.00, respectively. [α1 II firmware notes][a1ii-fw] · [α9 III firmware notes][a9iii-fw]
 
-[sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A1-Creative-Looks.zip
-[sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A1-II-Creative-Looks.zip
-[sony-a9-iii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A9-III-Creative-Looks.zip
-[sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7-IV-Creative-Looks.zip
-[sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7-V-Creative-Looks.zip
-[sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7R-V-Creative-Looks.zip
-[sony-a7r-vi]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7R-VI-Creative-Looks.zip
-[sony-a7s-iii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7S-III-Creative-Looks.zip
-[sony-a7c-ii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7C-II-Creative-Looks.zip
-[sony-a7cr]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7CR-Creative-Looks.zip
-[sony-a6700]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A6700-Creative-Looks.zip
-[sony-fx2]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-FX2-Creative-Looks.zip
-[sony-fx3]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-FX3-Creative-Looks.zip
-[sony-fx30]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-FX30-Creative-Looks.zip
-[sony-rx1r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-RX1R-III-Creative-Looks.zip
-[sony-zv-e1]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-ZV-E1-Creative-Looks.zip
-[sony-zv-e10-ii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-ZV-E10-II-Creative-Looks.zip
-[release]: https://github.com/751K/sony-look-bridge/releases/tag/v1.3.0
-[checksums]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/SHA256SUMS.txt
+[sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-Creative-Looks.zip
+[sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-II-Creative-Looks.zip
+[sony-a9-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A9-III-Creative-Looks.zip
+[sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7-IV-Creative-Looks.zip
+[sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7-V-Creative-Looks.zip
+[sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7R-V-Creative-Looks.zip
+[sony-a7r-vi]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7R-VI-Creative-Looks.zip
+[sony-a7s-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7S-III-Creative-Looks.zip
+[sony-a7c-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7C-II-Creative-Looks.zip
+[sony-a7cr]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7CR-Creative-Looks.zip
+[sony-a6700]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A6700-Creative-Looks.zip
+[sony-fx2]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX2-Creative-Looks.zip
+[sony-fx3]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX3-Creative-Looks.zip
+[sony-fx30]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX30-Creative-Looks.zip
+[sony-rx1r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-RX1R-III-Creative-Looks.zip
+[sony-zv-e1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-ZV-E1-Creative-Looks.zip
+[sony-zv-e10-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-ZV-E10-II-Creative-Looks.zip
+[release]: https://github.com/751K/sony-look-bridge/releases/tag/v2.1.0
+[checksums]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/SHA256SUMS.txt
 [a1ii-fw]: https://www.sony.com/electronics/support/software/00349486
 [a9iii-fw]: https://www.sony.com/electronics/support/software/00341218

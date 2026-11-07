@@ -8,7 +8,7 @@ Sony Creative Look 的照片配置与视频 LUT
 
 本仓库通过逆向Sony Image Edit，把 Sony α7 V（ILCE-7M5）的 12 种 Creative Look移植成 Capture One、Camera Raw / Lightroom 和 DxO PhotoLab 的配置，并在 α7 V 样张上通过对比检验，色度上基本没有差异。
 
-v1.3.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款软件配置的 ZIP。
+v2.1.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款软件配置的 ZIP。
 
 α7 V 还提供视频 LUT，将照片外观应用到 S-Log3 素材。
 
@@ -29,25 +29,25 @@ v1.3.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款
 
 α7 V、α7R VI、FX2、RX1R III 包含 12 种原生外观，其余机型包含 10 种原生外观及移植的 FL2 / FL3。新增机型沿用 α7 V 输入校准；α7C II 已在 ACR 验证 ST 和 FL2。详见[机型说明](docs/cameras.md)。
 
-[sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A1-Creative-Looks.zip
-[sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A1-II-Creative-Looks.zip
-[sony-a9-iii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A9-III-Creative-Looks.zip
-[sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7-IV-Creative-Looks.zip
-[sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7-V-Creative-Looks.zip
-[sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7R-V-Creative-Looks.zip
-[sony-a7r-vi]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7R-VI-Creative-Looks.zip
-[sony-a7s-iii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7S-III-Creative-Looks.zip
-[sony-a7c-ii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7C-II-Creative-Looks.zip
-[sony-a7cr]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A7CR-Creative-Looks.zip
-[sony-a6700]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-A6700-Creative-Looks.zip
-[sony-fx2]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-FX2-Creative-Looks.zip
-[sony-fx3]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-FX3-Creative-Looks.zip
-[sony-fx30]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-FX30-Creative-Looks.zip
-[sony-rx1r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-RX1R-III-Creative-Looks.zip
-[sony-zv-e1]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-ZV-E1-Creative-Looks.zip
-[sony-zv-e10-ii]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/Sony-ZV-E10-II-Creative-Looks.zip
-[release]: https://github.com/751K/sony-look-bridge/releases/tag/v1.3.0
-[checksums]: https://github.com/751K/sony-look-bridge/releases/download/v1.3.0/SHA256SUMS.txt
+[sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-Creative-Looks.zip
+[sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-II-Creative-Looks.zip
+[sony-a9-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A9-III-Creative-Looks.zip
+[sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7-IV-Creative-Looks.zip
+[sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7-V-Creative-Looks.zip
+[sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7R-V-Creative-Looks.zip
+[sony-a7r-vi]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7R-VI-Creative-Looks.zip
+[sony-a7s-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7S-III-Creative-Looks.zip
+[sony-a7c-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7C-II-Creative-Looks.zip
+[sony-a7cr]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7CR-Creative-Looks.zip
+[sony-a6700]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A6700-Creative-Looks.zip
+[sony-fx2]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX2-Creative-Looks.zip
+[sony-fx3]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX3-Creative-Looks.zip
+[sony-fx30]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX30-Creative-Looks.zip
+[sony-rx1r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-RX1R-III-Creative-Looks.zip
+[sony-zv-e1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-ZV-E1-Creative-Looks.zip
+[sony-zv-e10-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-ZV-E10-II-Creative-Looks.zip
+[release]: https://github.com/751K/sony-look-bridge/releases/tag/v2.1.0
+[checksums]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/SHA256SUMS.txt
 
 ## 效果
 
@@ -210,6 +210,7 @@ Mac mini（Apple M6，16 GB），一张 7008×4672 的图，在同一进程中�
 | `capture_one/` | C1 配置生成、合成色卡、测量与对比                                                          |
 | `camera_raw/`  | ACR 表格式、DCP 读写、配置生成、测量与对比                                                   |
 | `dxo/`         | DxO PhotoLab 的 LUT 输入模型（`dxo_model.py`）、探针和底座 DCP 生成、LUT 生成                      |
+| `camera_packs/` | 各机型配置包的生成脚本（`build_packs.py`）及各 ZIP 附带的安装说明 |
 | `video/`       | S-Log3 输入转换、传感器矩阵标定、视频 LUT 生成和测试 |
 | `docs/`        | [文档导航](docs/README.md)：处理链、宿主标定、测量方法与本地研究资料索引。原始证据文件和测试导出保存在仓库之外 |
 

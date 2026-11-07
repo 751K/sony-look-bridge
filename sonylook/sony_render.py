@@ -154,7 +154,7 @@ class Look:
     def __init__(self, name, looks, fade=None, sscs=None, output_mode=0,
                  contrast=0, highlight=0, shadow=0, hue=0, saturation=0,
                  exposure=0, white_level=0, black_level=0, tone_curves=None, shade=None,
-                 use_rust=None, fade_level=None):
+                 use_rust=None, fade_level=None, ycc_weights=None):
         """fade: Creative Look Fade slider 0..9; None = the camera default for this look.
         fade_level: dev+0x2bc directly (normally 10 x fade); overrides `fade`.  Any level >= 0
         is computed as Edit does (interpolated between steps, extrapolated above 90).
@@ -172,6 +172,9 @@ class Look:
         tone_curves: None or four (xs, ys) settings arrays in R, G, B, Y order
         (ids 0x9000..0x9003 / 0x9004..0x9007); shade: None or dict(amount,
         radius, strength, flag, angle) for ZcTaskShadeCorrection.
+        ycc_weights: None uses the file's as-shot RGB2YCC blend weights (main IFD 0x7848,
+        written per shot from the white balance); four ints replace them, e.g.
+        (0, 1024, 0, 0) for the daylight set 0x7844 (docs/pipeline.md 4.3).
         All defaults reproduce the old behaviour bit for bit."""
         if output_mode not in (0, 1):
             raise ValueError("output_mode must be 0 (sRGB) or 1 (AdobeRGB)")
@@ -221,6 +224,8 @@ class Look:
             (0x10000,), np.int16)
         arrays = {t: ints(g[t]) for t in ("0x7842", "0x7843", "0x7844", "0x7845", "0x7846")}
         arrays.update({t: ints(MAIN[t]) for t in ("0x7841", "0x7847", "0x7848")})
+        if ycc_weights is not None:
+            arrays["0x7848"] = [int(v) for v in ycc_weights]
         self.ycc_params = SY.select_params(arrays, 1)
         self.luma = ints(g.get("0x7801", "19 38 7"))
         knee, slope = int(g.get("0x780c", 0)), int(g.get("0x780d", 0))
