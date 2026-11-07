@@ -19,6 +19,7 @@ Spica (after YGamma/YNR, before YCC2RGB; srsettings0000.tbl from Edit.app/Conten
   (dev208+100)*(100-dev2c4). The output region shrinks by 3 (filter) / 4 (task).
 """
 import struct
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -107,8 +108,15 @@ def sharpness(Y, region, P):
 
 def load_srsettings(path=SRSETTINGS, weights=(2048.0,) + (0.0,) * 9):
     """FUN_1000e4cb0 (+e4ddc/e4fe4/e51ec/ffeac): pattern table and 25-tap coefficient sets.
-    `weights` are struct+0x10..0x34 at load time (mode-2 block 0x1002ecc04: 2048, 0 ...)."""
-    b = Path(path).read_bytes()
+    `weights` are struct+0x10..0x34 at load time (mode-2 block 0x1002ecc04: 2048, 0 ...).
+    Built once per (file version, weights); the returned arrays are read-only."""
+    import sr2
+    return dict(_load_srsettings(sr2.file_key(path), tuple(float(v) for v in weights)))
+
+
+@lru_cache(maxsize=4)
+def _load_srsettings(key, weights):
+    b = Path(key[0]).read_bytes()
     assert b[:14] == b"SONY RAW SRPRM"
     npat, ncls, ntap, nw, _ = struct.unpack_from("<5h", b, 14)
     assert (npat, ncls, ntap, nw) == (0x100, 100, 25, 10)
@@ -135,7 +143,10 @@ def load_srsettings(path=SRSETTINGS, weights=(2048.0,) + (0.0,) * 9):
             acc = fma32(s, f32(0.00048828125), acc)
             t += 1
         coefs[c, 1 + 12] = f32(f32(512.0) - acc)
-    return dict(patterns=np.array(pat, np.int64), coefs=coefs)
+    patterns = np.array(pat, np.int64)
+    patterns.flags.writeable = False
+    coefs.flags.writeable = False
+    return dict(patterns=patterns, coefs=coefs)
 
 
 # mode-1 parameter block 0x1002ecdb4 (FUN_1000e5370(1)), 0xd8 bytes

@@ -277,7 +277,8 @@ class Look:
                                          self.gamma[0x8000:], self.ylut)
 
     def render(self, lin, detail=None, pointwise=False, marble=None, sscs=None,
-               marble_inset=None, timings=None, strip=512):
+               marble_inset=None, timings=None, strip=512, metal_look=False,
+               metal_spatial=False, metal_marble=False, metal_post=False):
         """sscs: None, or sony_sscs.params_from_tags(...) to run ZcTaskSSCS first (Edit always runs it, right
         after GeoCorrection). Integer input uses Sony's u16 path, float input its float32 path.
         detail: None, or dict(sharp=sony_detail.sharpness_params(...), spica=(table, params)) to run
@@ -333,8 +334,42 @@ class Look:
             rust_sscs_cfg = rust.sscs_config(sscs)
             rust_sscs = rust
 
-        def chain(z):
-            """Pointwise part through ChromaSuppress. Returns (Y, Cr, Cb)."""
+        front_planes = None
+        if metal_spatial and not metal_look:
+            raise ValueError("metal_spatial requires metal_look")
+        # Same conditions as the Rust spatial path; otherwise the CPU spatial stages run.
+        metal_spatial = bool(metal_spatial and detail and detail.get("sharp") is not None
+                             and detail.get("spica") is not None
+                             and not self.hue and not self.saturation and H >= 7 and W >= 7)
+        if metal_look:
+            if pointwise or not np.issubdtype(lin.dtype, np.integer):
+                raise ValueError("Metal look requires full-resolution integer RGB input")
+            # SSCS is normally interleaved with the CPU band render. It must
+            # precede the whole-image GPU look when the two paths are combined.
+            if sscs is not None:
+                t = time.perf_counter()
+                pre_sscs = np.empty_like(lin, dtype=np.uint16)
+                for y0 in range(0, H, strip or H):
+                    y1 = min(y0 + (strip or H), H)
+                    band = np.ascontiguousarray(lin[y0:y1])
+                    if rust_sscs is not None:
+                        pre_sscs[y0:y1] = rust_sscs.sscs_u16(band, rust_sscs_cfg)
+                    else:
+                        pre_sscs[y0:y1] = np.stack(SC.sscs_int(*(band[..., c] for c in range(3)), sscs), -1)
+                lin = pre_sscs
+                sscs = None
+                mark("sscs", t)
+            import metal_look as ML
+            if not metal_spatial:
+                t = time.perf_counter()
+                front_planes = ML.front(lin, self, atan)
+                mark("metal_front", t)
+
+        def chain(z, front=None):
+            """Pointwise part through ChromaSuppress. Returns (Y, Cr, Cb).
+            front: precomputed (Y, Cr, Cb) rows from the Metal front, returned as copies."""
+            if front is not None:
+                return tuple(np.array(p) for p in front)
             if sscs is not None:
                 t = time.perf_counter()
                 if rust_sscs is not None and np.issubdtype(z.dtype, np.integer):
@@ -350,7 +385,7 @@ class Look:
                 return y, cr, cb
             planes = [np.ascontiguousarray(z[..., c], np.float32) for c in range(3)]
             t = time.perf_counter()
-            enc = SL.render_look(planes, self.table, self.gamma, atan, ctl)  # int16 x3 (LM16 + MainGamma)
+            enc = SL.render_look(planes, self.table, self.gamma, atan, ctl)
             mark("look", t)
             t = time.perf_counter()
             y, cr, cb = SY.rgb2ycc(*enc, self.ycc_params, self.luma, clamp=True)
@@ -382,7 +417,14 @@ class Look:
                 # side give bit-identical valid rows (5x5 sigma + 3x3 + upsample).
                 halo = 12 * B
                 step = (strip // B) * B if strip else 0
-                if marble_inset and step and H > step + 2 * halo and W > 32:
+                metal_mb = None
+                if metal_marble and H >= 10 and W >= 10:
+                    import metal_look as ML
+                    metal_mb = ML.marble(*pre, look, marble["dev"], marble["dec"],
+                                         mode=self.output_mode, inset=bool(marble_inset))
+                if metal_mb is not None:
+                    r, g, b = metal_mb
+                elif marble_inset and step and H > step + 2 * halo and W > 32:
                     pre0, pre1, pre2 = pre
                     # Write Marble's valid regions into fresh planes and take only
                     # the unwritten border/gap rows from the pre-Marble planes.
@@ -467,29 +509,47 @@ class Look:
                     else:
                         r, g, b = mr, mg, mb
                 mark("marble", t)
-            if self.look_id & ~1 == 0x10:      # render+0x44 = 0 sRGB, 1 AdobeRGB
+            post = None
+            if metal_post:
+                import metal_look as ML
+                post = ML.Post(self, W, H)
+            if post is not None and post.active:   # Effect, ToneCurve, ShadeCorrection on Metal
                 t = time.perf_counter()
-                r, g, b = EF.effect_apply(*(np.asarray(c, np.uint16) for c in (r, g, b)),
-                                          self.look_id, self.tint, mode=self.output_mode)
-                mark("effect", t)
-            if self.tone_luts is not None:     # ZcTaskToneCurve
-                t = time.perf_counter()
-                r, g, b = TC.apply(r, g, b, self.tone_luts)
-                mark("tonecurve", t)
-            if self.shade is not None:         # ZcTaskShadeCorrection
-                t = time.perf_counter()
-                r, g, b = SH.apply(r, g, b, self.shade["coeffs"], W, H,
-                                   flag=self.shade["flag"], angle=self.shade["angle"],
-                                   scale_w=W, scale_h=H)
-                mark("shade", t)
+                r, g, b = ML.post(r, g, b, post)
+                mark("metal_post", t)
+            else:
+                if self.look_id & ~1 == 0x10:      # render+0x44 = 0 sRGB, 1 AdobeRGB
+                    t = time.perf_counter()
+                    r, g, b = EF.effect_apply(*(np.asarray(c, np.uint16) for c in (r, g, b)),
+                                              self.look_id, self.tint, mode=self.output_mode)
+                    mark("effect", t)
+                if self.tone_luts is not None:     # ZcTaskToneCurve
+                    t = time.perf_counter()
+                    r, g, b = TC.apply(r, g, b, self.tone_luts)
+                    mark("tonecurve", t)
+                if self.shade is not None:         # ZcTaskShadeCorrection
+                    t = time.perf_counter()
+                    r, g, b = SH.apply(r, g, b, self.shade["coeffs"], W, H,
+                                       flag=self.shade["flag"], angle=self.shade["angle"],
+                                       scale_w=W, scale_h=H)
+                    mark("shade", t)
+            if metal_post or metal_marble:      # planes are GPU-resident: interleave on the GPU
+                import metal_look as ML
+                return ML.interleave(r, g, b)
             out = np.empty((H, W, 3), np.uint16)
             out[..., 0] = r
             out[..., 1] = g
             out[..., 2] = b
             return out
 
+        if metal_spatial:
+            t = time.perf_counter()
+            pre = ML.front_spatial(lin, self, atan, ML.Spatial(self, detail))
+            mark("metal_front_spatial", t)
+            return finish(list(pre))
+
         if pointwise or not strip or H <= strip:
-            y, cr, cb = chain(lin)
+            y, cr, cb = chain(lin, front=front_planes)
             if detail and detail.get("sharp") is not None:
                 import sony_detail as SDT
                 t = time.perf_counter()
@@ -523,7 +583,10 @@ class Look:
         def band_job(ya):
             yb = min(ya + strip, H)
             c0, c1 = max(0, ya - 8), min(H, yb + 8)
-            y, cr, cb = chain(np.ascontiguousarray(lin[c0:c1]))
+            if front_planes is not None:
+                y, cr, cb = chain(None, front=tuple(p[c0:c1] for p in front_planes))
+            else:
+                y, cr, cb = chain(np.ascontiguousarray(lin[c0:c1]))
             g0, g1 = max(0, ya - 3), min(H, yb + 3)
             if rust_spatial is not None:
                 t = time.perf_counter()

@@ -122,7 +122,7 @@ See [photo look reproduction and calibration](docs/photo_look.en.md) for the col
 - Python 3.11+ with `python3 -m pip install -r requirements.txt` in your chosen Python environment (a virtual environment is recommended).
 - Any A7M5 ARW.
 - **Imaging Edge Edit 4.0.00.10312 or 4.1.00.03062** installed locally (macOS).
-- Optional: a Rust toolchain (`cargo`) for the accelerated `--rust` decoder. The NumPy path needs no Rust; the one-time LUTs are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it).
+- Optional: a Rust toolchain (`cargo`) for the accelerated `--rust` decoder, and on macOS the Xcode Command Line Tools for the Metal GPU path (`--metal`). The NumPy path needs neither; the one-time LUTs are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it).
 
 A few constant tables used by the look chain are read at run time from your own Edit installation (`sonylook/edit_binary.py`); examples are the hue atan table and the contrast curve family. This repository contains no Sony binaries or data. The script checks the SHA-256 of the arm64 slice, because table addresses differ between builds. Both 4.0.00.10312 and 4.1.00.03062 are supported: the project keeps the 4.0 addresses and `edit_binary.py` maps them to the installed build. Set `SONY_EDIT_BINARY` to use a different path.
 
@@ -162,7 +162,15 @@ The full decoder runs every stage from RawNR to the Creative Look:
 python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
 ```
 
-The decoder supports sRGB / Adobe RGB and TIFF / JPEG / PNG, using develop settings from the ARW. See [Rust notes](rust/README.md) for optional acceleration and [pipeline notes](docs/pipeline.md) for stages and parameters.
+The decoder supports sRGB / Adobe RGB and TIFF / JPEG / PNG, using develop settings from the ARW. See [pipeline notes](docs/pipeline.md) for stages and parameters.
+
+Two optional backends accelerate it; both produce output identical to the NumPy reference (Metal ITP excepted, see the notes). With the Rust core, a 7008×4672 decode takes about 2 s; adding Metal on macOS brings it to about 0.2 s:
+
+```bash
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif
+```
+
+See [Rust notes](rust/README.md) and [Metal notes](docs/metal.md) (Chinese) for building, coverage and measurements.
 
 ### Viewer super-resolution
 
@@ -178,8 +186,9 @@ See [recalibration notes](docs/recalibration.en.md) for the synthetic chart and 
 | --- | --- |
 | `profiles/` | Generated photo profiles and video LUT generation records |
 | `chart/` | Synthetic chart: `SonyChart.ARW` (opens in Capture One and Camera Raw), patch definitions `SonyChart.json`, preview image |
-| `sonylook/` | Python port of Sony's look chain and front end, ARW and Edit readers. Also ports of RawNR, DRO, sharpening / Spica, Marble, lens geometry correction (none used by the profiles) and the BW/SE Effect stage (used), plus the end-to-end decoder `sony_decode.py` |
+| `sonylook/` | Python port of Sony's look chain and front end, ARW and Edit readers. Also ports of RawNR, DRO, sharpening / Spica, Marble, lens geometry correction (none used by the profiles) and the BW/SE Effect stage (used), plus the end-to-end decoder `sony_decode.py`. `sonylook/metal/` holds the optional Metal GPU implementation of the decoder stages |
 | `rust/` | Optional Rust core (`sonylook_core`): fused render bands, GeoCorr, ITP, Marble, SSCS and table builders. See `rust/README.md` |
+| `tests/` | Differential checks of the Metal stages and the Rust raw reader against the reference |
 | `capture_one/` | Capture One profile generation, synthetic chart, measurement and comparison |
 | `camera_raw/` | Camera Raw table format, DCP read/write, profile generation, measurement and comparison |
 | `dxo/` | DxO PhotoLab model of the LUT input (`dxo_model.py`), probe and base-DCP generation, LUT generation |

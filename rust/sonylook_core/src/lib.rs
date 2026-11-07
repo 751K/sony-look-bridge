@@ -17,6 +17,7 @@
 #![allow(clippy::too_many_arguments)]
 
 mod itp;
+mod ljpeg;
 mod marble;
 mod sscs;
 mod tables;
@@ -581,6 +582,136 @@ fn area_edge(a: f32, b: f32, p: &[f32; 16], c0: usize, c1: usize, k0: usize, k1:
     }
 }
 
+#[derive(Clone, Copy)]
+struct YccCoeffs {
+    c0: i32,
+    c1: i32,
+    c2: i32,
+    d8: f32,
+    d9: f32,
+    d10: f32,
+    d11: f32,
+    g_cr_pos: f32,
+    g_cr_neg: f32,
+    g_cb_pos: f32,
+    g_cb_neg: f32,
+}
+
+#[inline]
+fn ycc_coeffs(p: &FrontParams) -> YccCoeffs {
+    // --- constants derived once ------------------------------------------------
+    let c0 = i16v(((p.luma[0] as i64) << 7) & 0xffff);
+    let c1 = i16v(((p.luma[1] as i64) << 7) & 0xffff);
+    let c2 = i16v(((p.luma[2] as i64) << 7) & 0xffff);
+
+    let yp = [
+        i16v(p.ycc[0] as i64),
+        i16v(p.ycc[1] as i64),
+        i16v(p.ycc[2] as i64),
+        i16v(p.ycc[3] as i64),
+        i16v(p.ycc[4] as i64),
+        i16v(p.ycc[5] as i64),
+        i16v(p.ycc[6] as i64),
+        i16v(p.ycc[7] as i64),
+    ];
+    let d8 = shear(yp[1]);
+    let d9 = shear(yp[3]);
+    let d10 = shear(yp[0]);
+    let d11 = shear(yp[2]);
+    const G256: f32 = 0.015625; // 1/64
+    let g_cr_pos = (((yp[5] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
+    let g_cr_neg = (((yp[7] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
+    let g_cb_pos = (((yp[4] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
+    let g_cb_neg = (((yp[6] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
+
+    YccCoeffs {
+        c0,
+        c1,
+        c2,
+        d8,
+        d9,
+        d10,
+        d11,
+        g_cr_pos,
+        g_cr_neg,
+        g_cb_pos,
+        g_cb_neg,
+    }
+}
+
+#[inline(always)]
+fn ycc_from_encoded(enc: &[i32; 3], p: &FrontParams, c: &YccCoeffs) -> (u16, u16, u16) {
+    let YccCoeffs {
+        c0,
+        c1,
+        c2,
+        d8,
+        d9,
+        d10,
+        d11,
+        g_cr_pos,
+        g_cr_neg,
+        g_cb_pos,
+        g_cb_neg,
+    } = *c;
+    const C256: f32 = 0.00390625;
+    let rr = enc[0];
+    let gg = enc[1];
+    let bbb = enc[2];
+    let sum = (rr as i64) * (c0 as i64) + (gg as i64) * (c1 as i64) + (bbb as i64) * (c2 as i64);
+    let yv16 = (((sum as u32) >> 13) & 0xffff) as u16;
+
+    let rg = rr - gg;
+    let bgc = bbb - gg;
+    let s3 = rg as f32;
+    let s4 = bgc as f32;
+    let k_cb = if rg < 0 { d9 * C256 } else { d8 * C256 };
+    let cb0 = k_cb.mul_add(s3, s4);
+    let k_cr = if bgc < 0 { d11 * C256 } else { d10 * C256 };
+    let cr0 = k_cr.mul_add(s4, s3);
+    let gcr = if cr0 < 0.0 { g_cr_neg } else { g_cr_pos };
+    let gcb = if cb0 < 0.0 { g_cb_neg } else { g_cb_pos };
+    let mut cr = (cr0 * 0.5) * gcr;
+    let mut cb = (cb0 * 0.5) * gcb;
+    cr = cr.min(8191.0).max(-8192.0);
+    cb = cb.min(8191.0).max(-8192.0);
+    let mut crp = pack_chroma(cr);
+    let mut cbp = pack_chroma(cb);
+
+    // --- AreaComp (0x1000b3ee8 flag-1 branch) ----------------------
+    if p.area_flag == 1 {
+        let a16 = (crp as i32 - 0x8000) as f32;
+        let b16 = (cbp as i32 - 0x8000) as f32;
+        let d0 = area_edge(a16, b16, &p.area, 0, 1, 4, 6);
+        let d1 = area_edge(a16, b16, &p.area, 0, 1, 5, 7);
+        let d2 = area_edge(a16, b16, &p.area, 2, 3, 8, 10);
+        let d3 = area_edge(a16, b16, &p.area, 2, 3, 9, 11);
+        let m = d0.min(d1).min(d2).min(d3);
+        let o1 = a16 as f64 + 32768.0 + (m * p.area[12]) as f64;
+        let o2 = b16 as f64 + 32768.0 + (m * p.area[13]) as f64;
+        crp = ((o1.trunc() as i64) & 0xffff) as u16;
+        cbp = ((o2.trunc() as i64) & 0xffff) as u16;
+    }
+
+    // --- ChromaSuppress (0x1000e6da0) ------------------------------
+    let ys = (yv16 as i16) as i64;
+    let lo = (p.w9 - ys) as i32;
+    let hiw = (ys - p.w12) as i32;
+    let m = if lo > 0 {
+        lo.wrapping_mul(p.w8 as i32)
+    } else {
+        hiw.wrapping_mul(p.w11 as i32)
+    };
+    let mut f = 0xff - (m >> 12);
+    f = f.max(0);
+    f = f.min(0xff);
+    if !(lo > 0 || hiw > 0) {
+        f = 0xff;
+    }
+    let yo16 = if ys > 0 { yv16 } else { 0 };
+    (yo16, scale_chroma(crp, f), scale_chroma(cbp, f))
+}
+
 /// Process one band.  Returns 0 on success, -1 for an unusable width.
 #[no_mangle]
 pub unsafe extern "C" fn fused_front_u16(
@@ -603,31 +734,7 @@ pub unsafe extern "C" fn fused_front_u16(
     let gamma = slice::from_raw_parts(p.gamma, 0x10000);
     let atan = slice::from_raw_parts(p.atan, 512);
 
-    // --- constants derived once ------------------------------------------------
-    let c0 = i16v(((p.luma[0] as i64) << 7) & 0xffff);
-    let c1 = i16v(((p.luma[1] as i64) << 7) & 0xffff);
-    let c2 = i16v(((p.luma[2] as i64) << 7) & 0xffff);
-
-    let yp = [
-        i16v(p.ycc[0] as i64),
-        i16v(p.ycc[1] as i64),
-        i16v(p.ycc[2] as i64),
-        i16v(p.ycc[3] as i64),
-        i16v(p.ycc[4] as i64),
-        i16v(p.ycc[5] as i64),
-        i16v(p.ycc[6] as i64),
-        i16v(p.ycc[7] as i64),
-    ];
-    let d8 = shear(yp[1]);
-    let d9 = shear(yp[3]);
-    let d10 = shear(yp[0]);
-    let d11 = shear(yp[2]);
-    const C256: f32 = 0.00390625; // 1/256
-    const G256: f32 = 0.015625; // 1/64
-    let g_cr_pos = (((yp[5] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
-    let g_cr_neg = (((yp[7] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
-    let g_cb_pos = (((yp[4] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
-    let g_cb_neg = (((yp[6] as u32) & 0xffff) >> 3 & 0xff) as f32 * G256;
+    let ycc = ycc_coeffs(p);
 
     const C_Q: f32 = f32::from_bits(0x3880_0000); // 6.1035156e-05
 
@@ -764,65 +871,54 @@ pub unsafe extern "C" fn fused_front_u16(
             }
 
             // --- RGB2YCC (0x1000ee0cc) -------------------------------------
-            let rr = enc[0];
-            let gg = enc[1];
-            let bbb = enc[2];
-            let sum =
-                (rr as i64) * (c0 as i64) + (gg as i64) * (c1 as i64) + (bbb as i64) * (c2 as i64);
-            let yv16 = (((sum as u32) >> 13) & 0xffff) as u16;
-
-            let rg = rr - gg;
-            let bgc = bbb - gg;
-            let s3 = rg as f32;
-            let s4 = bgc as f32;
-            let k_cb = if rg < 0 { d9 * C256 } else { d8 * C256 };
-            let cb0 = k_cb.mul_add(s3, s4);
-            let k_cr = if bgc < 0 { d11 * C256 } else { d10 * C256 };
-            let cr0 = k_cr.mul_add(s4, s3);
-            let gcr = if cr0 < 0.0 { g_cr_neg } else { g_cr_pos };
-            let gcb = if cb0 < 0.0 { g_cb_neg } else { g_cb_pos };
-            let mut cr = (cr0 * 0.5) * gcr;
-            let mut cb = (cb0 * 0.5) * gcb;
-            cr = cr.min(8191.0).max(-8192.0);
-            cb = cb.min(8191.0).max(-8192.0);
-            let mut crp = pack_chroma(cr);
-            let mut cbp = pack_chroma(cb);
-
-            // --- AreaComp (0x1000b3ee8 flag-1 branch) ----------------------
-            if p.area_flag == 1 {
-                let a16 = (crp as i32 - 0x8000) as f32;
-                let b16 = (cbp as i32 - 0x8000) as f32;
-                let d0 = area_edge(a16, b16, &p.area, 0, 1, 4, 6);
-                let d1 = area_edge(a16, b16, &p.area, 0, 1, 5, 7);
-                let d2 = area_edge(a16, b16, &p.area, 2, 3, 8, 10);
-                let d3 = area_edge(a16, b16, &p.area, 2, 3, 9, 11);
-                let m = d0.min(d1).min(d2).min(d3);
-                let o1 = a16 as f64 + 32768.0 + (m * p.area[12]) as f64;
-                let o2 = b16 as f64 + 32768.0 + (m * p.area[13]) as f64;
-                crp = ((o1.trunc() as i64) & 0xffff) as u16;
-                cbp = ((o2.trunc() as i64) & 0xffff) as u16;
-            }
-
-            // --- ChromaSuppress (0x1000e6da0) ------------------------------
-            let ys = (yv16 as i16) as i64;
-            let lo = (p.w9 - ys) as i32;
-            let hiw = (ys - p.w12) as i32;
-            let m = if lo > 0 {
-                lo.wrapping_mul(p.w8 as i32)
-            } else {
-                hiw.wrapping_mul(p.w11 as i32)
-            };
-            let mut f = 0xff - (m >> 12);
-            f = f.max(0);
-            f = f.min(0xff);
-            if !(lo > 0 || hiw > 0) {
-                f = 0xff;
-            }
-            let yo16 = if ys > 0 { yv16 } else { 0 };
-            yo[x] = yo16;
-            cro[x] = scale_chroma(crp, f);
-            cbo[x] = scale_chroma(cbp, f);
+            let (yv, crv, cbv) = ycc_from_encoded(&enc, p, &ycc);
+            yo[x] = yv;
+            cro[x] = crv;
+            cbo[x] = cbv;
         }
+    }
+    0
+}
+
+/// RGB2YCC, AreaComp and ChromaSuppress, accepting interleaved signed RGB
+/// already processed by LinearMatrix16 and MainGamma.
+#[no_mangle]
+pub unsafe extern "C" fn encoded_front_u16(
+    input: *const i16,
+    width: usize,
+    height: usize,
+    params: *const FrontParams,
+    y_out: *mut u16,
+    cr_out: *mut u16,
+    cb_out: *mut u16,
+) -> i32 {
+    if input.is_null()
+        || width == 0
+        || height == 0
+        || params.is_null()
+        || y_out.is_null()
+        || cr_out.is_null()
+        || cb_out.is_null()
+    {
+        return -1;
+    }
+    let p = &*params;
+    let ycc = ycc_coeffs(p);
+    let n = width * height;
+    let input = slice::from_raw_parts(input, n * 3);
+    let yo = slice::from_raw_parts_mut(y_out, n);
+    let cro = slice::from_raw_parts_mut(cr_out, n);
+    let cbo = slice::from_raw_parts_mut(cb_out, n);
+    for i in 0..n {
+        let enc = [
+            input[i * 3] as i32,
+            input[i * 3 + 1] as i32,
+            input[i * 3 + 2] as i32,
+        ];
+        let (yv, crv, cbv) = ycc_from_encoded(&enc, p, &ycc);
+        yo[i] = yv;
+        cro[i] = crv;
+        cbo[i] = cbv;
     }
     0
 }

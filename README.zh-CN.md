@@ -110,7 +110,7 @@ v1.3.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款
 
 ## 重新生成
 
-需要：Python 3.11+、在选定的 Python 环境中运行 `python3 -m pip install -r requirements.txt`（建议使用虚拟环境）、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312 或 4.1.00.03062**（macOS）。可选：Rust 工具链（`cargo`），用于加速的 `--rust` 解码；NumPy 路径不需要 Rust。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
+需要：Python 3.11+、在选定的 Python 环境中运行 `python3 -m pip install -r requirements.txt`（建议使用虚拟环境）、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312 或 4.1.00.03062**（macOS）。可选：Rust 工具链（`cargo`），用于加速的 `--rust` 解码；macOS 上另需 Xcode Command Line Tools，用于 Metal GPU 解码（`--metal`）。NumPy 路径两者都不需要。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
 
 外观链用到的一些常量表（色相 atan 表、对比度曲线族等）是在运行时从你本机安装的 Edit 里读取的（`sonylook/edit_binary.py`），本仓库不包含任何 Sony 的二进制或数据。脚本会校验 arm64 部分的 SHA-256；4.0.00.10312 与 4.1.00.03062 的表地址不同，`edit_binary.py` 里以 4.0 地址为准、对两者都做了映射。路径可以用 `SONY_EDIT_BINARY` 指定。
 
@@ -141,7 +141,15 @@ python3 sonylook/sony_render.py /path/to/A7M5.ARW Standard FL2 --scale 4
 python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
 ```
 
-解码器支持 sRGB / Adobe RGB、TIFF / JPEG / PNG，并读取 ARW 的显影设置。可选 Rust 加速的构建与性能见 [Rust 说明](rust/README.md)，完整阶段和参数见[处理管线](docs/pipeline.md)。
+解码器支持 sRGB / Adobe RGB、TIFF / JPEG / PNG，并读取 ARW 的显影设置。完整阶段和参数见[处理管线](docs/pipeline.md)。
+
+解码器有两种可选的加速后端，输出均与 NumPy 参考实现一致（Metal ITP 除外，见说明）。使用 Rust 内核时，一张 7008×4672 的图约需 2 s；在 macOS 上再启用 Metal，约需 0.2 s：
+
+```bash
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif
+```
+
+构建、覆盖范围和性能见 [Rust 说明](rust/README.md) 与 [Metal 加速](docs/metal.md)。
 
 ### Viewer 的 AI 超分
 
@@ -157,8 +165,9 @@ Viewer Extended Hi-Res 的输入、分块和导出链研究见[技术笔记](doc
 | -------------- | --------------------------------------------------------------------------- |
 | `profiles/`    | 照片配置及视频 LUT 的生成记录                                                          |
 | `chart/`       | 合成色卡：`SonyChart.ARW`（可直接用 C1 / ACR 打开）、色块定义 `SonyChart.json`、预览图            |
-| `sonylook/`    | Sony 外观链与前端的 Python 移植，以及 ARW / Edit 读取器。另含 RawNR、DRO、锐化 / Spica、Marble、镜头几何校正（都不用于配置）、BW/SE 的 Effect 阶段（用于配置），以及整图解码器 `sony_decode.py` |
+| `sonylook/`    | Sony 外观链与前端的 Python 移植，以及 ARW / Edit 读取器。另含 RawNR、DRO、锐化 / Spica、Marble、镜头几何校正（都不用于配置）、BW/SE 的 Effect 阶段（用于配置），以及整图解码器 `sony_decode.py`。`sonylook/metal/` 为解码各阶段的可选 Metal GPU 实现 |
 | `rust/`        | 可选的 Rust 内核（`sonylook_core`）：融合渲染 band、GeoCorr、ITP、Marble、SSCS 和表构造。见 `rust/README.md` |
+| `tests/`       | Metal 各阶段和 Rust RAW 读取与参考实现的差分验证                                       |
 | `capture_one/` | C1 配置生成、合成色卡、测量与对比                                                          |
 | `camera_raw/`  | ACR 表格式、DCP 读写、配置生成、测量与对比                                                   |
 | `dxo/`         | DxO PhotoLab 的 LUT 输入模型（`dxo_model.py`）、探针和底座 DCP 生成、LUT 生成                      |

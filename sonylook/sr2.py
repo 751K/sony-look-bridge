@@ -7,11 +7,18 @@ value offsets are absolute file offsets.
 
 usage: sr2.py ARW [TAG ...]   (tags in hex, e.g. 0x7984)
 """
+import os
 import struct
 import sys
+from functools import lru_cache
 
 TYPES = {1: ("B", 1), 2: ("s", 1), 3: ("H", 2), 4: ("I", 4), 6: ("b", 1), 7: ("B", 1), 8: ("h", 2), 9: ("i", 4),
          10: ("ii", 8), 5: ("II", 8), 11: ("f", 4), 12: ("d", 8), 13: ("I", 4)}
+
+
+def _span(buf, o, n):
+    """buf[o:][:n] without copying the tail first."""
+    return buf[o:o + n] if o >= 0 else buf[o:][:n]
 
 
 def ifd(buf, off, base=0):
@@ -21,7 +28,7 @@ def ifd(buf, off, base=0):
         tag, typ, cnt, raw = struct.unpack_from("<HHI4s", buf, off - base + 2 + 12 * i)
         fmt, size = TYPES.get(typ, ("B", 1))
         total = size * cnt
-        data = raw[:total] if total <= 4 else buf[struct.unpack("<I", raw)[0] - base:][:total]
+        data = raw[:total] if total <= 4 else _span(buf, struct.unpack("<I", raw)[0] - base, total)
         if typ == 2:
             val = data.split(b"\0")[0].decode("latin-1")
         elif typ in (5, 10):
@@ -54,16 +61,44 @@ def _swap(v):
     return int.from_bytes(v.to_bytes(4, "little"), "big")
 
 
-def sr2_subifd(path):
-    data = open(path, "rb").read()
-    assert data[:2] == b"II"
+def file_key(path):
+    """Cache key for per-file metadata: the path plus modification time and size."""
+    st = os.stat(path)
+    return os.path.abspath(path), st.st_mtime_ns, st.st_size
+
+
+@lru_cache(maxsize=2)
+def _file_bytes(key):
+    with open(key[0], "rb") as f:
+        return f.read()
+
+
+def file_bytes(path):
+    """The whole file, read once per file version and shared by the metadata readers."""
+    return _file_bytes(file_key(path))
+
+
+@lru_cache(maxsize=8)
+def _sr2_block(key):
+    data = _file_bytes(key)
+    assert data[:2] == b"II", "not a little-endian TIFF/ARW"
     ifd0 = ifd(data, struct.unpack_from("<I", data, 4)[0])
     priv = struct.unpack("<I", ifd0[0xc634][2])[0]
     sr2p = ifd(data, priv)
     off, length = sr2p[0x7200][1][0], sr2p[0x7201][1][0]
     key = struct.unpack("<I", sr2p[0x7221][2])[0]          # dcraw: key = get4() (II order)
     block = decrypt(data[off:off + length], key)
-    return ifd(block, off, base=off)
+    return block, off, ifd(block, off, base=off)
+
+
+def sr2_block(path):
+    """(decrypted SR2SubIFD block, its file offset, parsed tags); cached per file version."""
+    return _sr2_block(file_key(path))
+
+
+def sr2_subifd(path):
+    """Parsed SR2SubIFD tags {tag: (type, values, raw)} (a fresh dict; values are shared)."""
+    return dict(sr2_block(path)[2])
 
 
 if __name__ == "__main__":

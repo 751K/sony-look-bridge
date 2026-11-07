@@ -107,10 +107,15 @@ def gains(coeffs, w, h, width, height, offx=0, offy=0):
     """Per-pixel gain array for a `height` x `width` region."""
     xs = np.arange(width, dtype=np.float64) + float(offx)
     ys = np.arange(height, dtype=np.float64) + float(offy)
+    return gains_at(coeffs, w, h, xs[None, :], ys[:, None])
+
+
+def gains_at(coeffs, w, h, xs, ys):
+    """Gains at pixel coordinates xs, ys (float64 arrays that broadcast together)."""
     cx, cy = float(w) * 0.5, float(h) * 0.5
     rmax2 = _fma(cy, cy, cx * cx)
-    dx = cx - xs[None, :]
-    dy = cy - ys[:, None]
+    dx = cx - xs
+    dy = cy - ys
     r = np.sqrt((dx * dx + dy * dy) / rmax2)
     t = r * 10.0
     idx = np.trunc(t).astype(np.int64)
@@ -130,14 +135,25 @@ def apply(r, g, b, coeffs, w, h, flag=0, angle=0, offx=0, offy=0,
     the image size); scale_w/scale_h are the image rect used by the projection
     scale when settings 0x900e == 1 (they default to w/h).
     """
+    w, h = centre(w, h, flag, angle, scale_w, scale_h)
+    gain = gains(coeffs, w, h, r.shape[1], r.shape[0], offx, offy)
+    if np.all(gain == 1.0):
+        return r, g, b
+    return apply_gain(r, g, b, gain)
+
+
+def centre(w, h, flag=0, angle=0, scale_w=None, scale_h=None):
+    """Centre dimensions used by gains(): w/h, shrunk by the projection scale when flag == 1."""
     if flag == 1:
         sw = w if scale_w is None else scale_w
         sh = h if scale_h is None else scale_h
         s = _angle_scale(1, angle, sw, sh)
         w, h = int(w / s), int(h / s)
-    gain = gains(coeffs, w, h, r.shape[1], r.shape[0], offx, offy)
-    if np.all(gain == 1.0):
-        return r, g, b
+    return w, h
+
+
+def apply_gain(r, g, b, gain):
+    """The per-pixel part of apply(): Y / gain through YCC and back (any matching shapes)."""
     R = np.asarray(r, np.int64)
     G = np.asarray(g, np.int64)
     B = np.asarray(b, np.int64)

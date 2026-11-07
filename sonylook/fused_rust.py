@@ -208,6 +208,14 @@ def _load():
     return _lib
 
 
+def _load_symbol(name):
+    """A symbol bound on demand; OSError when the library is missing or predates it."""
+    try:
+        return getattr(_load(), name)
+    except AttributeError as exc:
+        raise OSError(f"Rust library is outdated (no {name}); rebuild rust/sonylook_core") from exc
+
+
 def _bind(path):
     if not path.exists():
         raise FileNotFoundError(f"Rust library not built: {path}")
@@ -656,3 +664,23 @@ def marble_debug_slab(r, g, b, stage, plane, cfg: MarbleConfig):
     if rc != 1:
         raise RuntimeError(f"marble debug stage {stage} failed: {rc}")
     return out
+
+
+def encoded_front_u16(encoded, cfg: Config):
+    """Convert interleaved int16 MainGamma RGB through YCC and chroma stages."""
+    encoded = np.ascontiguousarray(encoded, np.int16)
+    if encoded.ndim != 3 or encoded.shape[2] != 3:
+        raise ValueError("encoded_front_u16 expects (H, W, 3)")
+    h, w, _ = encoded.shape
+    out = [np.empty((h, w), np.uint16) for _ in range(3)]
+    try:
+        fn = _load().encoded_front_u16
+    except AttributeError as exc:
+        raise RuntimeError("Rust library is outdated; rebuild rust/sonylook_core") from exc
+    fn.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.POINTER(FrontParams),
+                   ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+    fn.restype = ctypes.c_int32
+    rc = fn(encoded.ctypes.data, w, h, ctypes.byref(cfg.params), *(p.ctypes.data for p in out))
+    if rc:
+        raise RuntimeError(f"encoded_front_u16 failed: {rc}")
+    return tuple(out)

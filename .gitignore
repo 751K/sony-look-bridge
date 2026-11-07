@@ -25,3 +25,6 @@ dxo/body/
 
 # video LUTs are published as release assets (render with video/video_look.py)
 profiles/video/**/*.cube
+
+# Locally built Metal bridge
+sonylook/metal/libsonylook_metal.dylib

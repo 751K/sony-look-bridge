@@ -26,6 +26,8 @@ import struct
 from functools import lru_cache
 from pathlib import Path
 
+import sr2
+
 _TYPES = {1: ("B", 1), 3: ("H", 2), 4: ("I", 4), 8: ("h", 2), 9: ("i", 4), 13: ("I", 4)}
 
 # Edit 4.0.00.10312 arm64: address, entry count, index of value 0.
@@ -54,7 +56,7 @@ def _vals(buf: bytes, ent, base: int = 0) -> tuple:
     typ, cnt, raw = ent
     fmt, size = _TYPES.get(typ, ("B", 1))
     total = size * cnt
-    data = raw[:total] if total <= 4 else buf[struct.unpack_from("<I", raw)[0] - base:][:total]
+    data = raw[:total] if total <= 4 else sr2._span(buf, struct.unpack_from("<I", raw)[0] - base, total)
     return struct.unpack("<%d%s" % (cnt, fmt), data)
 
 
@@ -89,7 +91,7 @@ def crop_rect(arw) -> tuple:
     """Decoder rectangle (vtable+0x88): DefaultCropOrigin (0xc61f) plus
     DefaultCropSize (0xc620) from the raw SubIFD. Full frame for DSC03591 is
     (12, 8, 7020, 4680); APS-C/cropped files give their own rectangle."""
-    buf = Path(arw).read_bytes()
+    buf = sr2.file_bytes(arw)
     ifd0 = _ifd(buf, struct.unpack_from("<I", buf, 4)[0])
     return _rect_from_raw(buf, _raw_ifd(buf, ifd0))[0]
 
@@ -127,7 +129,7 @@ def decoder_params(arw) -> dict:
     Keys iso/f0/d14c/d1b0/f22780/f22784 match fullres_nr.DEC; the remaining
     keys expose the rest of the +0x19c.. struct for diagnostics.
     """
-    buf = Path(arw).read_bytes()
+    buf = sr2.file_bytes(arw)
     ifd0 = _ifd(buf, struct.unpack_from("<I", buf, 4)[0])
     raw = _raw_ifd(buf, ifd0)
     exif = _ifd(buf, _get(buf, ifd0, 0x8769))

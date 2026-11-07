@@ -14,17 +14,8 @@ from functools import lru_cache
 import sr2
 
 
-@lru_cache(maxsize=4)
 def sr2_block(path):
-    data = open(path, "rb").read()
-    assert data[:2] == b"II", "not a little-endian TIFF/ARW"
-    ifd0 = sr2.ifd(data, struct.unpack_from("<I", data, 4)[0])
-    priv = struct.unpack("<I", ifd0[0xc634][2])[0]
-    sp = sr2.ifd(data, priv)
-    off, length = sp[0x7200][1][0], sp[0x7201][1][0]
-    key = struct.unpack("<I", sp[0x7221][2])[0]
-    blk = sr2.decrypt(data[off:off + length], key)
-    return blk, off, sr2.ifd(blk, off, base=off)
+    return sr2.sr2_block(path)
 
 
 def _fmt(typ, val):
@@ -43,7 +34,12 @@ def main_tags(path):
 
 def sony_model_id(path):
     """MakerNote 0xb001 SonyModelID (A7M5: 407); Edit keeps it at decoder+0xc / look+0x2c."""
-    data = open(path, "rb").read()
+    return _sony_model_id(sr2.file_key(path))
+
+
+@lru_cache(maxsize=8)
+def _sony_model_id(key):
+    data = sr2._file_bytes(key)
     ifd0 = sr2.ifd(data, struct.unpack_from("<I", data, 4)[0])
     exif = sr2.ifd(data, struct.unpack("<I", ifd0[0x8769][2])[0])
     mn = struct.unpack("<I", exif[0x927c][2])[0]

@@ -108,7 +108,8 @@ def read_settings_pair(arw) -> tuple[dict, dict]:
     The camera snapshot has the capture-time 0xd100 timestamp; the edit snapshot
     is the later Edit session and matches what the export used.
     """
-    data = Path(arw).read_bytes()
+    import sr2
+    data = sr2.file_bytes(arw)
     base = _block_base(data)
     if base is None:
         return {}, {}
@@ -160,7 +161,7 @@ def camera_defaults(arw) -> dict:
     tags = {k: (v[1] if isinstance(v[1], list) else [v[1]]) for k, v in sr2.sr2_subifd(str(arw)).items()}
     one = lambda t, d=0: int(tags[t][0]) if t in tags else d
 
-    buf = Path(arw).read_bytes()
+    buf = sr2.file_bytes(arw)
     ifd0 = DP._ifd(buf, struct.unpack_from("<I", buf, 4)[0])
     exif = DP._ifd(buf, DP._get(buf, ifd0, 0x8769))
     maker, mbase = DP._maker_ifd(buf, exif)

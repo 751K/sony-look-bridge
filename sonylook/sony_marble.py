@@ -271,6 +271,49 @@ def marble(r, g, b, look, dev, dec, region=None, mode=0):
     Cb37 = Cbh.copy() if not bnr else np.zeros_like(Cbh)
     Y39 = Yc.copy() if lum else None
 
+    P, thrY, a_y, G = luma_params(look, dev, dec, lum)
+    B = 8 if look.s16(0x109e) == 1 else 4
+    ok = True
+    if bnr:
+        ok = _chroma_path(Yc, Cbh, Crh, Cr38, Cb37, Cr36, B, w4, h4, P)
+    if lum and ok:
+        _luma_path(Y35, Y39, w4, h4, thrY, a_y, G)
+
+    # FUN_100126c58: back to full width inside the region
+    Yo = np.zeros((H, W), np.int64)
+    Cbo = np.zeros((H, W), np.int64)
+    Cro = np.zeros((H, W), np.int64)
+    m = (rw + 1) // 2 if rw + 1 >= 0 else -((-(rw + 1)) // 2)
+    if rw + 1 > 1:
+        Yo[y0:y1, x0:x0 + 2 * m] = Y35[:rh, :2 * m]
+        for dx in (0, 1):
+            Cbo[y0:y1, x0 + dx:x0 + 2 * m:2] = Cb37[:rh, :m]
+            Cro[y0:y1, x0 + dx:x0 + 2 * m:2] = Cr36[:rh, :m]
+    vr = (x0 + 16, y0 + 16, x1 - 16, y1 - 16)
+
+    def blend(new, orig):
+        o = orig.astype(np.float32)
+        v = fma32((new.astype(np.float32) - o).astype(np.float32), f, o)
+        v = np.fmax(np.fmin(v, f32(65535.0)), f32(0.0))
+        return np.trunc(v).astype(np.int64) & 0xffff
+
+    Cro = blend(Cro, origCr)
+    Cbo = blend(Cbo, origCb)
+    R, G, Bp = from_ycc(Yo, Cbo, Cro)
+    vs = (slice(vr[1], vr[3]), slice(vr[0], vr[2]))
+    if mode == 0:
+        back = E._convert([p[vs] for p in (R, G, Bp)], T["gamma_dec"], E.M_INV[0], T["srgb_enc"])
+    else:
+        back = E._convert([p[vs] for p in (R, G, Bp)], T["gamma_dec"], E.M_INV[1], T["gamma_enc"])
+    outs = [R.copy(), G.copy(), Bp.copy()]
+    for o, c in zip(outs, back):
+        o[vs] = c
+    return tuple(o.astype(np.uint16) for o in outs), vr
+
+
+def luma_params(look, dev, dec, lum):
+    """Marble parameters (Process 0x100127xxx): chroma-path P, luma sigma threshold thrY,
+    binomial weight a_y and the detail-gain constants G used by _luma_path."""
     # parameters (Process 0x100127xxx)
     d218, d224 = dev["d218"], dev["d224"]
     k67 = _cdiv(d224, 20) + 5 if d218 != 0 else 0
@@ -337,44 +380,8 @@ def marble(r, g, b, look, dev, dec, region=None, mode=0):
             lo, hi = tab(0x1154, q), tab(0x1154, i56)
             g124 = int(float(E._fma64(float(_i32(hi - lo)) * 0.1, float(r10), float(lo))))
 
-    B = 8 if look.s16(0x109e) == 1 else 4
-    ok = True
-    if bnr:
-        ok = _chroma_path(Yc, Cbh, Crh, Cr38, Cb37, Cr36, B, w4, h4, P)
-    if lum and ok:
-        _luma_path(Y35, Y39, w4, h4, thrY, a_y, dict(g20=g128, g24=g124, lo=lo_l, hi=hi_l, gate=gate, g34=g34,
-                                                       g38=g38, g3c=g3c, g40=g40))
-
-    # FUN_100126c58: back to full width inside the region
-    Yo = np.zeros((H, W), np.int64)
-    Cbo = np.zeros((H, W), np.int64)
-    Cro = np.zeros((H, W), np.int64)
-    m = (rw + 1) // 2 if rw + 1 >= 0 else -((-(rw + 1)) // 2)
-    if rw + 1 > 1:
-        Yo[y0:y1, x0:x0 + 2 * m] = Y35[:rh, :2 * m]
-        for dx in (0, 1):
-            Cbo[y0:y1, x0 + dx:x0 + 2 * m:2] = Cb37[:rh, :m]
-            Cro[y0:y1, x0 + dx:x0 + 2 * m:2] = Cr36[:rh, :m]
-    vr = (x0 + 16, y0 + 16, x1 - 16, y1 - 16)
-
-    def blend(new, orig):
-        o = orig.astype(np.float32)
-        v = fma32((new.astype(np.float32) - o).astype(np.float32), f, o)
-        v = np.fmax(np.fmin(v, f32(65535.0)), f32(0.0))
-        return np.trunc(v).astype(np.int64) & 0xffff
-
-    Cro = blend(Cro, origCr)
-    Cbo = blend(Cbo, origCb)
-    R, G, Bp = from_ycc(Yo, Cbo, Cro)
-    vs = (slice(vr[1], vr[3]), slice(vr[0], vr[2]))
-    if mode == 0:
-        back = E._convert([p[vs] for p in (R, G, Bp)], T["gamma_dec"], E.M_INV[0], T["srgb_enc"])
-    else:
-        back = E._convert([p[vs] for p in (R, G, Bp)], T["gamma_dec"], E.M_INV[1], T["gamma_enc"])
-    outs = [R.copy(), G.copy(), Bp.copy()]
-    for o, c in zip(outs, back):
-        o[vs] = c
-    return tuple(o.astype(np.uint16) for o in outs), vr
+    G = dict(g20=g128, g24=g124, lo=lo_l, hi=hi_l, gate=gate, g34=g34, g38=g38, g3c=g3c, g40=g40)
+    return P, thrY, a_y, G
 
 
 def _chroma_path(Yc, Cbh, Crh, Cr38, Cb37, Cr36, B, w4, h4, P):
