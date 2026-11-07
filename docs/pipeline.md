@@ -28,7 +28,7 @@
 | ToneCurve、ShadeCorrection | `sony_tonecurve.py`、`sony_shade.py` | 按设置 | 否 | §6.2、§6.3 |
 | 整图解码 `decode(arw)` | `sony_decode.py` | — | — | §9 |
 | Rust 加速核心（可选） | `rust/sonylook_core` | — | — | §9.4 |
-| Metal 加速（可选，macOS） | `sonylook/metal/` | — | — | §9.5 |
+| Metal 加速（可选，macOS） | `metal/` | — | — | §9.5 |
 
 不运行、也没有移植的阶段：TrinityLPF（需要存储类型 4）、YNR（dev+0x22c = 0）、`FUN_1000b83e8` 降噪任务（本机型条件不满足）、ZcTaskDemosaic（只用于 GRBG 传感器）。
 
@@ -408,26 +408,27 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 - **位深**：Edit 的 16 位 TIFF 是 14 位值 << 2（最大 65532）；8 位是 14 位值 >> 6，直接截断。
 - **ICC**：Edit 只在 AdobeRGB 时嵌入 `Sony_AdobeRGB_1998.icc`（EXIF ColorSpace = 0xFFFF），sRGB 导出不嵌（ColorSpace = 1）。本实现两种都嵌，配置文件运行时从本机 Edit 安装目录读取。
 
-### 9.3 性能（M4，A7M5 7008×4672）
+### 9.3 性能（Mac mini，Apple M6，A7M5 7008×4672）
 
 | 后端 | DSC03591（NR、DRO 关闭） | DSC05740（BW，NR、DRO 开启） |
 | --- | ---: | ---: |
-| NumPy | 42.1 s | — |
-| Rust（`--rust`） | 2.1 s | 15.2 s |
-| Rust + Metal（`--rust --metal`） | 0.16 s | 0.20 s |
+| NumPy | 28.1 s | 37.0 s |
+| Rust（`--rust`） | 1.7 s | 2.8 s |
+| Metal（`--metal`） | 0.40 s | 0.48 s |
+| Rust + Metal（`--rust --metal`） | 0.15 s | 0.19 s |
 
-Rust 后端中，RawNR、DRO 和 Marble 的色度路径仍由 NumPy 计算，因此开启 NR、DRO 的文件耗时明显增加。Metal 一栏为进程已完成初始化后再次解码同一文件的耗时，测量条件见 [Metal 加速](metal.md#性能)；NumPy 与 Rust 的分阶段对比见 [Rust README](../rust/README.md#measured-on-an-m4-a7m5-7008x4672-nrdro-off)。
+均为同一进程中再次解码同一文件的耗时。Rust 后端中，Effect、ToneCurve 和 ShadeCorrection 仍由 NumPy 计算（DSC05740 的 Effect 约 0.7 s）。分阶段耗时见 [Rust README](../rust/README.md#measured-on-an-m6-mac-mini-16-gb-a7m5-7008x4672) 和 [Metal 加速](metal.md#性能)。
 
 ### 9.4 Rust 核心（`rust/sonylook_core`）
 
-C ABI 动态库，由 `sonylook/fused_rust.py` 通过 ctypes 加载（`SONYLOOK_RUST=1` 或 `rust=True`）。覆盖无损压缩 RAW（TIFF 压缩方式 7）的读取、ITP、GeoCorr、SSCS 整数路径、LinearMatrix16 → ChromaSuppress、Sharpness → YCC2RGB、Marble 亮度路径，以及 MainGamma、Effect 表的构建。
+C ABI 动态库，由 `sonylook/fused_rust.py` 通过 ctypes 加载（`SONYLOOK_RUST=1` 或 `rust=True`）。覆盖无损压缩 RAW（TIFF 压缩方式 7）的读取、RawNR、ITP、DRO 逐像素部分（网格由 NumPy 构建）、GeoCorr、SSCS 整数路径、LinearMatrix16 → ChromaSuppress、Sharpness → YCC2RGB、Marble 亮度路径和色度路径，以及 MainGamma、Effect 表的构建。
 
 - NumPy 是参考实现，Rust 必须与之逐位一致：float32 保持原求值顺序，FMA 用 `f32::mul_add`。
 - 动态库缺失或缺符号时退回 NumPy（只尝试加载一次）。表长度不足时在调用 Rust 之前报错。
 - 空间、SSCS、Marble 的参数块每次 `render()` 重建，只有只依赖外观的前端参数块被缓存。
 - 验证：DSC03591（sRGB / AdobeRGB）和 DSC05740（BW、NR、DRO 开启）整图与 NumPy 逐位一致；Marble 62 例（含高度非 4 的倍数、无 0x7815 的外观、各 ISO 分支）；滑块与参数复用场景。
 
-### 9.5 Metal 加速（`sonylook/metal`）
+### 9.5 Metal 加速（`metal/`）
 
 macOS 上，RAW 读取之后的全部阶段都有可选的 Metal GPU 实现，用 `--metal` 一并启用，或用 `--metal-nr`、`--metal-itp` 等选项单独启用。
 

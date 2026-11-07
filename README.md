@@ -66,9 +66,7 @@ Values are mean CIELAB (D65) lightness and chroma differences over the shared va
 
 ## Installation
 
-**Video LUTs (v2.0.0):** [Download the α7 V S-Log3 LUTs](https://github.com/751K/sony-look-bridge/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip) for all 12 Creative Looks. They accept S-Gamut3 or S-Gamut3.Cine and output Rec.709 / Gamma 2.4. The default LUTs assume footage exposed at +1⅔ EV; ST places 18% grey at an output code of approximately 0.607. See [usage](profiles/video/README.md) and [calibration and generation](docs/video.md) (Chinese).
-
-The steps below use the α7 V filenames. Each camera ZIP includes its own installation instructions.
+The photo profiles are installed as below; the video LUTs are described in [Video LUTs](#video-luts). The steps use the α7 V filenames. Each camera ZIP includes its own installation instructions.
 
 ### Capture One
 
@@ -101,6 +99,23 @@ Requires **Elite** PhotoLab (the *LUT Grading* palette is Elite-only); tested wi
 
 - Use the pack for your camera's RAW files. See [Camera coverage](#camera-coverage) for availability.
 - The profiles replace only the look's colour and tone. DRO, sharpening and noise reduction are not included.
+
+## Video LUTs
+
+For the α7 V, a set of LUTs gives S-Log3 footage the colour and tone of the photo Creative Looks. **[Download Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)** ([v2.0.0 release](https://github.com/751K/sony-look-bridge/releases/tag/v2.0.0)).
+
+- **Contents**: 12 looks × 2 input gamuts, 24 `.cube` files with a 65³ grid. Files named `SLog3_SGamut3_` take S-Log3 / S-Gamut3; `SLog3_SGamut3Cine_` take S-Log3 / S-Gamut3.Cine. The output is Rec.709 / Gamma 2.4. IN, SH, FL2 and FL3 use the camera's default Fade (3, 6, 1, 1).
+- **Exposure**: the LUTs expect footage metered at **+1⅔ EV** (+1.7 on the camera), with 18% grey at about 547 / 1023. For other exposures, adjust exposure before the LUT; for example, footage shot at +1 EV needs about +0.67 EV. The generator's `--exposure` option builds LUTs for a different convention.
+- **Output level**: middle grey depends on the look. ST places 18% grey at about 0.607 (normalised Gamma 2.4 code value); FL, FL2 and FL3 at about 0.749, 0.714 and 0.705.
+- **DaVinci Resolve**: in a DaVinci YRGB project without colour management, apply the LUT on the node that receives the S-Log3 clip, with exposure and white balance adjustments before it. The LUT already contains the log decode and the display transform, so do not add another log-to-Rec.709 or ACES output transform. Set the timeline and output colour space to Rec.709 Gamma 2.4 and use tetrahedral interpolation.
+
+The LUTs connect S-Log3 to the photo look chain through a camera matrix measured from paired RAW and S-Log3 captures of the same screen chart. The `.cube` files are release assets; `profiles/video/` keeps the generation record (`manifest.json`) and the independent check (`validation.json`). To regenerate them:
+
+```bash
+python3 video/video_look.py /path/to/A7M5.ARW --write --eval
+```
+
+See [usage](profiles/video/README.md) and [calibration and generation](docs/video.md) (both Chinese).
 
 ## How it works
 
@@ -154,24 +169,6 @@ python3 sonylook/sony_render.py /path/to/A7M5.ARW Standard FL2 --scale 4
 
 Regenerating from DSC03591 reproduces the files in `profiles/` byte for byte.
 
-### Decoding an ARW
-
-The full decoder runs every stage from RawNR to the Creative Look:
-
-```bash
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
-```
-
-The decoder supports sRGB / Adobe RGB and TIFF / JPEG / PNG, using develop settings from the ARW. See [pipeline notes](docs/pipeline.md) for stages and parameters.
-
-Two optional backends accelerate it; both produce output identical to the NumPy reference (Metal ITP excepted, see the notes). With the Rust core, a 7008×4672 decode takes about 2 s; adding Metal on macOS brings it to about 0.2 s:
-
-```bash
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif
-```
-
-See [Rust notes](rust/README.md) and [Metal notes](docs/metal.md) (Chinese) for building, coverage and measurements.
-
 ### Viewer super-resolution
 
 See [technical notes](docs/sdm.md) on Viewer Extended Hi-Res inputs, tiling and export.
@@ -180,20 +177,61 @@ See [technical notes](docs/sdm.md) on Viewer Extended Hi-Res inputs, tiling and 
 
 See [recalibration notes](docs/recalibration.en.md) for the synthetic chart and host input measurements.
 
+## ARW decoder
+
+`sonylook/sony_decode.py` reproduces Edit's whole RAW development and writes the image Edit exports, using the develop settings stored in the ARW:
+
+```text
+RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → MainGamma
+    → RGB2YCC → AreaComp → ChromaSuppress → Sharpness → YGamma → [HueSaturation]
+    → Spica → YCC2RGB → [Marble] → [Effect] → [ToneCurve] → [ShadeCorrection]
+```
+
+Stages in brackets run when the settings enable them. The output is the decoder rectangle (7008×4672 on the α7 V) in sRGB or Adobe RGB, written as TIFF, JPEG or PNG. See [pipeline notes](docs/pipeline.md) (Chinese) for every stage and parameter.
+
+### Three implementations
+
+| Implementation | Platform | Coverage | Role |
+| --- | --- | --- | --- |
+| Python / NumPy | any | every stage | reference and default backend |
+| Rust (`--rust`) | any, needs `cargo` | raw reading (lossless compressed ARW), RawNR, ITP, DRO, GeoCorr, SSCS, the look chain, Sharpness → YCC2RGB, Marble and table construction; Effect, ToneCurve and ShadeCorrection stay on NumPy | multithreaded CPU backend |
+| Metal (`--metal`) | macOS | every stage after the raw read | GPU backend; stages exchange GPU-resident arrays without copies |
+
+The Rust and Metal outputs are bit-identical to NumPy, verified stage by stage and on whole images. The one exception is Metal ITP: a few direction-map sums use float32 instead of float64, so on synthetic full-range noise a handful of values can differ by 1; no difference has appeared on real ARWs. The two backends combine: `--rust --metal` reads the raw with Rust and runs the rest on the GPU.
+
+```bash
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif                # NumPy
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --out out.tif         # Rust
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif # Rust + Metal
+```
+
+From Python, `decode(path, rust=True, metal=True)` returns the image as a uint16 array. For batches, call `decode()` repeatedly in one process: Metal initialisation, shader compilation and the buffer pool are set up on the first call only.
+
+### Speed
+
+Mac mini (Apple M6, 16 GB), one 7008×4672 image, decoded again in the same process:
+
+| File | NumPy | Rust | Metal | Rust + Metal |
+| --- | ---: | ---: | ---: | ---: |
+| DSC03591 (NR, DRO off) | 28.1 s | 1.7 s | 0.40 s | 0.15 s |
+| DSC05740 (BW, NR, DRO on) | 37.0 s | 2.8 s | 0.48 s | 0.19 s |
+
+Metal alone reads the raw with rawpy (about 0.3 s); with `--rust` that takes about 0.02 s. The first decode of a new file in a process adds about 0.1–0.3 s for reading the file and its metadata. See [Rust notes](rust/README.md) and [Metal notes](docs/metal.md) (Chinese) for building, per-stage timings and verification.
+
 ## Repository layout
 
 | Folder | Contents |
 | --- | --- |
 | `profiles/` | Generated photo profiles and video LUT generation records |
 | `chart/` | Synthetic chart: `SonyChart.ARW` (opens in Capture One and Camera Raw), patch definitions `SonyChart.json`, preview image |
-| `sonylook/` | Python port of Sony's look chain and front end, ARW and Edit readers. Also ports of RawNR, DRO, sharpening / Spica, Marble, lens geometry correction (none used by the profiles) and the BW/SE Effect stage (used), plus the end-to-end decoder `sony_decode.py`. `sonylook/metal/` holds the optional Metal GPU implementation of the decoder stages |
-| `rust/` | Optional Rust core (`sonylook_core`): fused render bands, GeoCorr, ITP, Marble, SSCS and table builders. See `rust/README.md` |
-| `tests/` | Differential checks of the Metal stages and the Rust raw reader against the reference |
+| `sonylook/` | Python port of Sony's look chain and front end, ARW and Edit readers. Also ports of RawNR, DRO, sharpening / Spica, Marble, lens geometry correction (none used by the profiles) and the BW/SE Effect stage (used), plus the end-to-end decoder `sony_decode.py` |
+| `rust/` | Optional Rust core (`sonylook_core`): raw reading, RawNR, ITP, DRO, GeoCorr, SSCS, fused render bands, Marble and table builders. See `rust/README.md` |
+| `metal/` | Optional Metal GPU implementation of the decoder stages (macOS): the Objective-C bridge and the shaders. See [Metal notes](docs/metal.md) |
+| `tests/` | Differential checks of the Metal stages and the Rust ports against the reference |
 | `capture_one/` | Capture One profile generation, synthetic chart, measurement and comparison |
 | `camera_raw/` | Camera Raw table format, DCP read/write, profile generation, measurement and comparison |
 | `dxo/` | DxO PhotoLab model of the LUT input (`dxo_model.py`), probe and base-DCP generation, LUT generation |
 | `video/` | S-Log3 input transforms, sensor-matrix calibration, video LUT generation and tests |
-| `site/` | Three.js interactive explanation, “一张照片的诞生”, and asset export scripts; deployed to GitHub Pages |
 | `docs/` | [Documentation index](docs/README.md): pipeline, host calibrations, measurement protocols and local research references. Evidence files and test exports are kept outside the repository |
 
 ## Notes

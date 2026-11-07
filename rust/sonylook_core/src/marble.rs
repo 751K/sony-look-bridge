@@ -1,8 +1,9 @@
 //! ZcTaskMarble, one slab at a time.
 //!
-//! Direct port of sonylook/sony_marble.py for the luma path (dev+0x2c0 != 0).
-//! The chroma path (NR on, look+0x109c != 0) and the rare _strength_470 branch
-//! are not ported: the FFI returns 0 and the caller falls back to NumPy.
+//! Direct port of sonylook/sony_marble.py: the luma path (dev+0x2c0 != 0) and
+//! the chroma path (NR on, look+0x109c != 0).  The chroma parameters come from
+//! sony_marble.luma_params via `ChromaParams`.  The rare _strength_470 branch
+//! is not ported: the FFI returns 0 and the caller falls back to NumPy.
 //!
 //! All integer operations are wrapping 32/64-bit as in NumPy; f32/f64 fused
 //! multiply-adds use the hardware FMA (same single rounding as the ARM code).
@@ -28,6 +29,33 @@ pub struct MarbleParams {
     pub gamma_enc: *const i16,
     pub m_fwd: [i32; 9],
     pub m_inv: [i32; 9],
+    pub chroma: *const ChromaParams, // null: chroma path unavailable (falls back)
+}
+
+/// Chroma-path parameters (sony_marble.luma_params P, block size and the
+/// upsample weight tables).
+#[repr(C)]
+pub struct ChromaParams {
+    pub blk: i32,
+    pub d0: i64,
+    pub cc: i64,
+    pub c8: i64,
+    pub c4: i64,
+    pub c0: i64,
+    pub bc: i64,
+    pub b8: i64,
+    pub b4: i64,
+    pub b0: i64,
+    pub ac: i64,
+    pub a8: i64,
+    pub l98: i64,
+    pub l90: i64,
+    pub l88: i64,
+    pub t7c: i64,
+    pub t80: i64,
+    pub up_t: [i64; 4],
+    pub upw: *const i32,
+    pub upw_len: usize,
 }
 
 const RECIP25: [i64; 26] = [
@@ -231,6 +259,129 @@ fn binom3(q: &mut [i64], nw: usize, nh: usize, a: i64) -> Vec<i64> {
     out
 }
 
+#[inline(always)]
+fn up_sat(v: i64) -> i64 {
+    if v > 0x7fffbf {
+        0xffff
+    } else if v + 0x40 < 0 {
+        0
+    } else {
+        ((v + 0x40) >> 7) & 0xffff
+    }
+}
+
+/// sony_marble._chroma_path: returns (Cr36, Cb37) at half width.
+unsafe fn chroma_path(yc: &[i64], cbh: &[i64], crh: &[i64], w4: usize, h4: usize, cp: &ChromaParams) -> (Vec<i64>, Vec<i64>) {
+    let b = cp.blk as usize;
+    let half = w4 / 2;
+    let (nbw, nbh) = ((w4 + b - 1) / b, (h4 + b - 1) / b);
+    let (sh_y, sh_c) = if b == 8 { (6, 5) } else { (4, 3) };
+    let mean = |s: Vec<i64>, sh: i64| -> Vec<i64> { s.into_iter().map(|v| ((v + (1 << (sh - 1))) >> sh).max(1)).collect() };
+    let p_y = pad6(&mean(rect_sum(yc, w4, h4, b, b, nbh, nbw), sh_y), nbw, nbh);
+    let p_cb = pad6(&mean(rect_sum(cbh, half, h4, b, b / 2, nbh, nbw), sh_c), nbw, nbh);
+    let p_cr = pad6(&mean(rect_sum(crh, half, h4, b, b / 2, nbh, nbw), sh_c), nbw, nbh);
+    let pw = nbw + 12;
+    let thr = |x: i64, t79: i64, k: i64| -> i64 {
+        let pr = (x * t79) & 0xffffffff;
+        let mut u = if pr < 0x80 { 1 } else { (pr + 0x80) >> 8 };
+        if pr >= 0xffff80 {
+            u = 0xffff;
+        }
+        let v = ((u * k + 0x80) & 0xffffffff) >> 8;
+        let v = if v < 0x101 { 0x100 } else { v };
+        if v > 0x7fff { 0x8000 } else { v }
+    };
+    let mut qb = vec![0i64; (nbh + 12) * pw];
+    let mut qr = vec![0i64; (nbh + 12) * pw];
+    for y in 4..nbh + 8 {
+        for x in 4..nbw + 8 {
+            let i = y * pw + x;
+            let (yv, ub, vc) = (p_y[i], p_cb[i], p_cr[i]);
+            let t79 = (cp.c8 + (i32w(cp.cc * yv + 0x80) >> 8) as i64).clamp(0, 0xffff);
+            let t59 = (cp.c0 + (i32w((ub - 0x8000) * cp.c4 + 0x80) >> 8) as i64).clamp(0, 0xffff);
+            let t58 = (cp.b8 + (i32w((vc - 0x8000) * cp.bc + 0x80) >> 8) as i64).clamp(0, 0xffff);
+            let (tb, tr) = (thr(t59, t79, cp.b4), thr(t58, t79, cp.b0));
+            let (mut sb, mut sr, mut n) = (0i64, 0i64, 0i64);
+            for dy in [-4isize, -2, 0, 2, 4] {
+                for dx in [-4isize, -2, 0, 2, 4] {
+                    let j = (i as isize + dy * pw as isize + dx) as usize;
+                    let (yn, bn, rn) = (p_y[j], p_cb[j], p_cr[j]);
+                    if (ub - bn).abs() <= tb && (vc - rn).abs() <= tr && (yv - yn).abs() <= cp.d0 && yn != 0 && bn != 0 && rn != 0 {
+                        sb += bn;
+                        sr += rn;
+                        n += 1;
+                    }
+                }
+            }
+            let idx = if ((n - 1) & 0xffffffff) > 24 { 0 } else { n as usize };
+            let rc = RECIP25[idx];
+            qb[i] = sat15(rc * sb + 0x4000);
+            qr[i] = sat15(rc * sr + 0x4000);
+        }
+    }
+    let qb = binom3(&mut qb, nbw, nbh, cp.ac);
+    let qr = binom3(&mut qr, nbw, nbh, cp.a8);
+    // FUN_100129af0: upsample to half width; column c takes the last block bx that writes it
+    let upw = slice::from_raw_parts(cp.upw, cp.upw_len);
+    let (hb, qb4) = (b / 2, b / 4);
+    let ncol = qb4 + hb;
+    let ncols = half + 12;
+    let mut colbx = vec![-1i64; ncols];
+    let mut colj = vec![0usize; ncols];
+    for bx in 0..nbw {
+        let jmax = (ncol as i64).min(half as i64 - (bx * hb) as i64);
+        if jmax > 0 {
+            let c0 = qb4 + bx * hb;
+            for j in 0..jmax as usize {
+                colbx[c0 + j] = bx as i64;
+                colj[c0 + j] = j;
+            }
+        }
+    }
+    let [t12, t11, t32, t10] = cp.up_t.map(|v| v as usize);
+    let mut up_b = vec![0i64; h4 * half];
+    let mut up_r = vec![0i64; h4 * half];
+    for row in hb..h4 {
+        let (by, k) = ((row - hb) / b, (row - hb) % b);
+        if by >= nbh {
+            continue;
+        }
+        for c in 0..half {
+            if colbx[c] < 0 {
+                continue;
+            }
+            let bx = colbx[c] as usize;
+            let ii = k * hb + colj[c];
+            let (w12, w11, w32, w10) = (upw[t12 + ii] as i64, upw[t11 + ii] as i64, upw[t32 + ii] as i64, upw[t10 + ii] as i64);
+            let at = |q: &[i64], yy: usize, xx: usize| q[yy * pw + xx];
+            for (q, up) in [(&qr, &mut up_r), (&qb, &mut up_b)] {
+                let v = w12 * at(q, by + 6, bx + 6) + w11 * at(q, by + 6, bx + 7) + w32 * at(q, by + 7, bx + 7) + w10 * at(q, by + 7, bx + 6);
+                up[row * half + c] = up_sat(v);
+            }
+        }
+    }
+    // merge
+    let mut cr36 = vec![0i64; h4 * half];
+    for i in 0..h4 * half {
+        let (cb, crv) = (up_b[i], up_r[i]);
+        let a = if cb < 0x8000 { 0x8000 - cb } else { cb - 0x8000 };
+        let mut u5 = (i32w((a - cp.l98 * 0x100) * cp.t7c) as i64).max(0);
+        if u5 > 0x7fffff {
+            u5 = 0x800000;
+        }
+        let mut u29 = (i32w((crv - cp.l90 * 0x100 - 0x8000) * cp.t80) as i64).max(0);
+        if u29 >= 0x800000 - u5 {
+            u29 = 0x800000 - u5;
+        }
+        if u29 > 0x7fffff {
+            u29 = 0x800000;
+        }
+        let w = ((u29 + 0x8000) >> 16) * cp.l88;
+        cr36[i] = sat15((0x8000 - w) * crv + w * crh[i] + 0x4000);
+    }
+    (cr36, up_b)
+}
+
 unsafe fn luma_path(
     y35: &mut [i64],
     y39: &[i64],
@@ -402,7 +553,11 @@ pub unsafe extern "C" fn marble_slab_u16(
     // (FUN_100126f0c uses q = lum / 10 as an index).  Outside it Edit itself reads
     // past the table, so there is nothing to reproduce: fall back to Python rather
     // than panic on `q as usize` (negative) or overrun the arrays (>= 110).
-    if bnr || !(p.f22780 == 1.0 && p.f22784 == 1.0) || lum == 0 || !(0..=109).contains(&lum) {
+    if (bnr && p.chroma.is_null())
+        || !(p.f22780 == 1.0 && p.f22784 == 1.0)
+        || (lum == 0 && !bnr)
+        || !(0..=109).contains(&lum)
+    {
         return 0; // unsupported / nothing to do: caller falls back
     }
     let dec = slice::from_raw_parts(p.gamma_dec, 0x4000);
@@ -504,9 +659,12 @@ pub unsafe extern "C" fn marble_slab_u16(
         return 1;
     }
     let mut y35 = yc.clone();
+    let (cr36, cb37) = if bnr {
+        chroma_path(&yc, &cbh, &crh, w4, h4, &*p.chroma)
+    } else {
+        (crh, cbh)
+    };
     let y39 = yc;
-    let cr36 = crh;
-    let cb37 = cbh;
 
     // parameters
     let k67 = if p.d218 != 0 { cdiv(p.d224, 20) + 5 } else { 0 };
@@ -583,6 +741,7 @@ pub unsafe extern "C" fn marble_slab_u16(
         (gate, lo_l, hi_l, g34, g38, g3c, g40, thr_y, a_y, g20, g24)
     };
 
+    if lum != 0 {
     luma_path(
         &mut y35,
         &y39,
@@ -602,6 +761,7 @@ pub unsafe extern "C" fn marble_slab_u16(
         debug_stage,
         debug_out,
     );
+    }
     if debug_stage == 3 {
         debug_write(&y35, debug_out);
         return 1;

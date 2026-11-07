@@ -4,23 +4,25 @@ Direction-map accumulation uses float32 on Metal, while the Rust reference
 uses float64 for some sums. Individual output values can therefore differ.
 
 Build with: clang -O2 -fobjc-arc -dynamiclib -framework Foundation -framework Metal \
-    sonylook/metal/itp.m -o sonylook/metal/libsonylook_metal.dylib
+    metal/bridge.m -o metal/libsonylook_metal.dylib
+SONYLOOK_METAL_LIB selects a different library path.
 """
 from __future__ import annotations
 
 import ctypes
+import os
 import weakref
 from pathlib import Path
 import numpy as np
 
-_DIR = Path(__file__).resolve().parent / "metal"
+_DIR = Path(__file__).resolve().parents[1] / "metal"
 _lib = None
 
 
 def _load():
     global _lib
     if _lib is None:
-        lib = ctypes.CDLL(str(_DIR / "libsonylook_metal.dylib"))
+        lib = ctypes.CDLL(os.environ.get("SONYLOOK_METAL_LIB") or str(_DIR / "libsonylook_metal.dylib"))
         lib.sonylook_metal_error.restype = ctypes.c_char_p
         lib.sonylook_metal_init.argtypes = [ctypes.c_char_p]
         lib.sonylook_metal_itp_debug.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32,
@@ -38,7 +40,7 @@ def _load():
         lib.sonylook_metal_free.argtypes = [ctypes.c_void_p]
         lib.sonylook_metal_trim.argtypes = []
         lib.sonylook_metal_pool_bytes.restype = ctypes.c_size_t
-        if lib.sonylook_metal_init(str(_DIR / "itp.metal").encode()):
+        if lib.sonylook_metal_init(str(_DIR / "shaders").encode()):
             raise RuntimeError(lib.sonylook_metal_error().decode())
         _lib = lib
     return _lib

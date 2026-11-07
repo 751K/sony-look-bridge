@@ -16,9 +16,11 @@
 
 #![allow(clippy::too_many_arguments)]
 
+mod dro;
 mod itp;
 mod ljpeg;
 mod marble;
+mod rawnr;
 mod sscs;
 mod tables;
 

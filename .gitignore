@@ -27,4 +27,4 @@ dxo/body/
 profiles/video/**/*.cube
 
 # Locally built Metal bridge
-sonylook/metal/libsonylook_metal.dylib
+metal/libsonylook_metal.dylib

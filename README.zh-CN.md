@@ -64,9 +64,7 @@ v1.3.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款
 
 ## 安装使用
 
-**视频 LUT（v2.0.0）**：[下载 α7 V S-Log3 LUT](https://github.com/751K/sony-look-bridge/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)，覆盖全部 12 种 Creative Look，输入为 S-Gamut3 或 S-Gamut3.Cine，输出为 Rec.709 / Gamma 2.4。默认 LUT 以测光 +1⅔ 档素材为输入；ST 的 18% 灰输出码值约为 0.607。见[使用说明](profiles/video/README.md)和[标定与生成](docs/video.md)。
-
-以下步骤使用 α7 V 的文件名。各机型 ZIP 内附对应的安装说明。
+以下为照片配置的安装步骤，视频 LUT 见[视频 LUT](#视频-lut)。步骤使用 α7 V 的文件名。各机型 ZIP 内附对应的安装说明。
 
 ### Capture One
 
@@ -94,6 +92,23 @@ v1.3.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款
 ### 适用范围
 
 请给 RAW 使用对应机型的 Look 包，下载状态见[机型覆盖](#机型覆盖)。
+
+## 视频 LUT
+
+α7 V 另有一套 LUT，使 S-Log3 视频获得照片 Creative Look 的颜色和影调。**[下载 Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)**（[v2.0.0 发布页](https://github.com/751K/sony-look-bridge/releases/tag/v2.0.0)）。
+
+- **内容**：12 种外观 × 2 种输入色域，共 24 个 65³ 网格的 `.cube`。文件名含 `SLog3_SGamut3_` 的输入为 S-Log3 / S-Gamut3，含 `SLog3_SGamut3Cine_` 的输入为 S-Log3 / S-Gamut3.Cine；输出均为 Rec.709 / Gamma 2.4。IN、SH、FL2、FL3 使用相机默认的 Fade（3、6、1、1）。
+- **曝光**：LUT 以测光 **+1⅔ 档**（相机显示 +1.7）的素材为输入，18% 灰约为 547 / 1023。曝光不同时，在 LUT 之前调整曝光，例如实际为 +1 档时提亮约 0.67 档。其他曝光约定可用生成器的 `--exposure` 参数生成。
+- **输出亮度**：中灰随外观而变化。ST 的 18% 灰约为 0.607（归一化 Gamma 2.4 码值），FL、FL2、FL3 分别约为 0.749、0.714、0.705。
+- **DaVinci Resolve**：在不启用色彩管理的 DaVinci YRGB 项目中，将 LUT 加在接收 S-Log3 素材的节点上，曝光和白平衡调整置于其前。LUT 已包含 Log 解码和显示输出，同一路径上不应再叠加 Log 至 Rec.709 或 ACES 输出转换。时间线与输出色彩空间设为 Rec.709 Gamma 2.4，插值方式选择四面体（Tetrahedral）。
+
+LUT 通过实测相机矩阵把 S-Log3 接入照片外观链，矩阵由同一屏幕色卡的 RAW 与 S-Log3 配对拍摄拟合得到。`.cube` 文件作为发布附件提供，仓库的 `profiles/video/` 保留生成记录（`manifest.json`）和独立校验结果（`validation.json`）。重新生成：
+
+```bash
+python3 video/video_look.py /path/to/A7M5.ARW --write --eval
+```
+
+详见[使用说明](profiles/video/README.md)和[标定与生成](docs/video.md)。
 
 ## 原理
 
@@ -133,24 +148,6 @@ python3 sonylook/sony_render.py /path/to/A7M5.ARW Standard FL2 --scale 4
 - 第一条生成 C1 配置，第二条生成 ACR 配置，第三条生成 DxO 的 LUT（加 `--eval` 会打印在该 ARW 上的插值误差），第四条用外观链直接渲染预览。
 - 用 DSC03591 重新生成的结果，与 `profiles/` 里的文件逐字节相同。
 
-### 解码 ARW
-
-完整解码器会从 RawNR 一路运行到创意外观：
-
-```bash
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
-```
-
-解码器支持 sRGB / Adobe RGB、TIFF / JPEG / PNG，并读取 ARW 的显影设置。完整阶段和参数见[处理管线](docs/pipeline.md)。
-
-解码器有两种可选的加速后端，输出均与 NumPy 参考实现一致（Metal ITP 除外，见说明）。使用 Rust 内核时，一张 7008×4672 的图约需 2 s；在 macOS 上再启用 Metal，约需 0.2 s：
-
-```bash
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif
-```
-
-构建、覆盖范围和性能见 [Rust 说明](rust/README.md) 与 [Metal 加速](docs/metal.md)。
-
 ### Viewer 的 AI 超分
 
 Viewer Extended Hi-Res 的输入、分块和导出链研究见[技术笔记](docs/sdm.md)。
@@ -159,20 +156,61 @@ Viewer Extended Hi-Res 的输入、分块和导出链研究见[技术笔记](doc
 
 合成色卡和重新标定各软件输入编码的步骤见[重新标定说明](docs/recalibration.md)。
 
+## ARW 解码器
+
+`sonylook/sony_decode.py` 复现 Edit 的完整 RAW 显影，按 ARW 中保存的显影设置输出与 Edit 导出相同的图像：
+
+```text
+RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → MainGamma
+    → RGB2YCC → AreaComp → ChromaSuppress → Sharpness → YGamma → [HueSaturation]
+    → Spica → YCC2RGB → [Marble] → [Effect] → [ToneCurve] → [ShadeCorrection]
+```
+
+方括号中的阶段按设置运行。输出为解码器矩形（α7 V 为 7008×4672），色彩空间为 sRGB 或 Adobe RGB，格式为 TIFF、JPEG 或 PNG。各阶段的实现与参数见[处理管线](docs/pipeline.md)。
+
+### 三种实现
+
+| 实现 | 平台 | 覆盖范围 | 作用 |
+| --- | --- | --- | --- |
+| Python / NumPy | 任意 | 全部阶段 | 参考实现，默认后端 |
+| Rust（`--rust`） | 任意，需 `cargo` | RAW 读取（无损压缩 ARW）、RawNR、ITP、DRO、GeoCorr、SSCS、外观链、Sharpness → YCC2RGB、Marble 和表构造；Effect、ToneCurve、ShadeCorrection 仍用 NumPy | 多线程 CPU 后端 |
+| Metal（`--metal`） | macOS | RAW 读取之后的全部阶段 | GPU 后端；各阶段在 GPU 可见内存中直接传递，不发生复制 |
+
+Rust 与 Metal 的输出与 NumPy 逐位一致，已逐阶段并在整图上验证。唯一的例外是 Metal ITP：方向图中有几处求和使用 float32 而非 float64，对随机的满量程噪声输入，个别值可能相差 1；真实 ARW 上没有出现差异。两种后端可以组合使用：`--rust --metal` 由 Rust 读取 RAW，其余阶段在 GPU 上运行。
+
+```bash
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif                # NumPy
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --out out.tif         # Rust
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif # Rust + Metal
+```
+
+在 Python 中，`decode(path, rust=True, metal=True)` 返回 uint16 数组。批量处理时宜在同一进程中连续调用 `decode()`：Metal 初始化、着色器编译和缓冲池只在第一次调用时建立。
+
+### 速度
+
+Mac mini（Apple M6，16 GB），一张 7008×4672 的图，在同一进程中再次解码：
+
+| 文件 | NumPy | Rust | Metal | Rust + Metal |
+| --- | ---: | ---: | ---: | ---: |
+| DSC03591（NR、DRO 关闭） | 28.1 s | 1.7 s | 0.40 s | 0.15 s |
+| DSC05740（BW，NR、DRO 开启） | 37.0 s | 2.8 s | 0.48 s | 0.19 s |
+
+单独使用 Metal 时，RAW 由 rawpy 读取，约 0.3 s；加上 `--rust` 后约 0.02 s。进程中首次解码某个文件时，读取文件和元数据另需约 0.1–0.3 s。构建方法、分阶段耗时和验证见 [Rust 说明](rust/README.md) 与 [Metal 加速](docs/metal.md)。
+
 ## 目录
 
 | 目录             | 内容                                                                          |
 | -------------- | --------------------------------------------------------------------------- |
 | `profiles/`    | 照片配置及视频 LUT 的生成记录                                                          |
 | `chart/`       | 合成色卡：`SonyChart.ARW`（可直接用 C1 / ACR 打开）、色块定义 `SonyChart.json`、预览图            |
-| `sonylook/`    | Sony 外观链与前端的 Python 移植，以及 ARW / Edit 读取器。另含 RawNR、DRO、锐化 / Spica、Marble、镜头几何校正（都不用于配置）、BW/SE 的 Effect 阶段（用于配置），以及整图解码器 `sony_decode.py`。`sonylook/metal/` 为解码各阶段的可选 Metal GPU 实现 |
-| `rust/`        | 可选的 Rust 内核（`sonylook_core`）：融合渲染 band、GeoCorr、ITP、Marble、SSCS 和表构造。见 `rust/README.md` |
-| `tests/`       | Metal 各阶段和 Rust RAW 读取与参考实现的差分验证                                       |
+| `sonylook/`    | Sony 外观链与前端的 Python 移植，以及 ARW / Edit 读取器。另含 RawNR、DRO、锐化 / Spica、Marble、镜头几何校正（都不用于配置）、BW/SE 的 Effect 阶段（用于配置），以及整图解码器 `sony_decode.py` |
+| `rust/`        | 可选的 Rust 内核（`sonylook_core`）：RAW 读取、RawNR、ITP、DRO、GeoCorr、SSCS、融合渲染 band、Marble 和表构造。见 `rust/README.md` |
+| `metal/`       | 解码各阶段的可选 Metal GPU 实现（macOS）：Objective-C 桥接层和着色器。见 [Metal 加速](docs/metal.md) |
+| `tests/`       | Metal 各阶段和 Rust 移植与参考实现的差分验证                                       |
 | `capture_one/` | C1 配置生成、合成色卡、测量与对比                                                          |
 | `camera_raw/`  | ACR 表格式、DCP 读写、配置生成、测量与对比                                                   |
 | `dxo/`         | DxO PhotoLab 的 LUT 输入模型（`dxo_model.py`）、探针和底座 DCP 生成、LUT 生成                      |
 | `video/`       | S-Log3 输入转换、传感器矩阵标定、视频 LUT 生成和测试 |
-| `site/`        | Three.js 交互讲解网页“一张照片的诞生”和资源导出脚本，通过 GitHub Pages 部署 |
 | `docs/`        | [文档导航](docs/README.md)：处理链、宿主标定、测量方法与本地研究资料索引。原始证据文件和测试导出保存在仓库之外 |
 
 ## 说明

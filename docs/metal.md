@@ -1,6 +1,6 @@
 # Metal 加速
 
-`sonylook/metal/` 为整图解码器 `sony_decode.py` 提供可选的 Metal GPU 实现，适用于 macOS。NumPy 实现仍是参考实现和默认后端。除 ITP 外，各 Metal 阶段的输出与 NumPy 逐位一致（见[输出一致性](#输出一致性)）。
+`metal/` 为整图解码器 `sony_decode.py` 提供可选的 Metal GPU 实现，适用于 macOS。NumPy 实现仍是参考实现和默认后端。除 ITP 外，各 Metal 阶段的输出与 NumPy 逐位一致（见[输出一致性](#输出一致性)）。
 
 ## 覆盖范围
 
@@ -9,7 +9,7 @@
 | 选项 | 阶段 | 说明 |
 | --- | --- | --- |
 | `--metal-nr` | RawNR | 设置中开启降噪时运行 |
-| `--metal-itp` | ITP 去马赛克 | 整图一次处理，按 Sony 的 1024×1024 分块边界计算；使用标准 ITP 表，参数取自 Rust 内核 |
+| `--metal-itp` | ITP 去马赛克 | 整图一次处理，按 Sony 的 1024×1024 分块边界计算；使用标准 ITP 表 |
 | `--metal-dro` | DRO | 设置中开启 DRO 时运行 |
 | `--metal-geo` | GeoCorr（畸变、横向色差） | 镜头校正开启时运行 |
 | `--metal-sscs` | SSCS | 整数路径 |
@@ -19,19 +19,18 @@
 | `--metal-post` | Effect（BW、Sepia）→ ToneCurve → ShadeCorrection | 一次 GPU 调用完成 |
 | `--metal` | 以上全部 | |
 
-白平衡增益的计算量可以忽略，仍在 CPU 上进行。RAW 读取由 Rust 内核完成（`--rust`，见 [Rust 说明](../rust/README.md#raw-decoding)）。
+白平衡增益的计算量可以忽略，仍在 CPU 上进行。Metal 路径不依赖 Rust 内核；同时指定 `--rust` 时，RAW 由 Rust 多线程解码（约 0.02 s，rawpy 约 0.3 s，见 [Rust 说明](../rust/README.md#raw-decoding)），外观表也由 Rust 构建，因此两者一起使用最快。
 
 ## 构建
 
-需要 Xcode Command Line Tools（`clang`）和支持 Metal 的 Mac。Metal ITP 从 Rust 内核读取 ITP 参数，因此需要先构建 Rust 内核：
+需要 Xcode Command Line Tools（`clang`）和支持 Metal 的 Mac：
 
 ```bash
-cargo build --release --manifest-path rust/sonylook_core/Cargo.toml
 clang -O2 -fobjc-arc -dynamiclib -framework Foundation -framework Metal \
-  sonylook/metal/itp.m -o sonylook/metal/libsonylook_metal.dylib
+  metal/bridge.m -o metal/libsonylook_metal.dylib
 ```
 
-着色器源码（`sonylook/metal/*.metal`）在首次调用时由 Metal 运行时编译，编译时关闭快速数学。修改 `.metal` 文件后无需重新构建动态库；修改 `itp.m` 后需要重新构建。
+`SONYLOOK_METAL_LIB` 可指定其他路径的动态库。着色器源码（`metal/shaders/*.metal`）在首次调用时由 Metal 运行时编译，使用安全数学模式和精确数学函数（`MTLMathModeSafe`、`MTLMathFloatingPointFunctionsPrecise`）。修改 `.metal` 文件后无需重新构建动态库；修改 `bridge.m` 后需要重新构建。
 
 ## 使用
 
@@ -39,14 +38,15 @@ clang -O2 -fobjc-arc -dynamiclib -framework Foundation -framework Metal \
 python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif
 ```
 
-也可以只启用部分阶段，例如 `--rust --metal-itp --metal-geo`。在 Python 中使用时，向 `decode()` 传入对应的关键字参数：
+也可以只启用部分阶段，例如 `--rust --metal-itp --metal-geo`。在 Python 中使用时，`metal=True` 启用全部 Metal 阶段，也可以单独传入 `metal_itp=True` 等关键字参数：
 
 ```python
 from sony_decode import decode
-img = decode("A7M5.ARW", rust=True, metal_itp=True, metal_dro=True, metal_geo=True,
-             metal_sscs=True, metal_look=True, metal_spatial=True, metal_marble=True,
-             metal_post=True, metal_nr=True)
+for f in files:
+    img = decode(f, rust=True, metal=True)
 ```
+
+批量处理时，宜在同一进程中连续调用 `decode()`：Metal 初始化、着色器编译和缓冲池只在进程内第一次调用时建立，后续调用直接复用。
 
 指定 Metal 选项而 Metal 不可用时报错，不会退回 CPU。
 
@@ -67,20 +67,22 @@ NumPy 中的部分运算在 float64 下进行，或依赖 NumPy 的正确舍入�
 
 ## 性能
 
-测量环境为 M4。Metal 列为进程已完成 Metal 初始化后，再次解码同一文件的耗时：
+测量环境为 Mac mini（Apple M6，16 GB），A7M5 7008×4672，在同一进程中再次解码同一文件：
 
-| 文件 | 设置 | `--rust` | `--rust --metal` |
-| --- | --- | ---: | ---: |
-| DSC03591 | NR、DRO 关闭 | 2.1 s | 0.16 s |
-| DSC05740 | BW，NR、DRO 开启 | 15.2 s | 0.20 s |
+| 文件 | 设置 | NumPy | `--rust` | `--metal` | `--rust --metal` |
+| --- | --- | ---: | ---: | ---: | ---: |
+| DSC03591 | NR、DRO 关闭 | 28.1 s | 1.7 s | 0.40 s | 0.15 s |
+| DSC05740 | BW，NR、DRO 开启 | 37.0 s | 2.8 s | 0.48 s | 0.19 s |
+
+单独使用 `--metal` 时 RAW 由 rawpy 读取（约 0.3 s），外观表由 Python 构建；加上 `--rust` 后这两项分别约为 0.02 s 和 0.03 s。
 
 DSC05740 的分阶段耗时（`--rust --metal`）：
 
 | 阶段 | 耗时 |
 | --- | ---: |
-| 读取 RAW | 22 ms |
+| 读取 RAW | 21 ms |
 | RawNR | 8 ms |
-| ITP | 73 ms |
+| ITP | 72 ms |
 | DRO | 19 ms |
 | GeoCorr | 5 ms |
 | SSCS | 4 ms |
@@ -88,7 +90,7 @@ DSC05740 的分阶段耗时（`--rust --metal`）：
 | Marble | 17 ms |
 | Effect / ToneCurve / ShadeCorrection | 5 ms |
 
-- 同一进程中首次解码某个文件时，需要读取文件并解析元数据，每张约 0.3 s。
+- 同一进程中首次解码某个文件时，需要读取文件并解析元数据，每张另需约 0.1–0.3 s。
 - 进程中第一次使用 Metal 时需要编译着色器。命令行单张解码（含 Python 启动、Metal 初始化和写 TIFF）约 0.35–0.45 s；开机后首次运行，文件和着色器缓存均未命中时，约 1.8 s。
 
 ## 验证
@@ -116,15 +118,15 @@ python3 tests/verify_raw_decode.py photo.ARW [folder ...]
 
 | 文件 | 内容 |
 | --- | --- |
-| `sonylook/metal/itp.m` | Objective-C 桥接层：设备、着色器加载、缓冲池、共享内存数组，以及各阶段的 C 入口 |
-| `sonylook/metal/itp.metal` | ITP |
-| `sonylook/metal/nr.metal` | RawNR |
-| `sonylook/metal/dro.metal` | DRO，以及正确舍入的除法和定点 `exp2` |
-| `sonylook/metal/geo.metal` | GeoCorr |
-| `sonylook/metal/sscs.metal` | SSCS |
-| `sonylook/metal/look.metal` | LinearMatrix16 至 ChromaSuppress |
-| `sonylook/metal/spatial.metal` | Sharpness、YGamma、Spica、YCC2RGB |
-| `sonylook/metal/marble.metal` | Marble 亮度路径和色度路径 |
-| `sonylook/metal/post.metal` | Effect、ToneCurve、ShadeCorrection，以及 RGB 交错 |
+| `metal/bridge.m` | Objective-C 桥接层：设备、着色器加载、缓冲池、共享内存数组，以及各阶段的 C 入口 |
+| `metal/shaders/itp.metal` | ITP |
+| `metal/shaders/nr.metal` | RawNR |
+| `metal/shaders/dro.metal` | DRO，以及正确舍入的除法和定点 `exp2` |
+| `metal/shaders/geo.metal` | GeoCorr |
+| `metal/shaders/sscs.metal` | SSCS |
+| `metal/shaders/look.metal` | LinearMatrix16 至 ChromaSuppress |
+| `metal/shaders/spatial.metal` | Sharpness、YGamma、Spica、YCC2RGB |
+| `metal/shaders/marble.metal` | Marble 亮度路径和色度路径 |
+| `metal/shaders/post.metal` | Effect、ToneCurve、ShadeCorrection，以及 RGB 交错 |
 | `sonylook/metal_itp.py` | 动态库加载、共享内存数组（`empty`、`trim`）和 ITP 封装 |
 | `sonylook/metal_rawnr.py`、`metal_dro.py`、`metal_geo.py`、`metal_sscs.py`、`metal_look.py` | 其余阶段的 Python 封装 |

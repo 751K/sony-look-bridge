@@ -6,9 +6,11 @@
 blur_rows -> hue index -> LinearMatrix16 -> MainGamma -> RGB2YCC
           -> AreaComp -> ChromaSuppress
 Sharpness -> YGamma -> Spica -> YCC2RGB
-GeoCorr (distortion + lateral CA, u16 bilinear path)
+RawNR (whole raw, rows in parallel)
 ITP demosaic (whole image: edge extension, 1024x1024 tile grid and parallel tiles all in Rust)
-Marble (one slab per call; the luma path; the NR/chroma path falls back to NumPy)
+DRO per-pixel operator (the grid is built in NumPy, ~0.1 s)
+GeoCorr (distortion + lateral CA, u16 bilinear path)
+Marble (one slab per call; the luma path and the NR chroma path)
 SSCS (integer path; the float preview path stays on NumPy)
 MainGamma and Effect table construction
 Lossless compressed raw (TIFF compression 7) decoding, tiles in parallel
@@ -66,39 +68,44 @@ img = decode("A7M5.ARW", rust=True)
   LinearMatrix16 and YGamma stay in Python but are cached in-process and on
   disk (`~/.cache/sonylook`), keyed by the look blob, slider values, the Edit
   binary SHA and a cache version.  `SONYLOOK_CACHE=0` disables the disk cache;
-  `SONYLOOK_CACHE_DIR` moves it.  Measured `Look` construction: 0.23 s with the
-  Python builders, 0.06 s with the Rust ones, 0.015 s from a warm cache.
+  `SONYLOOK_CACHE_DIR` moves it.  Measured `Look` construction (M6): 0.15 s with
+  the Python builders, 0.03 s with the Rust ones, 0.01 s from a warm cache.
 - Pointwise/LUT-grid renders (`Look.render(pointwise=True)`), float input and
   non-zero Hue/Saturation fall back to NumPy.
 - The NumPy path remains the reference used by the differential verifiers; do
   not change the Rust kernel without re-running the whole-image SHA-256 check.
 
-## Measured on an M4 (A7M5, 7008x4672, NR/DRO off)
+## Measured on an M6 (Mac mini, 16 GB; A7M5, 7008x4672)
+
+Wall time per stage, decoding the same file again in one process:
 
 | Stage | NumPy | Rust |
 | --- | ---: | ---: |
-| look + rgb2ycc + chroma + sharpness + ygamma + spica + ycc2rgb | 21.0 s | 0.5 s |
-| GeoCorr | 6.9 s | 0.5 s |
-| ITP | 5.8 s | 0.6 s |
-| Marble | 5.0 s | 0.5 s |
-| SSCS | 1.4 s | 0.1 s |
-| whole render chain incl. Marble | 28.8 s | 1.7 s |
-| full decode | 42.1 s | 2.1 s |
+| raw read | 0.26 s (rawpy) | 0.02 s |
+| RawNR (DSC05740) | 4.2 s | 0.09 s |
+| ITP | 4.4 s | 0.41 s |
+| DRO (DSC05740) | 5.2 s | 0.21 s |
+| GeoCorr | 5.0 s | 0.37 s |
+| band render: SSCS, look chain, Sharpness to YCC2RGB, Marble (DSC03591) | 18.5 s | 0.83 s |
+| full decode, DSC03591 (NR / DRO off) | 28.1 s | 1.7 s |
+| full decode, DSC05740 (BW, NR / DRO on) | 37.0 s | 2.8 s |
 
-In the full decode, ITP and GeoCorr take about 0.4 s each and the band render
-(look, spatial stages and Marble) about 0.9 s; reading the raw takes about
-0.02 s and the one-time tables ~0.06 s cold, ~0.015 s with the disk cache.  When
-enabled, ToneCurve / ShadeCorrection add about 3.5 s together, and RawNR, DRO
-and the NR/chroma branch of Marble run in NumPy; all of them have Metal
-implementations (see below).
+Effect, ToneCurve and ShadeCorrection stay on NumPy: Effect (BW) takes about
+0.7 s, and all three together about 5.5 s on a full image.  They have Metal
+implementations (see below).  The one-time tables take about 0.03 s with the
+Rust builders and about 0.01 s from the disk cache.
 
-The Rust render, GeoCorr, ITP, Marble, SSCS and table-builder paths are
+The Rust render, RawNR, DRO, GeoCorr, ITP, Marble, SSCS and table-builder paths are
 verified against the NumPy version (interior and border tiles / slabs, the
 full-image SHA-256, and direct table comparisons), all bit-identical.  `itp_debug_u16` and
 the `debug_stage` argument of `marble_slab_u16` expose intermediate planes for
-that comparison; they are not used by the decode path.  Files with NR enabled
-take Marble's chroma path, which is not ported to Rust: the FFI returns 0 and the
-caller uses NumPy for that slab.
+that comparison; they are not used by the decode path.  Marble's rare
+`_strength_470` branch (decoder +0x22780 / +0x22784 != 1, never set by the ARW
+path) is not ported: the FFI returns 0 and the caller uses NumPy for that slab.
+
+RawNR, DRO and the Marble chroma path are checked by
+`tests/verify_rust_nr_dro.py photo.ARW` (crops, synthetic extremes and whole
+images, all identical to NumPy).
 
 Verification scripts and reports live in the separate local research workspace,
 including `analysis/reverse/pixel_pipeline/verify_marble_rust.py` and the
@@ -111,8 +118,8 @@ With `--rust`, `sony_decode.py` reads lossless compressed ARWs (TIFF compression
 7, 512x512 lossless JPEG tiles) through `ljpeg_tiles_u16`, which decodes the
 tiles on all cores. The result is identical to rawpy's `raw_image` and
 `raw_image_visible`; rawpy is still used for the sensor margins and for every
-other raw format. On an M4, one 7168x5120 raw takes about 0.02 s with a warm
-file cache, against 0.24 s for LibRaw's single-threaded unpack.
+other raw format. On an M6, one 7168x5120 raw takes about 0.02 s with a warm
+file cache, against about 0.27 s for LibRaw's single-threaded unpack.
 
 ```sh
 python tests/verify_raw_decode.py photo.ARW [folder ...]
@@ -122,9 +129,10 @@ python tests/verify_raw_decode.py photo.ARW [folder ...]
 
 On macOS, every stage after the raw read also has an optional Metal GPU
 implementation, enabled with `--metal` (or the individual `--metal-*`
-options). Metal ITP reads its parameters from this library, so build it
-first. Build steps, coverage, exactness, memory use and measurements are in
-the [Metal notes](../docs/metal.md) (Chinese).
+options). The Metal path does not need this library, but `--rust` still
+speeds up the raw read (about 0.02 s against 0.3 s with rawpy) and the table
+construction. Build steps, coverage, exactness, memory use and measurements
+are in the [Metal notes](../docs/metal.md) (Chinese).
 
 ```sh
 python3 sonylook/sony_decode.py photo.ARW --rust --metal --out photo.tif

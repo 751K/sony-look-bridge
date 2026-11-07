@@ -44,6 +44,7 @@ if str(HERE) not in sys.path:
 import arw_looks as AL          # noqa: E402
 import decoder_params as DP     # noqa: E402
 import develop_settings as DS   # noqa: E402
+import fused_rust as FR         # noqa: E402
 import sony_detail as SDT       # noqa: E402
 import sony_dro as DRO          # noqa: E402
 import sony_export as EXP       # noqa: E402
@@ -73,7 +74,7 @@ def _sr2_tags(arw):
 
 def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble=None,
            detail=True, lens=True, sscs=True, pad=32, strip=512, verbose=False,
-           rust=None, metal_itp=False, metal_dro=False, metal_geo=False, metal_sscs=False, metal_look=False,
+           rust=None, metal=False, metal_itp=False, metal_dro=False, metal_geo=False, metal_sscs=False, metal_look=False,
            metal_spatial=False, metal_marble=False, metal_post=False, metal_nr=False):
     """Decode an ARW to the exported image (H, W, 3) uint16 0..16383.
 
@@ -91,12 +92,17 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
     pad:    raw margin in px around the decoder rect for the spatial stages
             (default 32).  Marble writes only its 16-px-inset region; the rest of
             the image keeps the pre-Marble (YCC2RGB) render.
+    metal:  True runs every stage that has a Metal implementation on the GPU (macOS);
+            the same as setting all metal_* options below.
     metal_itp / metal_dro / metal_geo / metal_sscs / metal_look / metal_spatial / metal_marble /
     metal_post (Effect, ToneCurve, ShadeCorrection) / metal_nr (RawNR):
-            use Metal stages (macOS); metal_spatial needs metal_look.
+            use individual Metal stages; metal_spatial needs metal_look.
     strip:  row-band height for the look chain, Sharpness/Spica and Marble
             (0 = whole array, higher peak memory).
     """
+    if metal:
+        metal_itp = metal_dro = metal_geo = metal_sscs = metal_look = True
+        metal_spatial = metal_marble = metal_post = metal_nr = True
     t0 = time.perf_counter()
     timings = {}
     arw = Path(arw)
@@ -186,6 +192,8 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
         if metal_nr:
             import metal_rawnr as MN
             raw = MN.apply(raw, nr_look, iso=iso)
+        elif use_rust and FR.available():
+            raw = FR.rawnr(raw, nr_look, iso=iso)
         else:
             raw = N.rawnr(raw, nr_look, iso=iso)
     timings["rawnr"] = time.perf_counter() - t
@@ -193,7 +201,6 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
     # --- ITP (1024 tiling, 12 px halo) ----------------------------------------
     t = time.perf_counter()
     if metal_itp:
-        import fused_rust as FR
         import metal_itp as MI
         planes = list(MI.full_image(raw, black, gains, s7311, FR.itp_config().params))
     else:
@@ -212,6 +219,9 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
         if metal_dro:
             import metal_dro as MD
             planes = list(MD.apply(raw_crop, planes, dro_black, DRO.curve_table(*pts), origin=(ox, oy)))
+        elif use_rust and FR.available():
+            G = DRO.build_grid(raw_crop, *pts, black=dro_black)
+            planes = FR.dro_vatr(planes, (ox, oy), G)
         else:
             G = DRO.build_grid(raw_crop, *pts, black=dro_black)
             H, W = planes[0].shape
@@ -238,7 +248,6 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
         else:
             rust_geo, rust_lens = None, None
             if use_rust:
-                import fused_rust as FR
                 if FR.available():
                     rust_geo, rust_lens = FR, FR.lens_config(L)
             out = [np.empty((H, W), np.uint16) for _ in range(3)]
@@ -377,14 +386,11 @@ def main():
     ap.add_argument("--metal-nr", action="store_true",
                     help="run RawNR (noise reduction on the raw) on Metal")
     a = ap.parse_args()
-    if a.metal:
-        for k in ("itp", "dro", "geo", "sscs", "look", "spatial", "marble", "post", "nr"):
-            setattr(a, f"metal_{k}", True)
     img = decode(a.arw, a.look, output=a.color_space,
                  nr=False if a.no_nr else None, dro=False if a.no_dro else None,
                  marble=False if a.no_marble else None, detail=not a.no_detail,
                  lens=not a.no_lens, sscs=not a.no_sscs, pad=a.pad, strip=a.strip, verbose=True,
-                 rust=True if a.rust else None, metal_itp=a.metal_itp, metal_dro=a.metal_dro, metal_geo=a.metal_geo, metal_sscs=a.metal_sscs, metal_look=a.metal_look,
+                 rust=True if a.rust else None, metal=a.metal, metal_itp=a.metal_itp, metal_dro=a.metal_dro, metal_geo=a.metal_geo, metal_sscs=a.metal_sscs, metal_look=a.metal_look,
                  metal_spatial=a.metal_spatial, metal_marble=a.metal_marble,
                  metal_post=a.metal_post, metal_nr=a.metal_nr)
     print(img.shape, img.dtype, int(img.min()), int(img.max()))

@@ -152,7 +152,15 @@ class MarbleParams(ctypes.Structure):
         ("gamma_enc", ctypes.c_void_p),
         ("m_fwd", ctypes.c_int32 * 9),
         ("m_inv", ctypes.c_int32 * 9),
+        ("chroma", ctypes.c_void_p),
     ]
+
+
+class ChromaParams(ctypes.Structure):
+    _fields_ = [("blk", ctypes.c_int32)] + [
+        (k, ctypes.c_int64) for k in ("d0", "cc", "c8", "c4", "c0", "bc", "b8", "b4", "b0",
+                                      "ac", "a8", "l98", "l90", "l88", "t7c", "t80")] + [
+        ("up_t", ctypes.c_int64 * 4), ("upw", ctypes.c_void_p), ("upw_len", ctypes.c_size_t)]
 
 
 @dataclass
@@ -570,7 +578,23 @@ def marble_config(look, dev, dec, mode) -> MarbleConfig:
     for i in range(9):
         p.m_fwd[i] = mf[i]
         p.m_inv[i] = mi[i]
-    return MarbleConfig(params=p, keep=(lookb, *tabs))
+    keep = (lookb, *tabs)
+    if dev["d218"] == 1 and look.s16(0x109c) != 0:          # chroma path (NR on)
+        import sony_marble as MB
+        P = MB.luma_params(look, dev, dec, int(dev["d2c0"]))[0]
+        c = ChromaParams()
+        c.blk = 8 if look.s16(0x109e) == 1 else 4
+        for k in ("d0", "cc", "c8", "c4", "c0", "bc", "b8", "b4", "b0", "ac", "a8", "l98", "l90", "l88"):
+            setattr(c, k, int(P[k]))
+        c.t7c = MB._recip_signed(P["l94"] - P["l98"])
+        c.t80 = MB._recip_signed(P["l8c"] - P["l90"])
+        for i, off in enumerate(MB.UP_TABLES[c.blk]):
+            c.up_t[i] = (off - MB.UPW_BASE) // 4
+        upw = np.ascontiguousarray(MB.UPW, np.int32)
+        c.upw, c.upw_len = upw.ctypes.data, upw.size
+        p.chroma = ctypes.addressof(c)
+        keep += (c, upw)
+    return MarbleConfig(params=p, keep=keep)
 
 
 def marble_slab(r, g, b, cfg: MarbleConfig):
@@ -684,3 +708,72 @@ def encoded_front_u16(encoded, cfg: Config):
     if rc:
         raise RuntimeError(f"encoded_front_u16 failed: {rc}")
     return tuple(out)
+
+
+class NrParams(ctypes.Structure):
+    _fields_ = [("off", ctypes.c_int32 * 3), ("gain", ctypes.c_int32 * 3),
+                ("lim", ctypes.c_int32 * 3), ("wm", ctypes.c_int32 * 3), ("s", ctypes.c_float)]
+
+
+def rawnr(raw, look, iso=100, settings=(0, 0, 0), strength_override=None, threads=0):
+    """RawNR on a whole uint16 RGGB raw (RGGB at even/even), as sony_rawnr.rawnr."""
+    import sony_rawnr as N
+    raw = np.ascontiguousarray(raw, np.uint16)
+    if raw.ndim != 2 or min(raw.shape) < 21:
+        raise ValueError("expected a 2D raw of at least 21 x 21")
+    tb = N.tables(look, *settings)
+    s = N.strength(iso) if strength_override is None else np.float32(strength_override)
+    L18, L1c, L20, L24, L28 = (look[o] for o in (0x1018, 0x101c, 0x1020, 0x1024, 0x1028))
+    p = NrParams()
+    for k, off in enumerate((L18 - L20, L18 - (L1c + L28), L18 - L24)):
+        p.off[k], p.gain[k], p.lim[k], p.wm[k] = int(off), int(tb["gain"][k]), int(tb["lim"][k]), int(tb["W"][k])
+    p.s = float(s)
+    thr = np.ascontiguousarray(np.stack([np.asarray(t, np.int64) for t in tb["T"]]), np.int32)
+    out = np.empty_like(raw)
+    fn = _load_symbol("rawnr_u16")
+    fn.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.POINTER(NrParams),
+                   ctypes.c_void_p, ctypes.c_size_t, ctypes.c_void_p]
+    fn.restype = ctypes.c_int32
+    if fn(raw.ctypes.data, raw.shape[1], raw.shape[0], ctypes.byref(p), thr.ctypes.data, int(threads),
+          out.ctypes.data):
+        raise RuntimeError("rawnr_u16 failed")
+    return out
+
+
+class DroParams(ctypes.Structure):
+    _fields_ = [(k, ctypes.c_int64) for k in ("org_x", "org_y", "cw", "ch", "nx", "ny")] + [
+        (k, ctypes.c_float) for k in ("log2_max", "strength", "k_up", "k_down", "scale")] + [
+        (k, ctypes.c_void_p) for k in ("w_grid", "s_grid", "curve", "log_t")]
+
+
+def dro_vatr(planes, origin, G, strength=1.0, k_up=1.0, k_down=1.0, scale=1.0, threads=0):
+    """sony_dro.vatr on three whole uint16 planes whose pixel (0, 0) sits at image coordinates
+    origin = (ox, oy); G is the grid from sony_dro.build_grid.  Returns three uint16 planes."""
+    import sony_dro as DRO
+    r, g, b = (np.ascontiguousarray(v, np.uint16) for v in planes)
+    h, w = r.shape
+    if g.shape != (h, w) or b.shape != (h, w):
+        raise ValueError("planes must have the same shape")
+    geo = G["geo"]
+    if G["nb"] != 14:
+        raise ValueError("the Rust DRO expects 14 histogram bins")
+    W = np.ascontiguousarray(G["W"], np.float32)
+    S = np.ascontiguousarray(G["S"], np.float32)
+    curve = np.ascontiguousarray(G["curve"], np.float32)
+    log_t = np.ascontiguousarray(DRO.LOG_T, np.float32)
+    if W.shape != (geo["ny"], geo["nx"], 14) or S.shape != W.shape or curve.shape != (104,) or log_t.shape != (2049,):
+        raise ValueError("unexpected DRO grid shapes")
+    p = DroParams(org_x=geo["org_x"], org_y=geo["org_y"], cw=geo["subpx_x"] * geo["nsub"],
+                  ch=geo["subpx_y"] * geo["nsub"], nx=geo["nx"], ny=geo["ny"],
+                  log2_max=float(DRO.LOG2_MAX), strength=float(strength), k_up=float(k_up),
+                  k_down=float(k_down), scale=float(scale),
+                  w_grid=W.ctypes.data, s_grid=S.ctypes.data, curve=curve.ctypes.data, log_t=log_t.ctypes.data)
+    outs = [np.empty((h, w), np.uint16) for _ in range(3)]
+    fn = _load_symbol("dro_vatr_u16")
+    fn.argtypes = [ctypes.c_void_p] * 3 + [ctypes.c_size_t, ctypes.c_size_t, ctypes.c_int64, ctypes.c_int64,
+                                          ctypes.POINTER(DroParams), ctypes.c_size_t] + [ctypes.c_void_p] * 3
+    fn.restype = ctypes.c_int32
+    if fn(r.ctypes.data, g.ctypes.data, b.ctypes.data, w, h, int(origin[0]), int(origin[1]), ctypes.byref(p),
+          int(threads), *(o.ctypes.data for o in outs)):
+        raise RuntimeError("dro_vatr_u16 failed")
+    return outs

@@ -102,41 +102,23 @@ int sonylook_metal_init(const char *path) { @autoreleasepool {
     if (device) return 0;
     buf_lock=[NSObject new];
     id<MTLDevice> d=MTLCreateSystemDefaultDevice(); if(!d) return fail(@"Metal device unavailable");
-    NSError *err=nil; NSString *source=[NSString stringWithContentsOfFile:[NSString stringWithUTF8String:path] encoding:NSUTF8StringEncoding error:&err];
-    if (!source) return fail(err.description);
-    NSString *droPath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"dro.metal"];
-    NSString *droSource=[NSString stringWithContentsOfFile:droPath encoding:NSUTF8StringEncoding error:&err];
-    if(!droSource) return fail(err.description);
-    source=[source stringByAppendingString:droSource];
-    NSString *geoPath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"geo.metal"];
-    NSString *geoSource=[NSString stringWithContentsOfFile:geoPath encoding:NSUTF8StringEncoding error:&err];
-    if(!geoSource) return fail(err.description);
-    source=[source stringByAppendingString:geoSource];
-    NSString *sscsPath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"sscs.metal"];
-    NSString *sscsSource=[NSString stringWithContentsOfFile:sscsPath encoding:NSUTF8StringEncoding error:&err];
-    if(!sscsSource) return fail(err.description);
-    source=[source stringByAppendingString:sscsSource];
-    NSString *lookPath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"look.metal"];
-    NSString *lookSource=[NSString stringWithContentsOfFile:lookPath encoding:NSUTF8StringEncoding error:&err];
-    if(!lookSource) return fail(err.description);
-    source=[source stringByAppendingString:lookSource];
-    NSString *spatialPath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"spatial.metal"];
-    NSString *spatialSource=[NSString stringWithContentsOfFile:spatialPath encoding:NSUTF8StringEncoding error:&err];
-    if(!spatialSource) return fail(err.description);
-    source=[source stringByAppendingString:spatialSource];
-    NSString *marblePath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"marble.metal"];
-    NSString *marbleSource=[NSString stringWithContentsOfFile:marblePath encoding:NSUTF8StringEncoding error:&err];
-    if(!marbleSource) return fail(err.description);
-    source=[source stringByAppendingString:marbleSource];
-    NSString *postPath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"post.metal"];
-    NSString *postSource=[NSString stringWithContentsOfFile:postPath encoding:NSUTF8StringEncoding error:&err];
-    if(!postSource) return fail(err.description);
-    source=[source stringByAppendingString:postSource];
-    NSString *nrPath=[[[NSString stringWithUTF8String:path] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"nr.metal"];
-    NSString *nrSource=[NSString stringWithContentsOfFile:nrPath encoding:NSUTF8StringEncoding error:&err];
-    if(!nrSource) return fail(err.description);
-    source=[source stringByAppendingString:nrSource];
-    MTLCompileOptions *opts=[MTLCompileOptions new]; opts.fastMathEnabled=NO;
+    // path: the shaders directory; the files are concatenated into one library.
+    NSError *err=nil; NSMutableString *source=[NSMutableString string];
+    NSString *dir=[NSString stringWithUTF8String:path];
+    for(NSString *name in @[@"itp",@"dro",@"geo",@"sscs",@"look",@"spatial",@"marble",@"post",@"nr"]){
+        NSString *src=[NSString stringWithContentsOfFile:[dir stringByAppendingPathComponent:[name stringByAppendingString:@".metal"]] encoding:NSUTF8StringEncoding error:&err];
+        if(!src) return fail(err.description);
+        [source appendString:src];
+    }
+    MTLCompileOptions *opts=[MTLCompileOptions new];
+    // Exact IEEE float semantics: the shaders reproduce the reference's float32 rounding.
+    if(@available(macOS 15.0,*)){opts.mathMode=MTLMathModeSafe;opts.mathFloatingPointFunctions=MTLMathFloatingPointFunctionsPrecise;}
+    else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        opts.fastMathEnabled=NO;
+#pragma clang diagnostic pop
+    }
     id<MTLLibrary> library=[d newLibraryWithSource:source options:opts error:&err]; if(!library) return fail(err.description);
     NSArray *names=@[@"scale_raw",@"differences",@"candidates",@"weights",@"green_inputs",@"green_five",@"average_pairs",@"direction_errors",@"direction",@"green_finish",@"chroma_inputs",@"chroma_finish",@"load_tile",@"store_tile",@"dro_subcells",@"dro_histogram",@"dro_smooth",@"dro_weights",@"dro_apply",@"geo_apply",@"sscs_apply",@"look_lm_gamma",@"look_front",@"encoded_front",@"sharp_hblur",@"sharp_apply",@"spica_ycc",@"marble_in",@"marble_blocks",@"marble_sigma",@"marble_binom",@"marble_out",@"post_apply",@"nr_split",@"nr_filter",@"marble_halfc",@"marble_cblocks",@"marble_csigma",@"marble_cup",@"dro_math_test",@"interleave3"];
     if(names.count!=NPIPE) return fail(@"Metal kernel table size mismatch");
