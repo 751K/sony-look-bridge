@@ -20,7 +20,7 @@
 - `crs:Table_<MD5>` 字符串：Adobe 字母表的 base-85（小端，4 字节 → 5 字符），内容是 `[u32 原长][zlib]`。MD5 是解压后数据的 MD5。用 Adobe 自带配置验证过：解码后的 MD5 等于表名。
 - RGBTable 二进制：`u32 1, u32 1, u32 3, u32 n`；然后 n³ 个节点，每个节点是 (R,G,B) u16，存的是"值 − 恒等值"，按 mod 2¹⁶ 回绕。节点顺序为 R 最慢、B 最快，恒等值 = round(i·65535/(n−1))。最后是 `u32 原色, u32 gamma, u32 gamut, f64 最小强度, f64 最大强度`。
 - 枚举值是从 Adobe 配置中实际出现的组合推断的：(0,1) sRGB/sRGB 曲线，(1,3) Adobe RGB/γ2.2，(2,2) ProPhoto/γ1.8。Adobe 自带配置的 n 有 16/20/25/32 几种。
-- DCP：`dcp.py` 读写（IIRC TIFF 容器）。
+- DCP：`dcp.py` 读写 TIFF 容器。
 
 ## 安装位置
 

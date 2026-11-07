@@ -14,6 +14,7 @@ Code/
         ├── acr/            Camera Raw 标定和历史导出
         ├── dxo/            PhotoLab 导出、预测和实验脚本
         ├── readme_update/  2026-10-25 完整解码链的重测结果
+        ├── phantom_lut/   Phantom 视频 LUT 对照研究
         ├── dpreview/       A7M5 / A7 IV 影棚图和外观参数对比
         ├── reverse/        原始指令差分、解析、管线和 Viewer 研究
         └── _superseded_copies/  公开模块的旧副本，仅作历史对照
@@ -34,6 +35,9 @@ Code/
 | Edit 参考图 | `reverse/reference/`；部分其他参考图在 `analysis/` 根目录 | [测量说明](measurements.md) |
 | Edit 4.0 / 4.1 函数及常量地址对照 | `reverse/edit41_diff/` | [处理管线 §10.2](pipeline.md#102-edit-410003062) |
 | AXR、Viewer 张量和 Dither | `reverse/sdm/`，包括 `axr_dev_findings.md`、`axr.py`、`dither.py` | [Viewer 技术笔记](sdm.md) |
+| Phantom ARRI / Film LUT 灰阶和颜色响应 | `phantom_lut/README.md`、`results.json` | [视频 LUT 技术说明](video.md) |
+
+视频的屏幕色块生成、照片/视频矩阵拟合代码和当前标定结果保存在本仓库的 `video/`，见[视频 LUT 技术说明](video.md)。
 
 ## 本地运行约定
 
