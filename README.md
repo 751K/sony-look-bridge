@@ -119,9 +119,21 @@ See [usage](profiles/video/README.md) and [calibration and generation](docs/vide
 
 ## How it works
 
-The project reproduces Sony's per-pixel photo look, mapping white-balanced camera RGB to sRGB. It measures each application's input encoding and stores the look in an ICC, XMP or LUT. Spatial processing such as sharpening, noise reduction and DRO remains with the host.
+The project reproduces Sony's per-pixel colour and tone mapping from white-balanced camera RGB to sRGB. The main steps used to generate the profiles are:
 
-With Sony's look mapping *f* and the host input encoding *E*, the profile stores *f* ∘ *E*⁻¹. The figure shows the colour distributions after neutral development, ST and FL2:
+```mermaid
+flowchart TB
+    A["White-balanced camera RGB"] --> B["SSCS: highlight colour suppression"]
+    B --> C["LinearMatrix16 → MainGamma<br/>colour transform and RGB tone"]
+    C --> D["RGB2YCC → AreaComp → ChromaSuppress<br/>hue, saturation and chroma"]
+    D --> E["YGamma → YCC2RGB<br/>luminance, Fade and colour conversion"]
+    E --> F["Effect: monochrome effect (BW / SE only)"]
+    F --> G["sRGB output"]
+```
+
+SSCS precedes the look and is included in the generated profiles; spatial processing such as sharpening, noise reduction and DRO remains with the host. Edit also has an optional internal 3D LUT after YGamma. It is off by default and is separate from the LUTs this project generates for hosts. See the [full pipeline](docs/pipeline.md) (Chinese).
+
+The project measures each application's input encoding and stores the mapping in an ICC, XMP or LUT. With Sony's look mapping *f* and the host input encoding *E*, the profile stores *f* ∘ *E*⁻¹. The figure shows the colour distributions after neutral development, ST and FL2:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/color_cube_en_dark.png">

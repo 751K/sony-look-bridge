@@ -112,9 +112,21 @@ python3 video/video_look.py /path/to/A7M5.ARW --write --eval
 
 ## 原理
 
-项目复现 Sony 照片的逐像素外观链，将白平衡后的相机 RGB 映射为 sRGB；再标定目标软件的输入编码，将外观写成 ICC、XMP 或 LUT。锐化、降噪与 DRO 等空间处理仍由宿主软件完成。
+项目复现 Sony 照片的逐像素颜色与影调，将白平衡后的相机 RGB 映射为 sRGB。生成配置时使用的主要步骤如下：
 
-记 Sony 外观映射为 *f*、宿主输入编码为 *E*，配置文件保存的是 *f* ∘ *E*⁻¹。下图展示中性显影、ST 和 FL2 对颜色分布的影响：
+```mermaid
+flowchart TB
+    A["白平衡后的相机 RGB"] --> B["SSCS：高光色彩抑制"]
+    B --> C["LinearMatrix16 → MainGamma<br/>颜色变换与 RGB 影调"]
+    C --> D["RGB2YCC → AreaComp → ChromaSuppress<br/>色相、饱和度与色度调整"]
+    D --> E["YGamma → YCC2RGB<br/>亮度、褪色与颜色转换"]
+    E --> F["Effect：单色效果（仅 BW / SE）"]
+    F --> G["sRGB 输出"]
+```
+
+SSCS 位于外观之前，也被纳入生成的配置；锐化、降噪与 DRO 等空间处理仍由宿主软件完成。Edit 另有可选的内部 3D LUT，位于 YGamma 之后；它默认不运行，也不是项目生成给宿主软件使用的 LUT。完整顺序见[处理管线](docs/pipeline.md)。
+
+项目再标定目标软件的输入编码，将上述映射写成 ICC、XMP 或 LUT。记 Sony 外观映射为 *f*、宿主输入编码为 *E*，配置文件保存的是 *f* ∘ *E*⁻¹。下图展示中性显影、ST 和 FL2 对颜色分布的影响：
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/color_cube_zh_dark.png">
