@@ -4,7 +4,7 @@
 
 ## 处理流程
 
-目标是让 S-Log3 视频使用照片 Creative Look 的逐像素颜色与影调。12 种外观分别生成 S-Gamut3 和 S-Gamut3.Cine 输入版本，输出 Rec.709 / Gamma 2.4。
+目标为将照片 Creative Look 的逐像素颜色与影调应用于 S-Log3 视频。12 种外观分别生成 S-Gamut3 和 S-Gamut3.Cine 输入版本，输出 Rec.709 / Gamma 2.4。
 
 ```text
 S-Log3 / S-Gamut3(.Cine)
@@ -17,11 +17,11 @@ S-Log3 / S-Gamut3(.Cine)
 
 S-Log3 反函数、色域转换和 CAT02 白点适配对应 [Sony 的 ACES 转换代码](https://github.com/aces-aswf/aces-input-and-colorspaces/blob/main/sony/CSC.Sony.SLog3_SGamut3Cine_to_ACES.ctl)；[Sony 的说明](https://github.com/aces-aswf/aces-input-and-colorspaces/blob/main/sony/README.md)分别列出了两种输入色域。通过 ACES 接入矩阵与直接进行色域转换在数学上等价。
 
-照片外观链接收的是白平衡后的相机 RGB，详见[照片管线](pipeline.md)。视频桥接使用同一机位下照片和视频实测的颜色关系，让视频进入这条外观链。矩阵按灰轴归一化；屏幕色块及夜景的实测条件和结果见下文。
+照片外观链接收白平衡后的相机 RGB，详见[照片管线](pipeline.md)。视频桥接采用同一机位下照片与视频的实测颜色关系，使视频进入该外观链。矩阵按灰轴归一化；屏幕色块及夜景的实测条件和结果见下文。
 
 ## 标定方法
 
-标定工具生成屏幕色块页，再从同一画面的 RAW 和 S-Log3 视频读取色块：
+标定工具生成屏幕色块页，并从同一画面的 RAW 和 S-Log3 视频中读取色块：
 
 ```sh
 python3 video/sensor_calibration.py chart
@@ -33,8 +33,8 @@ python3 video/sensor_calibration.py fit PHOTO.ARW CLIP.MP4 --out sensor_matrix.j
 照片端通过 `front_end_sony` 取得白平衡后的相机 RGB；视频端取前 1 秒的帧平均并解码 S-Log3。程序根据四角定位块对齐，以每个色块中央 7×7 个采样点的中位数拟合，剔除过曝和过暗的色块。拟合矩阵分解为 `s · diag(wb) · N`：
 
 - `N`：灰轴归一化后的颜色关系，满足 `N·1 = 1`；
-- `wb`：两次拍摄之间的白平衡差异，不进入 LUT；
-- `s`：这一次照片和视频配对的曝光比例，以 Sony 原生值 / 16384 为单位。
+- `wb`：两次拍摄之间的白平衡差异，不纳入 LUT；
+- `s`：单次照片与视频配对的曝光比例，以 Sony 原生值 / 16384 为单位。
 
 屏幕色块用于比较同一场景在照片和视频两条路径中的读数；不同光源和实际场景的表现可另行验证。
 
@@ -71,11 +71,11 @@ N (S-Gamut3.Cine → 相机 RGB) =
 
 四组几何平均为 **5203**：在上述换算约定下，S-Log3 场景线性值 1 对应 Sony 原生值 5203，0.18 对应约 937。四组刻度的极差为 0.14 档，标准差为 0.056 档。同批视频实测亮度差与拍摄参数推算相差 0.05–0.06 档。夜景 C2689 经曝光补偿后，中位显示亮度为 0.0200，照片 ST 为 0.0196。
 
-`fit` 输出的 `exposure_scale` 是单次配对的比例；生成器的 `sony_scale` 是采用的 Sony 原生刻度。当前标定文件提供 `sony_scale = 5203.2`；新拟合文件可通过生成器的 `--sony-scale` 指定所需刻度。`--exposure` 则控制 LUT 输入的曝光补偿，与标定刻度是两个参数。
+`fit` 输出的 `exposure_scale` 表示单次配对的比例；生成器的 `sony_scale` 表示采用的 Sony 原生刻度。当前标定文件提供 `sony_scale = 5203.2`；可通过生成器的 `--sony-scale` 为新的拟合文件指定所需刻度。`--exposure` 控制 LUT 输入的曝光补偿，与标定刻度属于不同参数。
 
 ## 生成与验证
 
-需要根目录 `requirements.txt` 中的依赖、本机 Imaging Edge Edit 和一张 α7 V ARW。色块拟合需要 `ffmpeg` / `ffprobe`；独立验证脚本还需要 `colour-science`：
+所需环境包括根目录 `requirements.txt` 中的依赖、本机安装的 Imaging Edge Edit 和一张 α7 V ARW。色块拟合需要 `ffmpeg` / `ffprobe`；独立验证脚本还需要 `colour-science`：
 
 ```sh
 python3 -m pip install colour-science

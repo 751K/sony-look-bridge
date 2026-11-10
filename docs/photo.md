@@ -28,11 +28,24 @@ DRO 和 Marble 等空间阶段不进入宿主配置。
 | --- | --- | --- | --- |
 | Capture One | ICC | 65³ A2B0 CLUT | 输入经 `c1_encoding_table.json` 的 *E*，输出 Lab D50；必须使用 Linear Response 曲线 |
 | Camera Raw / Lightroom | DCP + XMP | XMP RGBTable 64³ | 线性底座 DCP 保持白平衡行为，XMP 保存 ProPhoto γ1.8 外观表 |
-| DxO PhotoLab Elite | DCP + `.cube` | 64³ CUBE | 底座 DCP 后接 LUT Grading，LUT 色彩空间选 ProPhoto RGB |
+| DxO PhotoLab Elite | DCP + `.cube` | 64³ CUBE | 底座 DCP 后接 LUT Grading，LUT 色彩空间设为 ProPhoto RGB |
 
 SonyA7M5 的三套配置位于 `profiles/`。多机型配置由
 `camera_packs/build_packs.py` 为每款机型生成一个 ZIP，ZIP 内包含三种宿主
 格式及动态生成的安装说明。
+
+### 生成环境
+
+生成器需要 Python 3.11 或更高版本、`requirements.txt` 中列出的依赖、任意
+一张 A7M5 ARW，以及本机安装的 Imaging Edge Edit 4.0.00.10312 或
+4.1.00.03062（macOS）。一次性 LUT 缓存于 `~/.cache/sonylook`；
+`SONYLOOK_CACHE=0` 可禁用缓存，`SONYLOOK_CACHE_DIR` 可修改缓存目录。
+
+外观链使用的部分常量表（色相 atan 表、对比度曲线族等）在运行时从本机安装
+的 Edit 中读取（`sonylook/edit_binary.py`）。本仓库不包含 Sony 二进制或
+数据。脚本会校验 arm64 部分的 SHA-256；4.0 与 4.1 的表地址不同，
+`edit_binary.py` 以 4.0 地址为基准建立版本映射。其他路径可通过
+`SONY_EDIT_BINARY` 指定。
 
 ### 生成命令
 
@@ -44,12 +57,12 @@ python3 camera_packs/build_packs.py SAMPLES_DIR OUTPUT_DIR
 ```
 
 所有命令都从仓库根目录执行。生成器需要本机安装对应版本的 Imaging Edge
-Edit，以读取外观常量表；需要生成其他机型包时，还需要对应 ARW 与 Adobe
+Edit，以读取外观常量表；如需生成其他机型包，还需提供对应 ARW 与 Adobe
 Standard DCP。
 
 ## 验证与测量
 
-当前 README 对照图使用 DSC03591 的 ST 外观，以 Sony Edit 导出为参考。
+本仓库 README 中的当前对照图使用 DSC03591 的 ST 外观，并以 Sony Edit 导出为参考。
 两张宿主图在共同有效区域上比较 CIELAB D65：
 
 - 亮度误差：`abs(L*_host − L*_Edit)`
@@ -76,16 +89,16 @@ ST、FL2、FL3 有 Edit 参考图；其余外观使用同一套已验证代码�
 `chart/SonyChart.ARW` 是包含 48 级灰阶和 6³ 相机 RGB 色块的合法 A7M5
 ARW。更换宿主软件版本或输入行为后，按以下顺序重新标定：
 
-1. 用探针配置测量合成色卡的实际输入值。
+1. 使用探针配置测量合成色卡的实际输入值。
 2. Capture One：生成 Probe，导出后用 `measure_chart.py` 测量，
    `fit_c1_encoding.py` 拟合并更新 `c1_encoding_table.json`。
 3. Camera Raw：生成 Probe，导出 16 位 ProPhoto，关闭镜头校正，使用
    `measure_acr_chart.py` 和 `acr_encoding.py`。
 4. DxO：用 `dxo_profiles.py probes` 和 `base2` 生成探针与底座，按同样方法
    检验 `dxo_model.py`。
-5. 重新生成三种宿主配置，并用实拍 RAW 与 Edit 导出做几何配准和色差检查。
+5. 重新生成三种宿主配置，并使用实拍 RAW 与 Edit 导出进行几何配准和色差检查。
 
-合成色卡可通过以下命令从自己的 A7M5 RAW 重建：
+合成色卡可使用以下命令从 A7M5 RAW 重建：
 
 ```bash
 python3 capture_one/make_chart.py SOURCE.ARW

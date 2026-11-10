@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 580" role="img" aria-labelledby="title desc">
+  <title id="title">Sony Imaging Edge Edit 的逐像素色彩管线</title>
+  <desc id="desc">第一行从左向右经过输入、SSCS、LinearMatrix16 与 MainGamma、RGB2YCC 与 ChromaSuppress；第二行从右向左经过 YGamma 与 YCC2RGB、可选 Effect，最终输出 sRGB。</desc>
+  <defs>
+    <marker id="arrow-zh" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+    <style>
+      .node { fill: #eff6ff; stroke: #bfdbfe; stroke-width: 1.5; }
+      .optional { fill: #f8fafc; stroke: #cbd5e1; }
+      .label { fill: #1e3a8a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 18px; font-weight: 600; text-anchor: middle; }
+      .sub { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; font-weight: 400; text-anchor: middle; }
+      .edge { stroke: #64748b; stroke-width: 1.6; fill: none; marker-end: url(#arrow-zh); }
+      .index { fill: #dbeafe; }
+      .index-text { fill: #1d4ed8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; font-weight: 600; text-anchor: middle; }
+      .badge { fill: #e2e8f0; }
+      .badge-text { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .4px; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect x="40" y="105" width="240" height="130" rx="20" class="node"/>
+  <circle cx="62" cy="127" r="13" class="index"/>
+  <text x="62" y="131" class="index-text">01</text>
+  <text x="160" y="164" class="label">白平衡后的相机 RGB</text>
+  <text x="160" y="194" class="sub">处理输入</text>
+
+  <line x1="280" y1="170" x2="310" y2="170" class="edge"/>
+  <rect x="310" y="105" width="240" height="130" rx="20" class="node"/>
+  <circle cx="332" cy="127" r="13" class="index"/>
+  <text x="332" y="131" class="index-text">02</text>
+  <text x="430" y="164" class="label">SSCS</text>
+  <text x="430" y="194" class="sub">高光色彩抑制</text>
+
+  <line x1="550" y1="170" x2="580" y2="170" class="edge"/>
+  <rect x="580" y="105" width="240" height="130" rx="20" class="node"/>
+  <circle cx="602" cy="127" r="13" class="index"/>
+  <text x="602" y="131" class="index-text">03</text>
+  <text x="700" y="155" class="label">LinearMatrix16</text>
+  <text x="700" y="180" class="label">+ MainGamma</text>
+  <text x="700" y="207" class="sub">颜色变换与影调</text>
+
+  <line x1="820" y1="170" x2="850" y2="170" class="edge"/>
+  <rect x="850" y="105" width="240" height="130" rx="20" class="node"/>
+  <circle cx="872" cy="127" r="13" class="index"/>
+  <text x="872" y="131" class="index-text">04</text>
+  <text x="970" y="153" class="label">RGB2YCC + AreaComp</text>
+  <text x="970" y="178" class="label">+ ChromaSuppress</text>
+  <text x="970" y="205" class="sub">色相、饱和度与色度</text>
+
+  <path d="M 970 235 L 970 340 L 1000 340 L 1000 370" class="edge"/>
+
+  <rect x="880" y="370" width="240" height="130" rx="20" class="node"/>
+  <circle cx="902" cy="392" r="13" class="index"/>
+  <text x="902" y="396" class="index-text">05</text>
+  <text x="1000" y="421" class="label">YGamma</text>
+  <text x="1000" y="446" class="label">+ YCC2RGB</text>
+  <text x="1000" y="473" class="sub">亮度、褪色与转换</text>
+
+  <line x1="880" y1="435" x2="720" y2="435" class="edge"/>
+  <rect x="480" y="370" width="240" height="130" rx="20" class="optional"/>
+  <circle cx="502" cy="392" r="13" class="index"/>
+  <text x="502" y="396" class="index-text">06</text>
+  <text x="600" y="422" class="label">Effect</text>
+  <text x="600" y="450" class="sub">仅 BW / SE</text>
+  <rect x="655" y="382" width="48" height="22" rx="11" class="badge"/>
+  <text x="679" y="397" class="badge-text">可选</text>
+
+  <line x1="480" y1="435" x2="320" y2="435" class="edge"/>
+  <rect x="80" y="370" width="240" height="130" rx="20" class="node"/>
+  <circle cx="102" cy="392" r="13" class="index"/>
+  <text x="102" y="396" class="index-text">07</text>
+  <text x="200" y="430" class="label">sRGB</text>
+  <text x="200" y="460" class="sub">处理输出</text>
+</svg>

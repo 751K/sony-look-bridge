@@ -1,22 +1,58 @@
 # Sony Look Bridge
 
-Sony Creative Looks for photo and video
+[中文](README.zh-CN.md) | English
 
-English | [中文](README.zh-CN.md)
+## Overview
 
-Camera Raw still has no profiles for the A7M5's Creative Looks. This repository ports all 12 Creative Looks of the Sony α7 V (ILCE-7M5) to Capture One, Adobe Camera Raw / Lightroom and DxO PhotoLab, based on a reverse-engineered model of Sony Imaging Edge Edit — ST, VV, NT, PT, FL, VV2, IN, SH, BW, SE, FL2 and FL3.
+This repository uses Python to reproduce the photo development and Creative Look implementation in Sony Imaging Edge Edit, and converts the reproduced colour mapping into profiles and LUTs for post-processing software.
 
-The profiles reproduce the look's colour and tone. On the tested α7 V images, the remaining chroma difference compared with Edit is below what the eye can see.
+The current version covers all 12 α7 V Creative Looks and provides three photo-profile formats for 17 Sony cameras. The α7 V also has 12 looks × 2 input gamuts of video LUTs.
 
-v2.1.0 provides packs for 17 Sony cameras, with one ZIP per camera containing profiles for all three applications.
+| Output file | Use |
+| --- | --- |
+| Capture One ICC | Photo look profile |
+| Camera Raw / Lightroom DCP + XMP | Photo profile and RGBTable |
+| DxO PhotoLab `.cube` | Photo LUT Grading |
+| S-Log3 `.cube` | Creative Look LUTs for DaVinci Resolve and other post-processing software |
 
-For the α7 V, video LUTs bring the photo looks to S-Log3 footage.
+Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube (English)](https://youtu.be/LeK9HhhYosQ)
 
-Video walkthrough: [YouTube (English)](https://youtu.be/LeK9HhhYosQ) · [Bilibili (Chinese)](https://www.bilibili.com/video/BV1VUH56pECK/)
+## Edit colour pipeline
 
-## Camera coverage
+<img title="" src="images/edit-color-pipeline-en.svg" alt="Per-pixel colour pipeline in Sony Imaging Edge Edit" width="700" />
 
-Each camera pack contains profiles for Capture One, Camera Raw / Lightroom and DxO PhotoLab. Click a model to download; see the [release page][release] for all 17 packs.
+The complete stage order and parameters are documented in the [pipeline notes](docs/pipeline.md).
+
+The figure below shows how neutral development, ST and FL2 affect the colour distribution:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/color_cube_en_dark.png">
+  <img alt="Camera RGB after neutral development, Sony ST and FL2" src="images/color_cube_en_light.png">
+</picture>
+
+See [photo looks and host profiles](docs/photo.md) for the colour diagram and derivation. The [video LUT notes](docs/video.md) describe the measured bridge from S-Log3 to the photo look.
+
+### ARW decoding
+
+`sonylook/sony_decode.py` extends the per-pixel look chain with RawNR, ITP, DRO, lens geometry correction, Sharpness / Spica, Marble, ToneCurve and ShadeCorrection. The decoder uses the development settings stored in the ARW to produce a complete image:
+
+```text
+RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → MainGamma
+    → RGB2YCC → AreaComp → ChromaSuppress → Sharpness → YGamma → [HueSaturation]
+    → Spica → YCC2RGB → [Marble] → [Effect] → [ToneCurve] → [ShadeCorrection]
+```
+
+Stages in brackets run when the settings enable them. The output is the decoder rectangle (7008×4672 on the α7 V) in sRGB or Adobe RGB, written as TIFF, JPEG or PNG. See [pipeline notes](docs/pipeline.md) for every stage and parameter.
+
+This repository contains only the Python implementation. A standalone complete decoder with Rust and Metal acceleration is maintained as a separate repository under the generic name `sony-arw-decoder`.
+
+## Validation results
+
+![Sony ST comparison: full frames, brickwork and cloud details, and lightness / signed colour residuals](images/compare_ST_en.png)
+
+## Compatibility
+
+Each camera pack contains profiles for Capture One, Camera Raw / Lightroom and DxO PhotoLab. Select a model name to download the corresponding file; see the [release page][release] for all 17 packs.
 
 | Series | Available cameras |
 | --- | --- |
@@ -30,43 +66,46 @@ Each camera pack contains profiles for Capture One, Camera Raw / Lightroom and D
 The α7 V, α7R VI, FX2 and RX1R III packs have 12 native looks; the others have 10 native looks plus FL2 / FL3 ported from α7 V. New packs use the α7 V input calibration; ST and FL2 were tested in ACR on α7C II. Each ZIP includes installation notes for its camera.
 
 [sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-Creative-Looks.zip
+
 [sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-II-Creative-Looks.zip
+
 [sony-a9-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A9-III-Creative-Looks.zip
+
 [sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7-IV-Creative-Looks.zip
+
 [sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7-V-Creative-Looks.zip
+
 [sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7R-V-Creative-Looks.zip
+
 [sony-a7r-vi]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7R-VI-Creative-Looks.zip
+
 [sony-a7s-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7S-III-Creative-Looks.zip
+
 [sony-a7c-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7C-II-Creative-Looks.zip
+
 [sony-a7cr]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A7CR-Creative-Looks.zip
+
 [sony-a6700]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A6700-Creative-Looks.zip
+
 [sony-fx2]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX2-Creative-Looks.zip
+
 [sony-fx3]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX3-Creative-Looks.zip
+
 [sony-fx30]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-FX30-Creative-Looks.zip
+
 [sony-rx1r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-RX1R-III-Creative-Looks.zip
+
 [sony-zv-e1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-ZV-E1-Creative-Looks.zip
+
 [sony-zv-e10-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-ZV-E10-II-Creative-Looks.zip
+
 [release]: https://github.com/751K/sony-look-bridge/releases/tag/v2.1.0
+
 [checksums]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/SHA256SUMS.txt
 
-## Results
+## Usage
 
-The comparison below uses the ST look on one α7 V RAW file, DSC03591, with Sony Imaging Edge Edit as the reference. Capture One and Camera Raw both use the current ST colour tables, including SSCS, and as-shot white balance.
-
-![Sony ST comparison: full frames, brickwork and cloud details, and lightness / signed colour residuals](images/compare_ST_en.png)
-
-| Host | Mean lightness difference | Mean chromaticity difference |
-| --- | ---: | ---: |
-| Capture One | 0.24 | 0.58 |
-| Camera Raw | 0.44 | 0.49 |
-
-The errors are separated in CIELAB (D65): lightness is the absolute L* difference; chromaticity is the a*, b* plane distance Δab, capturing hue and chroma differences without the L* component. The table reports their pixelwise means over the shared valid area; lower is better.
-
-Values are mean CIELAB (D65) lightness and chroma differences over the shared valid area. See [photo profiles and measurements](docs/photo.md#验证与测量) for the metric definition and other checks.
-
-## Installation
-
-The photo profiles are installed as below; the video LUTs are described in [Video LUTs](#video-luts). The steps use the α7 V filenames. Each camera ZIP includes its own installation instructions.
+Install the photo profiles as described below; the video LUTs are described in [Video LUTs](#video-luts). The steps use the α7 V filenames. Each camera ZIP includes its own installation instructions.
 
 ### Capture One
 
@@ -78,134 +117,25 @@ The photo profiles are installed as below; the video LUTs are described in [Vide
 
 1. Copy `profiles/camera_raw/SonyA7M5 Linear Base.dcp` to `~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/`.
 2. Copy `profiles/camera_raw/SonyA7M5 Look *.xmp` to `~/Library/Application Support/Adobe/CameraRaw/Settings/`.
-3. Restart Photoshop / Lightroom and pick a look from the **Sony A7M5** group in the profile browser.
-4. To match Sony's rendering exactly, turn off *Use Profile Corrections*. Adobe's lens profile also corrects vignetting, which Edit does not, so with it on the corners come out 20–27% brighter.
+3. Restart Photoshop / Lightroom and select a look from the **Sony A7M5** group in the profile browser.
 
-> ⚠️ Compatibility note: some Photoshop / Lightroom versions may not load these profiles correctly (for example, missing profiles or incorrect rendering). If that happens, update to a newer version.
-
-On Windows the folders are `%APPDATA%\Adobe\CameraRaw\CameraProfiles` and `%APPDATA%\Adobe\CameraRaw\Settings` (untested).
+⚠️ Compatibility note: some Photoshop / Lightroom versions may not load these profiles correctly (for example, missing profiles or incorrect rendering). If this occurs, update to a newer version.
 
 ### DxO PhotoLab
 
-Requires **Elite** PhotoLab (the *LUT Grading* palette is Elite-only); tested with PhotoLab 10.1 on macOS. PhotoLab refers to the DCP and LUT files by path, so keep them in a permanent folder.
-
-1. Copy `profiles/dxo/SonyA7M5 Linear Base v2.dcp` and `profiles/dxo/SonyA7M5 Look *.cube` to that folder.
-2. Start from the **6 – No correction** preset, or make sure Smart Lighting, ClearView and Contrast are off. Lens corrections (distortion, chromatic aberration, lens sharpness) can be switched back on; they do not change the look's colour.
+1. Copy `profiles/dxo/SonyA7M5 Linear Base v2.dcp` and `profiles/dxo/SonyA7M5 Look *.cube` to the folder specified above.
+2. Start from the **6 – No correction** preset, or ensure that Smart Lighting, ClearView and Contrast are disabled. Lens corrections (distortion, chromatic aberration and lens sharpness) may be re-enabled; they do not change the look's colour.
 3. *Color/B&W Rendering*: Type **DCP Profile** → *Import DCP Profile…* → `SonyA7M5 Linear Base v2.dcp`. Set **DCP Curve to Adobe**, Intensity 100, and **Protect Saturated Colors to 0** (switch off its automatic mode).
 4. *DxO PL Elite – LUT Grading*: LUT file → *Import (.cube)…* → `SonyA7M5 Look XX.cube`; **LUT Color Space ProPhoto RGB**, Intensity 100.
-5. Optionally save these settings as a preset; switch looks by choosing another `.cube`.
+5. The settings may optionally be saved as a preset; change looks by selecting another `.cube`.
 
-### Scope
+### Video LUTs
 
-- Use the pack for your camera's RAW files. See [Camera coverage](#camera-coverage) for availability.
-- The profiles replace only the look's colour and tone. DRO, sharpening and noise reduction are not included.
+**[Download Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)** ([v2.0.0 release](https://github.com/751K/sony-look-bridge/releases/tag/v2.0.0)).
 
-## Video LUTs
+For video content, the project provides LUTs produced for the A7M5, with separate versions for S-Gamut3 and S-Gamut3.Cine. The video LUTs output Rec.709 / Gamma 2.4.
 
-For the α7 V, a set of LUTs gives S-Log3 footage the colour and tone of the photo Creative Looks. **[Download Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)** ([v2.0.0 release](https://github.com/751K/sony-look-bridge/releases/tag/v2.0.0)).
-
-- **Contents**: 12 looks × 2 input gamuts, 24 `.cube` files with a 65³ grid. Files named `SLog3_SGamut3_` take S-Log3 / S-Gamut3; `SLog3_SGamut3Cine_` take S-Log3 / S-Gamut3.Cine. The output is Rec.709 / Gamma 2.4. IN, SH, FL2 and FL3 use the camera's default Fade (3, 6, 1, 1).
-- **Exposure**: the LUTs expect footage metered at **+1⅔ EV** (+1.7 on the camera), with 18% grey at about 547 / 1023. For other exposures, adjust exposure before the LUT; for example, footage shot at +1 EV needs about +0.67 EV. The generator's `--exposure` option builds LUTs for a different convention.
-- **Output level**: middle grey depends on the look. ST places 18% grey at about 0.607 (normalised Gamma 2.4 code value); FL, FL2 and FL3 at about 0.749, 0.714 and 0.705.
-- **DaVinci Resolve**: in a DaVinci YRGB project without colour management, apply the LUT on the node that receives the S-Log3 clip, with exposure and white balance adjustments before it. The LUT already contains the log decode and the display transform, so do not add another log-to-Rec.709 or ACES output transform. Set the timeline and output colour space to Rec.709 Gamma 2.4 and use tetrahedral interpolation.
-
-The LUTs connect S-Log3 to the photo look chain through a camera matrix measured from paired RAW and S-Log3 captures of the same screen chart. The `.cube` files are release assets; `profiles/video/` keeps the generation record (`manifest.json`) and the independent check (`validation.json`). To regenerate them:
-
-```bash
-python3 video/video_look.py /path/to/A7M5.ARW --write --eval
-```
-
-See [usage](profiles/video/README.md) and [calibration and generation](docs/video.md) (both Chinese).
-
-## How it works
-
-The project reproduces Sony's per-pixel colour and tone mapping from white-balanced camera RGB to sRGB. The main steps used to generate the profiles are:
-
-```mermaid
-flowchart TB
-    A["White-balanced camera RGB"] --> B["SSCS: highlight colour suppression"]
-    B --> C["LinearMatrix16 → MainGamma<br/>colour transform and RGB tone"]
-    C --> D["RGB2YCC → AreaComp → ChromaSuppress<br/>hue, saturation and chroma"]
-    D --> E["YGamma → YCC2RGB<br/>luminance, Fade and colour conversion"]
-    E --> F["Effect: monochrome effect (BW / SE only)"]
-    F --> G["sRGB output"]
-```
-
-SSCS precedes the look and is included in the generated profiles; spatial processing such as sharpening, noise reduction and DRO remains with the host. Edit also has an optional internal 3D LUT after YGamma. It is off by default and is separate from the LUTs this project generates for hosts. See the [full pipeline](docs/pipeline.md) (Chinese).
-
-The project measures each application's input encoding and stores the mapping in an ICC, XMP or LUT. With Sony's look mapping *f* and the host input encoding *E*, the profile stores *f* ∘ *E*⁻¹. The figure shows the colour distributions after neutral development, ST and FL2:
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="images/color_cube_en_dark.png">
-  <img alt="Camera RGB after neutral development, Sony ST and FL2" src="images/color_cube_en_light.png">
-</picture>
-
-See [photo looks and host profiles](docs/photo.md) for the colour diagram and derivation. The [video LUT notes](docs/video.md) describe the measured bridge from S-Log3 to the photo look.
-
-## Regenerating the profiles
-
-### Requirements
-
-- Python 3.11+ with `python3 -m pip install -r requirements.txt` in your chosen Python environment (a virtual environment is recommended).
-- Any A7M5 ARW.
-- **Imaging Edge Edit 4.0.00.10312 or 4.1.00.03062** installed locally (macOS).
-- One-time LUTs are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it).
-
-A few constant tables used by the look chain are read at run time from your own Edit installation (`sonylook/edit_binary.py`); examples are the hue atan table and the contrast curve family. This repository contains no Sony binaries or data. The script checks the SHA-256 of the arm64 slice, because table addresses differ between builds. Both 4.0.00.10312 and 4.1.00.03062 are supported: the project keeps the 4.0 addresses and `edit_binary.py` maps them to the installed build. Set `SONY_EDIT_BINARY` to use a different path.
-
-### Commands
-
-Build the Capture One profiles:
-
-```bash
-python3 capture_one/c1_look_profile.py /path/to/A7M5.ARW
-```
-
-Build the Camera Raw profiles:
-
-```bash
-python3 camera_raw/acr_look.py /path/to/A7M5.ARW --write
-```
-
-Build the DxO PhotoLab LUTs (`--eval` also prints the interpolation error on the ARW):
-
-```bash
-python3 dxo/dxo_look.py /path/to/A7M5.ARW --write
-```
-
-Render previews directly with the look chain:
-
-```bash
-python3 sonylook/sony_render.py /path/to/A7M5.ARW Standard FL2 --scale 4
-```
-
-Regenerating from DSC03591 reproduces the files in `profiles/` byte for byte.
-
-### Recalibration
-
-See [photo profiles and measurements](docs/photo.md#重新标定) for the synthetic chart and host input recalibration.
-
-## ARW decoder
-
-`sonylook/sony_decode.py` reproduces Edit's whole RAW development and writes the image Edit exports, using the develop settings stored in the ARW:
-
-```text
-RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → MainGamma
-    → RGB2YCC → AreaComp → ChromaSuppress → Sharpness → YGamma → [HueSaturation]
-    → Spica → YCC2RGB → [Marble] → [Effect] → [ToneCurve] → [ShadeCorrection]
-```
-
-Stages in brackets run when the settings enable them. The output is the decoder rectangle (7008×4672 on the α7 V) in sRGB or Adobe RGB, written as TIFF, JPEG or PNG. See [pipeline notes](docs/pipeline.md) (Chinese) for every stage and parameter.
-
-This repository uses the NumPy implementation as its only decoder backend. A
-standalone decoder repository with Rust and Metal acceleration is maintained
-separately under the generic `sony-arw-decoder` name.
-
-```bash
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
-```
-
-From Python, `decode(path)` returns the image as a uint16 array.
+See [usage](profiles/video/README.md) and [calibration and generation](docs/video.md).
 
 ## Repository layout
 
@@ -224,7 +154,6 @@ From Python, `decode(path)` returns the image as a uint16 array.
 ## Notes
 
 - This project is not affiliated with Sony, Capture One, Adobe or DxO. All names and trademarks belong to their owners.
-- The project achieves interoperability by analysing software behaviour. The repository contains no binaries, decompiled code or data extracted from that software. The constants it needs are read on the user's machine from the user's own installation.
 - The ColorMatrix values in the Camera Raw profiles come from Adobe Standard's A7M5 profile, so that Camera Raw's white balance behaves unchanged. The DxO base DCP uses Adobe Standard's ColorMatrix and D65 ForwardMatrix for the same reason.
 - `dxo/dxo_model.py` re-implements PhotoLab's highlight recovery from its observed behaviour and contains a few values measured from PhotoLab while it runs (the DxO Wide Gamut matrices, the highlight white level); it contains no DxO code or files.
 
