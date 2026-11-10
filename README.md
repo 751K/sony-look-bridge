@@ -149,7 +149,7 @@ See [photo look reproduction and calibration](docs/photo_look.en.md) for the col
 - Python 3.11+ with `python3 -m pip install -r requirements.txt` in your chosen Python environment (a virtual environment is recommended).
 - Any A7M5 ARW.
 - **Imaging Edge Edit 4.0.00.10312 or 4.1.00.03062** installed locally (macOS).
-- Optional: a Rust toolchain (`cargo`) for the accelerated `--rust` decoder, and on macOS the Xcode Command Line Tools for the Metal GPU path (`--metal`). The NumPy path needs neither; the one-time LUTs are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it).
+- One-time LUTs are cached under `~/.cache/sonylook` (`SONYLOOK_CACHE=0` disables, `SONYLOOK_CACHE_DIR` moves it).
 
 A few constant tables used by the look chain are read at run time from your own Edit installation (`sonylook/edit_binary.py`); examples are the hue atan table and the contrast curve family. This repository contains no Sony binaries or data. The script checks the SHA-256 of the arm64 slice, because table addresses differ between builds. Both 4.0.00.10312 and 4.1.00.03062 are supported: the project keeps the 4.0 addresses and `edit_binary.py` maps them to the installed build. Set `SONY_EDIT_BINARY` to use a different path.
 
@@ -201,34 +201,15 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 
 Stages in brackets run when the settings enable them. The output is the decoder rectangle (7008×4672 on the α7 V) in sRGB or Adobe RGB, written as TIFF, JPEG or PNG. See [pipeline notes](docs/pipeline.md) (Chinese) for every stage and parameter.
 
-### Three implementations
-
-| Implementation | Platform | Coverage | Role |
-| --- | --- | --- | --- |
-| Python / NumPy | any | every stage | reference and default backend |
-| Rust (`--rust`) | any, needs `cargo` | raw reading (lossless compressed ARW), RawNR, ITP, DRO, GeoCorr, SSCS, the look chain, Sharpness → YCC2RGB, Marble and table construction; Effect, ToneCurve and ShadeCorrection stay on NumPy | multithreaded CPU backend |
-| Metal (`--metal`) | macOS | every stage after the raw read | GPU backend; stages exchange GPU-resident arrays without copies |
-
-The Rust and Metal outputs are bit-identical to NumPy, verified stage by stage and on whole images. The one exception is Metal ITP: a few direction-map sums use float32 instead of float64, so on synthetic full-range noise a handful of values can differ by 1; no difference has appeared on real ARWs. The two backends combine: `--rust --metal` reads the raw with Rust and runs the rest on the GPU.
+This repository uses the NumPy implementation as its only decoder backend. A
+standalone decoder repository with Rust and Metal acceleration is maintained
+separately under the generic `sony-arw-decoder` name.
 
 ```bash
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif                # NumPy
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --out out.tif         # Rust
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif # Rust + Metal
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
 ```
 
-From Python, `decode(path, rust=True, metal=True)` returns the image as a uint16 array. For batches, call `decode()` repeatedly in one process: Metal initialisation, shader compilation and the buffer pool are set up on the first call only.
-
-### Speed
-
-Mac mini (Apple M6, 16 GB), one 7008×4672 image, decoded again in the same process:
-
-| File | NumPy | Rust | Metal | Rust + Metal |
-| --- | ---: | ---: | ---: | ---: |
-| DSC03591 (NR, DRO off) | 28.1 s | 1.7 s | 0.40 s | 0.15 s |
-| DSC05740 (BW, NR, DRO on) | 37.0 s | 2.8 s | 0.48 s | 0.19 s |
-
-Metal alone reads the raw with rawpy (about 0.3 s); with `--rust` that takes about 0.02 s. The first decode of a new file in a process adds about 0.1–0.3 s for reading the file and its metadata. See [Rust notes](rust/README.md) and [Metal notes](docs/metal.md) (Chinese) for building, per-stage timings and verification.
+From Python, `decode(path)` returns the image as a uint16 array.
 
 ## Repository layout
 
@@ -237,13 +218,10 @@ Metal alone reads the raw with rawpy (about 0.3 s); with `--rust` that takes abo
 | `profiles/` | Generated photo profiles and video LUT generation records |
 | `chart/` | Synthetic chart: `SonyChart.ARW` (opens in Capture One and Camera Raw), patch definitions `SonyChart.json`, preview image |
 | `sonylook/` | Python port of Sony's look chain and front end, ARW and Edit readers. Also ports of RawNR, DRO, sharpening / Spica, Marble, lens geometry correction (none used by the profiles) and the BW/SE Effect stage (used), plus the end-to-end decoder `sony_decode.py` |
-| `rust/` | Optional Rust core (`sonylook_core`): raw reading, RawNR, ITP, DRO, GeoCorr, SSCS, fused render bands, Marble and table builders. See `rust/README.md` |
-| `metal/` | Optional Metal GPU implementation of the decoder stages (macOS): the Objective-C bridge and the shaders. See [Metal notes](docs/metal.md) |
-| `tests/` | Differential checks of the Metal stages and the Rust ports against the reference |
 | `capture_one/` | Capture One profile generation, synthetic chart, measurement and comparison |
 | `camera_raw/` | Camera Raw table format, DCP read/write, profile generation, measurement and comparison |
 | `dxo/` | DxO PhotoLab model of the LUT input (`dxo_model.py`), probe and base-DCP generation, LUT generation |
-| `camera_packs/` | Per-camera pack generator (`build_packs.py`) and the installation notes included in each ZIP |
+| `camera_packs/` | Per-camera pack generator, camera metadata and the shared installation-note template used in each ZIP |
 | `video/` | S-Log3 input transforms, sensor-matrix calibration, video LUT generation and tests |
 | `docs/` | [Documentation index](docs/README.md): pipeline, host calibrations, measurement protocols and local research references. Evidence files and test exports are kept outside the repository |
 

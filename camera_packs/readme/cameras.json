@@ -1,0 +1,95 @@
+{
+  "Sony-A1": {
+    "title": "Sony A1",
+    "source": "https://raw.pixls.us/getfile.php/4466/nice/Sony%20-%20ILCE-1%20-%2014bit%20(4:3).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-A1-II": {
+    "title": "Sony A1 II",
+    "source": "https://raw.pixls.us/getfile.php/7828/nice/Sony%20-%20ILCE-1M2%20-%2014bit%20lossless%20(4:3).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-A6700": {
+    "title": "Sony A6700",
+    "source": "https://raw.pixls.us/getfile.php/6736/nice/Sony%20-%20ILCE-6700%20-%2014bit%20(4:3).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-A7-IV": {
+    "title": "Sony A7 IV",
+    "source": "https://raw.pixls.us/getfile.php/6929/nice/Sony%20-%20ILCE-7M4%20-%2014bit%20(4:3).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-A7-V": {
+    "title": "Sony α7 V",
+    "native_fl2_fl3": true,
+    "intro": "适用机型为 Sony α7 V（ILCE-7M5）。本包汇集项目现有的 Capture One、Adobe Camera Raw / Lightroom 和 DxO PhotoLab 配置，含 ST、VV、NT、PT、FL、VV2、IN、SH、BW、SE、FL2 和 FL3。",
+    "looks": "全部 12 种外观均来自 α7 V 原生参数。",
+    "validation": "ST、FL2、FL3 已有 Capture One / Camera Raw 和 Sony Edit 的导出对照。其余外观使用同一处理链。DxO 的 v1.2.1 高光调整已有离线预测，软件内重新导出待验证。默认 Fade 为 IN 3、SH 6、FL2 1、FL3 1。详细测量见项目 README。"
+  },
+  "Sony-A7C-II": {
+    "title": "Sony α7C II",
+    "native_fl2_fl3": false,
+    "intro": "适用机型为 Sony α7C II（ILCE-7CM2）。配置使用 α7C II 样张 RAW 中的 10 种 Creative Look 参数和 SSCS 参数生成，目标为 Sony 的 sRGB 色彩和色调。",
+    "looks": "包含 α7C II 的 10 款原生外观（ST、VV、NT、PT、FL、VV2、IN、SH、BW、SE）以及移植的 FL2 和 FL3。FL2 和 FL3 使用 α7 V 的外观参数，通过两台机身的 Adobe D65 Forward Matrix 换算白平衡后的相机 RGB，两款均使用 Fade 1。",
+    "validation": "已检查文件结构和机型标识。各软件的输入响应沿用了 A7M5 项目的校准模型，DxO 的相机矩阵和本次样张白平衡系数已按 α7C II 更新。\n\n已在 Camera Raw 18.7 中用一张 α7C II 夜景 RAW 验证 ST。与 Sony Edit 的原生 ST 导出相比，几何配准并缩小 8 倍后，全图 RGB 平均绝对误差为 1.58 个 8 位 sRGB 色阶，平坦高光为 2.09。\n\n已在 Camera Raw 18.7 中用一张 α7C II 夜景 RAW 验证 FL2。与移植模型直接渲染的参考图相比，几何配准并缩小 8 倍后，全图 RGB 平均绝对误差为 0.65 个 8 位 sRGB 色阶，平坦高光为 0.47。这组对照衡量 ACR 对移植模型的还原程度。Capture One、DxO 和 ACR 其余外观尚未完成同样的实拍对照。"
+  },
+  "Sony-A7CR": {
+    "title": "Sony A7CR",
+    "source": "https://raw.pixls.us/getfile.php/7032/nice/Sony%20-%20ILCE-7CR%20-%2014bit%2014bit%20losseless%20compressed%20(4:3).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-A7R-V": {
+    "title": "Sony A7R V",
+    "source": "https://raw.pixls.us/getfile.php/6232/nice/Sony%20-%20ILCE-7RM5%20-%2014bit%20(4:3).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-A7R-VI": {
+    "title": "Sony α7R VI",
+    "native_fl2_fl3": true,
+    "intro": "适用机型为 Sony α7R VI（ILCE-7RM6）。配置使用 [RawDB 全画幅无损 ARW](https://rawdb.dnglab.org/sets/Sony/ILCE-7RM6) 中的 12 种原生 Creative Look 参数和 SSCS 阈值生成，目标为 Sony 的 sRGB 色彩和色调。",
+    "looks": "包含 ST、VV、NT、PT、FL、VV2、IN、SH、BW、SE、FL2 和 FL3。",
+    "validation": "已核对样张 SHA-256、配置结构和机型标识。两个 DCP 使用 α7R VI 的 Adobe Standard 色彩矩阵，DxO 的高光模型使用这张 RAW 的拍摄白平衡系数。Capture One、Camera Raw / Lightroom、DxO 的输入响应沿用 α7 V 的实测模型。IN、SH、FL2、FL3 的褪色量沿用 α7 V 的默认值 3、6、1、1。软件内的导入效果和相对 Imaging Edge Edit 的成片色差待实测。"
+  },
+  "Sony-A7S-III": {
+    "title": "Sony A7S III",
+    "source": "https://raw.pixls.us/getfile.php/5417/nice/Sony%20-%20ILCE-7SM3%20-%2014bit%2014bit%20uncompressed%20(3:2).ARW",
+    "native_fl2_fl3": false,
+    "sscs_warning": true
+  },
+  "Sony-A9-III": {
+    "title": "Sony A9 III",
+    "source": "https://raw.pixls.us/getfile.php/7362/nice/Sony%20-%20ILCE-9M3%20-%2014bit%20(3:2).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-FX2": {
+    "title": "Sony FX2",
+    "source": "https://raw.pixls.us/getfile.php/8809/nice/Sony%20-%20ILME-FX2%20-%2014bit%20(4:3).ARW",
+    "native_fl2_fl3": true
+  },
+  "Sony-FX3": {
+    "title": "Sony FX3",
+    "source": "https://raw.pixls.us/getfile.php/6874/nice/Sony%20-%20ILME-FX3%20-%2014bit%20(3:2).ARW",
+    "native_fl2_fl3": false,
+    "sscs_warning": true
+  },
+  "Sony-FX30": {
+    "title": "Sony FX30",
+    "source": "https://raw.pixls.us/getfile.php/6499/nice/Sony%20-%20ILME-FX30%20-%2012bit%2012bit%20compressed%20(3:2).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-RX1R-III": {
+    "title": "Sony RX1R III",
+    "source": "https://raw.pixls.us/getfile.php/8545/nice/Sony%20-%20DSC-RX1RM3%20-%2014bit%20(4:3).ARW",
+    "native_fl2_fl3": true
+  },
+  "Sony-ZV-E1": {
+    "title": "Sony ZV-E1",
+    "source": "https://raw.pixls.us/getfile.php/6813/nice/Sony%20-%20ZV-E1%20-%2014bit%20(3:2).ARW",
+    "native_fl2_fl3": false
+  },
+  "Sony-ZV-E10-II": {
+    "title": "Sony ZV-E10 II",
+    "source": "https://raw.pixls.us/getfile.php/8021/nice/Sony%20-%20ZV-E10M2%20-%2012bit%20(4:3).ARW",
+    "native_fl2_fl3": false
+  }
+}

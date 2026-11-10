@@ -154,7 +154,7 @@ class Look:
     def __init__(self, name, looks, fade=None, sscs=None, output_mode=0,
                  contrast=0, highlight=0, shadow=0, hue=0, saturation=0,
                  exposure=0, white_level=0, black_level=0, tone_curves=None, shade=None,
-                 use_rust=None, fade_level=None, ycc_weights=None):
+                 fade_level=None, ycc_weights=None):
         """fade: Creative Look Fade slider 0..9; None = the camera default for this look.
         fade_level: dev+0x2bc directly (normally 10 x fade); overrides `fade`.  Any level >= 0
         is computed as Edit does (interpolated between steps, extrapolated above 90).
@@ -179,14 +179,6 @@ class Look:
         if output_mode not in (0, 1):
             raise ValueError("output_mode must be 0 (sRGB) or 1 (AdobeRGB)")
         self.sscs = sscs
-        # optional Rust fused front/spatial (rust/sonylook_core); opt-in.
-        # use_rust=None follows SONYLOOK_RUST, otherwise the explicit flag wins.
-        self._use_rust = (os.environ.get("SONYLOOK_RUST", "0") == "1"
-                          if use_rust is None else bool(use_rust))
-        # Only the front block is cached: it depends on this Look alone.  The spatial,
-        # SSCS and Marble blocks depend on render()'s detail / sscs / marble arguments and
-        # are rebuilt on every call (cheap: they only point at existing arrays).
-        self._rust_cfg = None
         self.output_mode = int(output_mode)
         self.contrast = int(contrast)
         self.highlight = int(highlight)
@@ -212,15 +204,9 @@ class Look:
         second = SL.contrast_table(family, self.contrast, self.highlight, self.shadow)
         xs, ys = ints(g["0x7805"]), ints(g["0x7806"])
 
-        def build_main_gamma():
-            if self._use_rust:
-                import fused_rust as FR
-                if FR.available():
-                    return FR.build_main_gamma(xs, ys, 128, second)
-            return SL.build_main_gamma(xs, ys, 128, second=second)
-
         self.gamma = TCACHE.load_or_build(
-            "maingamma", (tuple(xs), tuple(ys), 128, second), build_main_gamma,
+            "maingamma", (tuple(xs), tuple(ys), 128, second),
+            lambda: SL.build_main_gamma(xs, ys, 128, second=second),
             (0x10000,), np.int16)
         arrays = {t: ints(g[t]) for t in ("0x7842", "0x7843", "0x7844", "0x7845", "0x7846")}
         arrays.update({t: ints(MAIN[t]) for t in ("0x7841", "0x7847", "0x7848")})
@@ -282,8 +268,7 @@ class Look:
                                          self.gamma[0x8000:], self.ylut)
 
     def render(self, lin, detail=None, pointwise=False, marble=None, sscs=None,
-               marble_inset=None, timings=None, strip=512, metal_look=False,
-               metal_spatial=False, metal_marble=False, metal_post=False):
+               marble_inset=None, timings=None, strip=512):
         """sscs: None, or sony_sscs.params_from_tags(...) to run ZcTaskSSCS first (Edit always runs it, right
         after GeoCorrection). Integer input uses Sony's u16 path, float input its float32 path.
         detail: None, or dict(sharp=sony_detail.sharpness_params(...), spica=(table, params)) to run
@@ -317,77 +302,13 @@ class Look:
         ctl = dict(blur_luma=0, blur_chroma=0, scale=0, quadratic=1,
                    thresholds=(0.0, 0.0, 0.0)) if pointwise else None
 
-        # The Rust front implements the full-resolution band variant only
-        # (blur on, quadratic on, thresholds 0); pointwise/LUT-grid calls and
-        # float input stay on the NumPy path.
-        rust = None
-        rust_spatial = None
-        if self._use_rust and ctl is None:
-            import fused_rust as FR
-            if FR.available():
-                if self._rust_cfg is None:
-                    self._rust_cfg = FR.config_from_look(self, atan)
-                rust = FR
-                if (detail and detail.get("sharp") is not None
-                        and detail.get("spica") is not None
-                        and not self.hue and not self.saturation):
-                    rust_sp_cfg = FR.spatial_config_from_look(self, detail)
-                    rust_spatial = FR
-
-        rust_sscs = None
-        if rust is not None and sscs is not None:
-            rust_sscs_cfg = rust.sscs_config(sscs)
-            rust_sscs = rust
-
-        front_planes = None
-        if metal_spatial and not metal_look:
-            raise ValueError("metal_spatial requires metal_look")
-        # Same conditions as the Rust spatial path; otherwise the CPU spatial stages run.
-        metal_spatial = bool(metal_spatial and detail and detail.get("sharp") is not None
-                             and detail.get("spica") is not None
-                             and not self.hue and not self.saturation and H >= 7 and W >= 7)
-        if metal_look:
-            if pointwise or not np.issubdtype(lin.dtype, np.integer):
-                raise ValueError("Metal look requires full-resolution integer RGB input")
-            # SSCS is normally interleaved with the CPU band render. It must
-            # precede the whole-image GPU look when the two paths are combined.
+        def chain(z):
+            """Pointwise part through ChromaSuppress. Returns (Y, Cr, Cb)."""
             if sscs is not None:
                 t = time.perf_counter()
-                pre_sscs = np.empty_like(lin, dtype=np.uint16)
-                for y0 in range(0, H, strip or H):
-                    y1 = min(y0 + (strip or H), H)
-                    band = np.ascontiguousarray(lin[y0:y1])
-                    if rust_sscs is not None:
-                        pre_sscs[y0:y1] = rust_sscs.sscs_u16(band, rust_sscs_cfg)
-                    else:
-                        pre_sscs[y0:y1] = np.stack(SC.sscs_int(*(band[..., c] for c in range(3)), sscs), -1)
-                lin = pre_sscs
-                sscs = None
+                fn = SC.sscs_int if np.issubdtype(z.dtype, np.integer) else SC.sscs_float
+                z = np.stack(fn(*(np.ascontiguousarray(z[..., c]) for c in range(3)), sscs), -1)
                 mark("sscs", t)
-            import metal_look as ML
-            if not metal_spatial:
-                t = time.perf_counter()
-                front_planes = ML.front(lin, self, atan)
-                mark("metal_front", t)
-
-        def chain(z, front=None):
-            """Pointwise part through ChromaSuppress. Returns (Y, Cr, Cb).
-            front: precomputed (Y, Cr, Cb) rows from the Metal front, returned as copies."""
-            if front is not None:
-                return tuple(np.array(p) for p in front)
-            if sscs is not None:
-                t = time.perf_counter()
-                if rust_sscs is not None and np.issubdtype(z.dtype, np.integer):
-                    z = rust_sscs.sscs_u16(z, rust_sscs_cfg)
-                else:
-                    fn = SC.sscs_int if np.issubdtype(z.dtype, np.integer) else SC.sscs_float
-                    z = np.stack(fn(*(np.ascontiguousarray(z[..., c]) for c in range(3)), sscs), -1)
-                mark("sscs", t)
-            if rust is not None and np.issubdtype(z.dtype, np.integer):
-                t = time.perf_counter()
-                y, cr, cb = rust.front_u16(z, self._rust_cfg)
-                mark("look", t)
-                return y, cr, cb
             planes = [np.ascontiguousarray(z[..., c], np.float32) for c in range(3)]
             t = time.perf_counter()
             enc = SL.render_look(planes, self.table, self.gamma, atan, ctl)
@@ -407,11 +328,6 @@ class Look:
             r, g, b = pre
             if marble is not None:
                 import sony_marble as MB
-                rust_mb = None
-                if rust is not None:
-                    rust_mb_cfg = rust.marble_config(
-                        marble["look"], marble["dev"], marble["dec"], self.output_mode)
-                    rust_mb = rust
                 t = time.perf_counter()
                 look = marble["look"]
                 # Marble is local and Sony leaves a 16-px border unwritten.  Run it on row
@@ -422,14 +338,7 @@ class Look:
                 # side give bit-identical valid rows (5x5 sigma + 3x3 + upsample).
                 halo = 12 * B
                 step = (strip // B) * B if strip else 0
-                metal_mb = None
-                if metal_marble and H >= 10 and W >= 10:
-                    import metal_look as ML
-                    metal_mb = ML.marble(*pre, look, marble["dev"], marble["dec"],
-                                         mode=self.output_mode, inset=bool(marble_inset))
-                if metal_mb is not None:
-                    r, g, b = metal_mb
-                elif marble_inset and step and H > step + 2 * halo and W > 32:
+                if marble_inset and step and H > step + 2 * halo and W > 32:
                     pre0, pre1, pre2 = pre
                     # Write Marble's valid regions into fresh planes and take only
                     # the unwritten border/gap rows from the pre-Marble planes.
@@ -445,15 +354,9 @@ class Look:
                         if oy0 >= oy1:
                             return None
                         a0, a1 = max(0, s0 - halo), min(H, s1 + halo)
-                        mout = (rust_mb.marble_slab(pre0[a0:a1], pre1[a0:a1], pre2[a0:a1],
-                                                    rust_mb_cfg)
-                                if rust_mb is not None else None)
-                        if mout is not None:
-                            (sr, sg, sb), vr = mout
-                        else:
-                            (sr, sg, sb), vr = MB.marble(pre0[a0:a1], pre1[a0:a1], pre2[a0:a1],
-                                                         look, marble["dev"], marble["dec"],
-                                                         mode=self.output_mode)
+                        (sr, sg, sb), vr = MB.marble(
+                            pre0[a0:a1], pre1[a0:a1], pre2[a0:a1],
+                            look, marble["dev"], marble["dec"], mode=self.output_mode)
                         return oy0, oy1, a0, vr[0], vr[2], sr, sg, sb
 
                     def commit(res):
@@ -497,14 +400,9 @@ class Look:
                     g[:, W - 16:] = pre1[:, W - 16:]
                     b[:, W - 16:] = pre2[:, W - 16:]
                 else:
-                    mout = (rust_mb.marble_slab(r, g, b, rust_mb_cfg)
-                            if rust_mb is not None else None)
-                    if mout is not None:
-                        (mr, mg, mb), vr = mout
-                    else:
-                        (mr, mg, mb), vr = MB.marble(
-                            *(np.asarray(c, np.uint16) for c in (r, g, b)),
-                            look, marble["dev"], marble["dec"], mode=self.output_mode)
+                    (mr, mg, mb), vr = MB.marble(
+                        *(np.asarray(c, np.uint16) for c in (r, g, b)),
+                        look, marble["dev"], marble["dec"], mode=self.output_mode)
                     if marble_inset:
                         # Marble writes only its valid region; keep the pre-Marble value in the border
                         # (the same composite sony_decode used to make with a second full render).
@@ -514,47 +412,29 @@ class Look:
                     else:
                         r, g, b = mr, mg, mb
                 mark("marble", t)
-            post = None
-            if metal_post:
-                import metal_look as ML
-                post = ML.Post(self, W, H)
-            if post is not None and post.active:   # Effect, ToneCurve, ShadeCorrection on Metal
+            if self.look_id & ~1 == 0x10:      # render+0x44 = 0 sRGB, 1 AdobeRGB
                 t = time.perf_counter()
-                r, g, b = ML.post(r, g, b, post)
-                mark("metal_post", t)
-            else:
-                if self.look_id & ~1 == 0x10:      # render+0x44 = 0 sRGB, 1 AdobeRGB
-                    t = time.perf_counter()
-                    r, g, b = EF.effect_apply(*(np.asarray(c, np.uint16) for c in (r, g, b)),
-                                              self.look_id, self.tint, mode=self.output_mode)
-                    mark("effect", t)
-                if self.tone_luts is not None:     # ZcTaskToneCurve
-                    t = time.perf_counter()
-                    r, g, b = TC.apply(r, g, b, self.tone_luts)
-                    mark("tonecurve", t)
-                if self.shade is not None:         # ZcTaskShadeCorrection
-                    t = time.perf_counter()
-                    r, g, b = SH.apply(r, g, b, self.shade["coeffs"], W, H,
-                                       flag=self.shade["flag"], angle=self.shade["angle"],
-                                       scale_w=W, scale_h=H)
-                    mark("shade", t)
-            if metal_post or metal_marble:      # planes are GPU-resident: interleave on the GPU
-                import metal_look as ML
-                return ML.interleave(r, g, b)
+                r, g, b = EF.effect_apply(*(np.asarray(c, np.uint16) for c in (r, g, b)),
+                                          self.look_id, self.tint, mode=self.output_mode)
+                mark("effect", t)
+            if self.tone_luts is not None:     # ZcTaskToneCurve
+                t = time.perf_counter()
+                r, g, b = TC.apply(r, g, b, self.tone_luts)
+                mark("tonecurve", t)
+            if self.shade is not None:         # ZcTaskShadeCorrection
+                t = time.perf_counter()
+                r, g, b = SH.apply(r, g, b, self.shade["coeffs"], W, H,
+                                   flag=self.shade["flag"], angle=self.shade["angle"],
+                                   scale_w=W, scale_h=H)
+                mark("shade", t)
             out = np.empty((H, W, 3), np.uint16)
             out[..., 0] = r
             out[..., 1] = g
             out[..., 2] = b
             return out
 
-        if metal_spatial:
-            t = time.perf_counter()
-            pre = ML.front_spatial(lin, self, atan, ML.Spatial(self, detail))
-            mark("metal_front_spatial", t)
-            return finish(list(pre))
-
         if pointwise or not strip or H <= strip:
-            y, cr, cb = chain(lin, front=front_planes)
+            y, cr, cb = chain(lin)
             if detail and detail.get("sharp") is not None:
                 import sony_detail as SDT
                 t = time.perf_counter()
@@ -588,21 +468,8 @@ class Look:
         def band_job(ya):
             yb = min(ya + strip, H)
             c0, c1 = max(0, ya - 8), min(H, yb + 8)
-            if front_planes is not None:
-                y, cr, cb = chain(None, front=tuple(p[c0:c1] for p in front_planes))
-            else:
-                y, cr, cb = chain(np.ascontiguousarray(lin[c0:c1]))
+            y, cr, cb = chain(np.ascontiguousarray(lin[c0:c1]))
             g0, g1 = max(0, ya - 3), min(H, yb + 3)
-            if rust_spatial is not None:
-                t = time.perf_counter()
-                r, g, b = rust_spatial.spatial_u16(y, cr, cb, c0, ya, yb, g0, g1,
-                                                   rust_sp_cfg,
-                                                   threads=stage_threads)
-                mark("spatial", t)
-                pre[0][ya:yb] = r
-                pre[1][ya:yb] = g
-                pre[2][ya:yb] = b
-                return
             if detail and detail.get("sharp") is not None:
                 t = time.perf_counter()
                 y = SDT.sharpness(np.asarray(y, np.uint16), (0, 0, W, c1 - c0), detail["sharp"])
@@ -629,18 +496,8 @@ class Look:
             pre[2][ya:yb] = b
 
         starts = list(range(0, H, strip))
-        total_threads = int(os.environ.get("SONYLOOK_THREADS", "6"))
-        band_workers = int(os.environ.get(
-            "SONYLOOK_BAND_THREADS", str(min(total_threads, 6, len(starts)))))
-        band_workers = max(1, min(band_workers, len(starts)))
-        # Keep the total in flight bounded: band workers x Spica threads.
-        stage_threads = max(1, total_threads // band_workers)
-        if band_workers > 1 and rust_spatial is not None:
-            with ThreadPoolExecutor(max_workers=band_workers) as ex:
-                list(ex.map(band_job, starts))
-        else:
-            for ya in starts:
-                band_job(ya)
+        for ya in starts:
+            band_job(ya)
         return finish(pre)
 
 

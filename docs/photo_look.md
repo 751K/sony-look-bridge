@@ -51,7 +51,7 @@ Sony 创意外观可以视为一个从**白平衡后的相机原生 RGB** 到**�
 - 每种外观都按相机里创意外观的默认参数渲染：12 种外观的对比度、高光、阴影、饱和度都是 0；褪色 FL2/FL3 为 1，IN 为 3，SH 为 6。
 - 锐化、降噪、清晰度、DRO 等阶段依赖邻域像素，不属于逐像素映射，不纳入配置。
 - 解码器的去马赛克（ZcTaskITP）已逐位移植到 `sonylook/sony_itp.py`，包括 Sony 的 1024 像素分块，不进入配置文件。
-- 完整解码器已串联在 `sonylook/sony_decode.py`：`decode(arw)` 依次运行 RawNR、ITP、DRO、镜头几何、SSCS、外观链和 Marble；DSC03591 的全图 7008×4672 与 Edit 导出的 8 位 MAE 为 0.13。加 `--rust` 会走可选的 Rust 内核，输出逐位相同。
+- 完整解码器已串联在 `sonylook/sony_decode.py`：`decode(arw)` 依次运行 RawNR、ITP、DRO、镜头几何、SSCS、外观链和 Marble；DSC03591 的全图 7008×4672 与 Edit 导出的 8 位 MAE 为 0.13。
 - 配置文件也包含 SSCS（`sonylook/sony_sscs.py`）。严格来说它属于外观之前的解码器阶段，但它是逐像素的，在两个软件里都能改善结果（见[测量说明](measurements.md)）。Edit 的 3D LUT 在默认参数下不运行；色相/饱和度只在对应滑块非 0 时运行。曲线工具（Y/R/G/B）和周辺光量补偿已逐位移植（`sonylook/sony_tonecurve.py`、`sony_shade.py`），在参数非默认时接在链路末尾。
 
 ### 2. 查找表表示

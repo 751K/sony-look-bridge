@@ -137,7 +137,7 @@ SSCS 位于外观之前，也被纳入生成的配置；锐化、降噪与 DRO �
 
 ## 重新生成
 
-需要：Python 3.11+、在选定的 Python 环境中运行 `python3 -m pip install -r requirements.txt`（建议使用虚拟环境）、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312 或 4.1.00.03062**（macOS）。可选：Rust 工具链（`cargo`），用于加速的 `--rust` 解码；macOS 上另需 Xcode Command Line Tools，用于 Metal GPU 解码（`--metal`）。NumPy 路径两者都不需要。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
+需要：Python 3.11+、在选定的 Python 环境中运行 `python3 -m pip install -r requirements.txt`（建议使用虚拟环境）、任意一张 A7M5 的 ARW，以及本机安装的 **Imaging Edge Edit 4.0.00.10312 或 4.1.00.03062**（macOS）。一次性 LUT 会缓存在 `~/.cache/sonylook`（`SONYLOOK_CACHE=0` 关闭，`SONYLOOK_CACHE_DIR` 改目录）。
 
 外观链用到的一些常量表（色相 atan 表、对比度曲线族等）是在运行时从你本机安装的 Edit 里读取的（`sonylook/edit_binary.py`），本仓库不包含任何 Sony 的二进制或数据。脚本会校验 arm64 部分的 SHA-256；4.0.00.10312 与 4.1.00.03062 的表地址不同，`edit_binary.py` 里以 4.0 地址为准、对两者都做了映射。路径可以用 `SONY_EDIT_BINARY` 指定。
 
@@ -180,34 +180,14 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 
 方括号中的阶段按设置运行。输出为解码器矩形（α7 V 为 7008×4672），色彩空间为 sRGB 或 Adobe RGB，格式为 TIFF、JPEG 或 PNG。各阶段的实现与参数见[处理管线](docs/pipeline.md)。
 
-### 三种实现
-
-| 实现 | 平台 | 覆盖范围 | 作用 |
-| --- | --- | --- | --- |
-| Python / NumPy | 任意 | 全部阶段 | 参考实现，默认后端 |
-| Rust（`--rust`） | 任意，需 `cargo` | RAW 读取（无损压缩 ARW）、RawNR、ITP、DRO、GeoCorr、SSCS、外观链、Sharpness → YCC2RGB、Marble 和表构造；Effect、ToneCurve、ShadeCorrection 仍用 NumPy | 多线程 CPU 后端 |
-| Metal（`--metal`） | macOS | RAW 读取之后的全部阶段 | GPU 后端；各阶段在 GPU 可见内存中直接传递，不发生复制 |
-
-Rust 与 Metal 的输出与 NumPy 逐位一致，已逐阶段并在整图上验证。唯一的例外是 Metal ITP：方向图中有几处求和使用 float32 而非 float64，对随机的满量程噪声输入，个别值可能相差 1；真实 ARW 上没有出现差异。两种后端可以组合使用：`--rust --metal` 由 Rust 读取 RAW，其余阶段在 GPU 上运行。
+本仓库只保留 NumPy 实现。包含 Rust、Metal 加速的独立完整解码器使用通用名称
+`sony-arw-decoder`，作为另一个仓库维护。
 
 ```bash
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif                # NumPy
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --out out.tif         # Rust
-python3 sonylook/sony_decode.py /path/to/A7M5.ARW --rust --metal --out out.tif # Rust + Metal
+python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
 ```
 
-在 Python 中，`decode(path, rust=True, metal=True)` 返回 uint16 数组。批量处理时宜在同一进程中连续调用 `decode()`：Metal 初始化、着色器编译和缓冲池只在第一次调用时建立。
-
-### 速度
-
-Mac mini（Apple M6，16 GB），一张 7008×4672 的图，在同一进程中再次解码：
-
-| 文件 | NumPy | Rust | Metal | Rust + Metal |
-| --- | ---: | ---: | ---: | ---: |
-| DSC03591（NR、DRO 关闭） | 28.1 s | 1.7 s | 0.40 s | 0.15 s |
-| DSC05740（BW，NR、DRO 开启） | 37.0 s | 2.8 s | 0.48 s | 0.19 s |
-
-单独使用 Metal 时，RAW 由 rawpy 读取，约 0.3 s；加上 `--rust` 后约 0.02 s。进程中首次解码某个文件时，读取文件和元数据另需约 0.1–0.3 s。构建方法、分阶段耗时和验证见 [Rust 说明](rust/README.md) 与 [Metal 加速](docs/metal.md)。
+在 Python 中，`decode(path)` 返回 uint16 数组。
 
 ## 目录
 
@@ -216,13 +196,10 @@ Mac mini（Apple M6，16 GB），一张 7008×4672 的图，在同一进程中�
 | `profiles/`    | 照片配置及视频 LUT 的生成记录                                                          |
 | `chart/`       | 合成色卡：`SonyChart.ARW`（可直接用 C1 / ACR 打开）、色块定义 `SonyChart.json`、预览图            |
 | `sonylook/`    | Sony 外观链与前端的 Python 移植，以及 ARW / Edit 读取器。另含 RawNR、DRO、锐化 / Spica、Marble、镜头几何校正（都不用于配置）、BW/SE 的 Effect 阶段（用于配置），以及整图解码器 `sony_decode.py` |
-| `rust/`        | 可选的 Rust 内核（`sonylook_core`）：RAW 读取、RawNR、ITP、DRO、GeoCorr、SSCS、融合渲染 band、Marble 和表构造。见 `rust/README.md` |
-| `metal/`       | 解码各阶段的可选 Metal GPU 实现（macOS）：Objective-C 桥接层和着色器。见 [Metal 加速](docs/metal.md) |
-| `tests/`       | Metal 各阶段和 Rust 移植与参考实现的差分验证                                       |
 | `capture_one/` | C1 配置生成、合成色卡、测量与对比                                                          |
 | `camera_raw/`  | ACR 表格式、DCP 读写、配置生成、测量与对比                                                   |
 | `dxo/`         | DxO PhotoLab 的 LUT 输入模型（`dxo_model.py`）、探针和底座 DCP 生成、LUT 生成                      |
-| `camera_packs/` | 各机型配置包的生成脚本（`build_packs.py`）及各 ZIP 附带的安装说明 |
+| `camera_packs/` | 各机型配置包生成器、机型元数据，以及生成 ZIP 安装说明所用的共享模板 |
 | `video/`       | S-Log3 输入转换、传感器矩阵标定、视频 LUT 生成和测试 |
 | `docs/`        | [文档导航](docs/README.md)：处理链、宿主标定、测量方法与本地研究资料索引。原始证据文件和测试导出保存在仓库之外 |
 

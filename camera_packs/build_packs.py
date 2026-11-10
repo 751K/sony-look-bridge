@@ -2,7 +2,8 @@
 """Build the per-camera Creative Look packs (one ZIP per camera, published as release assets).
 
 Each pack holds the Capture One ICC profiles, the Camera Raw / Lightroom DCP + XMP profiles and the
-DxO PhotoLab DCP + CUBE files for one camera, plus 安装说明.md (camera_packs/readme/<stem>.md).
+DxO PhotoLab DCP + CUBE files for one camera, plus a 安装说明.md generated from
+camera_packs/readme/template.md and camera_packs/readme/cameras.json.
 
 Look parameters come from one sample ARW per camera (README of each pack names the source).
 - Native looks use the sample's own look IFDs and SSCS parameters.
@@ -43,6 +44,7 @@ import dcp  # noqa: E402
 import dxo_model as D  # noqa: E402
 import dxo_profiles as P  # noqa: E402
 import arw_looks as AW  # noqa: E402
+from pack_notes import render_note  # noqa: E402
 import sony_render as R  # noqa: E402
 import sony_sscs as SC  # noqa: E402
 
@@ -170,7 +172,8 @@ def build(cam, samples, out, as_shot=False):
     finally:
         for k, v in DXO_DEFAULTS.items():
             setattr(D, k, v)
-    shutil.copy(HERE / "readme" / f"{stem}.md", pack / "安装说明.md")
+    (pack / "安装说明.md").write_text(
+        render_note(stem, model, prefix, group), encoding="utf-8")
     return zip_pack(pack)
 
 

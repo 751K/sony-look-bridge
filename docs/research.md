@@ -30,7 +30,6 @@ Code/
 | 1024×18 色表构建，12 外观 × 6 控制组合 | `reverse/color_table_verification/verify_color_table.py`、`verification.json`、缓存 `.f32le` | [处理管线](pipeline.md) |
 | 像素链、YCC 和各空间阶段 | `reverse/pixel_pipeline/verify_*.py`、`verification*.json`、`verify_*_report.json` | [处理管线](pipeline.md) |
 | ToneCurve、ShadeCorrection | `reverse/pixel_pipeline/verify_tonecurve_shade.py`、`verify_tonecurve_shade_report.json` | [处理管线 §6](pipeline.md#6-后段) |
-| Rust 的 Marble、参数复用、滑块与边界 | `reverse/pixel_pipeline/verify_marble_rust.py`、`verify_rust_config.py`、`verify_rust_sliders.py`、`verify_rust_bounds.py` | [Rust 内核](../rust/README.md) |
 | 完整解码 ST / FL2 / FL3，2026-10-25 重测 | `readme_update/decode_looks.py`、`measure_results.py`、`results.json` | [历史测量](measurements.md#archived-validation-results) |
 | Edit 参考图 | `reverse/reference/`；部分其他参考图在 `analysis/` 根目录 | [测量说明](measurements.md) |
 | Edit 4.0 / 4.1 函数及常量地址对照 | `reverse/edit41_diff/` | [处理管线 §10.2](pipeline.md#102-edit-410003062) |

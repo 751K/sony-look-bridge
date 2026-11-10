@@ -51,7 +51,7 @@ Further points:
 - Each look is rendered with the camera's default Creative Look settings. Contrast, highlights, shadows and saturation are 0 for all twelve; Fade is 1 for FL2/FL3, 3 for IN and 6 for SH.
 - Sharpening, noise reduction, clarity and DRO depend on neighbouring pixels, so they are not per-pixel mappings and are left out of the profiles.
 - The decoder's demosaic (ZcTaskITP) is ported bit-exactly in `sonylook/sony_itp.py`, including Sony's 1024-pixel tiling; it is not part of the profiles.
-- The whole decoder is wired end to end in `sonylook/sony_decode.py`: `decode(arw)` runs RawNR, ITP, DRO, lens geometry, SSCS, the look chain and Marble. Against Edit's export of DSC03591 the whole 7008×4672 image matches at 0.13 (8-bit MAE). `--rust` runs the same stages through the optional Rust core, with bit-identical output.
+- The whole decoder is wired end to end in `sonylook/sony_decode.py`: `decode(arw)` runs RawNR, ITP, DRO, lens geometry, SSCS, the look chain and Marble. Against Edit's export of DSC03591 the whole 7008×4672 image matches at 0.13 (8-bit MAE).
 - The profiles also include SSCS (`sonylook/sony_sscs.py`). Strictly speaking it is a decoder stage that runs before the look, but it is per pixel and improves both hosts (see the [measurement notes](measurements.md)). Edit's 3D LUT stage is off at default settings; hue/saturation runs only when those sliders are non-zero. The tone-curve tool (Y/R/G/B) and peripheral-illumination correction are ported bit-exactly in `sonylook/sony_tonecurve.py` / `sony_shade.py` and run at the end of the chain when their settings are non-default.
 
 ### 2. Lookup-table representation
