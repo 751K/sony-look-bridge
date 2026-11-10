@@ -1,6 +1,6 @@
 # Sony Imaging Edge Edit 的 RAW 处理管线（A7M5）
 
-本文记录各阶段的作用、参数来源、实现和验证结果。推导过程保存在 git 历史及本地研究目录，`verify_*.py` 脚本和报告的位置见[研究资料索引](research.md)。
+本文记录各阶段的作用、参数来源、实现和验证结果。
 
 - **目标程序**：Imaging Edge Edit 4.0.00.10312，arm64 切片 SHA-256 `a03b2449…5da442`。4.1.00.03062 的颜色链与之相同（§10.2）；`sonylook/edit_binary.py` 以 4.0 地址为准，并为 4.1 的常量表地址做了映射。
 - **验证方式**：在 Unicorn 模拟器里运行 Edit 的原始 ARM64 函数，使用 Sony 自己的 ARW 解析器和对象，与 Python 移植逐位比较；整图再与 Edit 的导出图比较。
@@ -30,7 +30,7 @@
 
 不运行、也没有移植的阶段：TrinityLPF（需要存储类型 4）、YNR（dev+0x22c = 0）、`FUN_1000b83e8` 降噪任务（本机型条件不满足）、ZcTaskDemosaic（只用于 GRBG 传感器）。
 
-**与 Edit 导出图的对照**（DSC03591，Edit 保存过的会话设置，ST 外观）：全图 7008×4672 的 8 位 MAE **0.125**（sRGB），AdobeRGB 为 **0.133**。10 块全分辨率裁块（含 4 块最亮区域）：ST 0.153、FL2 0.138、FL3 0.138。2026-10-25 的整图重测在 8× 缩小后为 ST 0.078、FL2 0.082、FL3 0.093；测量条件见[历史测量说明](measurements.md#archived-validation-results)。上述误差单位为 8 位 RGB MAE。其余 9 种外观没有 Edit 参考图，只验证了与 Sony 函数逐位一致。
+**与 Edit 导出图的对照**（DSC03591，Edit 保存过的会话设置，ST 外观）：全图 7008×4672 的 8 位 MAE **0.125**（sRGB），AdobeRGB 为 **0.133**。10 块全分辨率裁块（含 4 块最亮区域）：ST 0.153、FL2 0.138、FL3 0.138。2026-10-25 的整图重测在 8× 缩小后为 ST 0.078、FL2 0.082、FL3 0.093。上述误差单位为 8 位 RGB MAE。其余 9 种外观没有 Edit 参考图，只验证了与 Sony 函数逐位一致。
 
 **仍未完成**：3DLut 表的构建链；自定义白平衡（模式 0xd）的数据来源；非 RGGB 传感器；更多参考图（其余外观、NR/DRO 开启、调过滑块、高 ISO）。
 
@@ -447,6 +447,6 @@ NumPy 参考实现的整图解码耗时约为 28–37 s（Mac mini，Apple M6，
 
 - **进入配置文件**的是逐像素阶段：SSCS、LinearMatrix16、MainGamma、RGB2YCC、AreaComp、ChromaSuppress、YGamma、YCC2RGB、Effect。前端（白平衡、去马赛克）由宿主软件完成；空间阶段（RawNR、DRO、GeoCorr、Sharpness、Spica、Marble）不进入。
 - 配置文件按相机默认参数渲染：褪色 FL2/FL3 = 1、IN = 3、SH = 6，其余滑块为 0。
-- **SSCS**：在 C1 / ACR 实际导出上都降低了亮区色度误差（Capture One 0.64 → 0.16，Camera Raw 0.61 → 0.33），从 v1.1.0 起包含；DxO 配置同样包含 SSCS。测量使用约 5% 的亮区掩码，色度分量指标的定义见[测量说明](measurements.md#interpreting-earlier-scores)。
+- **SSCS**：在 C1 / ACR 实际导出上都降低了亮区色度误差（Capture One 0.64 → 0.16，Camera Raw 0.61 → 0.33），从 v1.1.0 起包含；DxO 配置同样包含 SSCS。测量使用约 5% 的亮区掩码。
 - **Camera Raw 亮区偏亮约 0.5–0.7 级**：来自 Camera Raw 按画面内容自适应的高光压缩，固定的 RGBTable 无法修正。
-- 宿主软件各自的标定见 [Capture One](capture_one.md)、[Camera Raw](camera_raw.md) 和 [DxO PhotoLab](dxo.md)。
+- 宿主软件各自的标定见[照片外观与宿主配置](photo.md)。

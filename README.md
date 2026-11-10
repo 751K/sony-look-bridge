@@ -27,7 +27,7 @@ Each camera pack contains profiles for Capture One, Camera Raw / Lightroom and D
 | Cinema Line | [FX2][sony-fx2] · [FX3][sony-fx3] · [FX30][sony-fx30] |
 | RX / ZV | [RX1R III][sony-rx1r-iii] · [ZV-E1][sony-zv-e1] · [ZV-E10 II][sony-zv-e10-ii] |
 
-The α7 V, α7R VI, FX2 and RX1R III packs have 12 native looks; the others have 10 native looks plus FL2 / FL3 ported from α7 V. New packs use the α7 V input calibration; ST and FL2 were tested in ACR on α7C II. See [camera notes](docs/cameras.en.md).
+The α7 V, α7R VI, FX2 and RX1R III packs have 12 native looks; the others have 10 native looks plus FL2 / FL3 ported from α7 V. New packs use the α7 V input calibration; ST and FL2 were tested in ACR on α7C II. Each ZIP includes installation notes for its camera.
 
 [sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-Creative-Looks.zip
 [sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-II-Creative-Looks.zip
@@ -62,7 +62,7 @@ The comparison below uses the ST look on one α7 V RAW file, DSC03591, with Sony
 
 The errors are separated in CIELAB (D65): lightness is the absolute L* difference; chromaticity is the a*, b* plane distance Δab, capturing hue and chroma differences without the L* component. The table reports their pixelwise means over the shared valid area; lower is better.
 
-Values are mean CIELAB (D65) lightness and chroma differences over the shared valid area. See [measurement notes](docs/measurements.md) for the method and other looks.
+Values are mean CIELAB (D65) lightness and chroma differences over the shared valid area. See [photo profiles and measurements](docs/photo.md#验证与测量) for the metric definition and other checks.
 
 ## Installation
 
@@ -140,7 +140,7 @@ The project measures each application's input encoding and stores the mapping in
   <img alt="Camera RGB after neutral development, Sony ST and FL2" src="images/color_cube_en_light.png">
 </picture>
 
-See [photo look reproduction and calibration](docs/photo_look.en.md) for the colour diagram and derivation. The [video LUT notes](docs/video.md) describe the measured bridge from S-Log3 to the photo look.
+See [photo looks and host profiles](docs/photo.md) for the colour diagram and derivation. The [video LUT notes](docs/video.md) describe the measured bridge from S-Log3 to the photo look.
 
 ## Regenerating the profiles
 
@@ -181,13 +181,9 @@ python3 sonylook/sony_render.py /path/to/A7M5.ARW Standard FL2 --scale 4
 
 Regenerating from DSC03591 reproduces the files in `profiles/` byte for byte.
 
-### Viewer super-resolution
-
-See [technical notes](docs/sdm.md) on Viewer Extended Hi-Res inputs, tiling and export.
-
 ### Recalibration
 
-See [recalibration notes](docs/recalibration.en.md) for the synthetic chart and host input measurements.
+See [photo profiles and measurements](docs/photo.md#重新标定) for the synthetic chart and host input recalibration.
 
 ## ARW decoder
 
@@ -223,7 +219,7 @@ From Python, `decode(path)` returns the image as a uint16 array.
 | `dxo/` | DxO PhotoLab model of the LUT input (`dxo_model.py`), probe and base-DCP generation, LUT generation |
 | `camera_packs/` | Per-camera pack generator, camera metadata and the shared installation-note template used in each ZIP |
 | `video/` | S-Log3 input transforms, sensor-matrix calibration, video LUT generation and tests |
-| `docs/` | [Documentation index](docs/README.md): pipeline, host calibrations, measurement protocols and local research references. Evidence files and test exports are kept outside the repository |
+| `docs/` | [Documentation index](docs/README.md): photo profiles, pipeline and video LUTs |
 
 ## Notes
 

@@ -27,7 +27,7 @@ v2.1.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款
 | Cinema Line | [FX2][sony-fx2] · [FX3][sony-fx3] · [FX30][sony-fx30] |
 | RX / ZV | [RX1R III][sony-rx1r-iii] · [ZV-E1][sony-zv-e1] · [ZV-E10 II][sony-zv-e10-ii] |
 
-α7 V、α7R VI、FX2、RX1R III 包含 12 种原生外观，其余机型包含 10 种原生外观及移植的 FL2 / FL3。新增机型沿用 α7 V 输入校准；α7C II 已在 ACR 验证 ST 和 FL2。详见[机型说明](docs/cameras.md)。
+α7 V、α7R VI、FX2、RX1R III 包含 12 种原生外观，其余机型包含 10 种原生外观及移植的 FL2 / FL3。新增机型沿用 α7 V 输入校准；α7C II 已在 ACR 验证 ST 和 FL2。每个 ZIP 都包含对应机型的安装说明。
 
 [sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-Creative-Looks.zip
 [sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v2.1.0/Sony-A1-II-Creative-Looks.zip
@@ -60,7 +60,7 @@ v2.1.0 提供 17 款 Sony 机型的配置，每台机型各有一个包含三款
 | Capture One | 0.24 | 0.58 |
 | Camera Raw | 0.44 | 0.49 |
 
-数值为 CIELAB（D65）中共同有效区域的平均明度差和色度差。测量方法与其他外观的验证见[测量说明](docs/measurements.md)。
+数值为 CIELAB（D65）中共同有效区域的平均明度差和色度差。指标定义与其他验证见[照片配置与测量](docs/photo.md#验证与测量)。
 
 ## 安装使用
 
@@ -133,7 +133,7 @@ SSCS 位于外观之前，也被纳入生成的配置；锐化、降噪与 DRO �
   <img alt="相机 RGB 经过中性显影、Sony ST 和 FL2 后的颜色分布" src="images/color_cube_zh_light.png">
 </picture>
 
-色彩映射图及完整推导见[照片外观的复现与标定](docs/photo_look.md)；视频链使用实拍矩阵连接 S-Log3 与照片外观，见[视频 LUT 标定](docs/video.md)。
+色彩映射图及完整推导见[照片外观与宿主配置](docs/photo.md)；视频链使用实拍矩阵连接 S-Log3 与照片外观，见[视频 LUT 标定](docs/video.md)。
 
 ## 重新生成
 
@@ -160,13 +160,9 @@ python3 sonylook/sony_render.py /path/to/A7M5.ARW Standard FL2 --scale 4
 - 第一条生成 C1 配置，第二条生成 ACR 配置，第三条生成 DxO 的 LUT（加 `--eval` 会打印在该 ARW 上的插值误差），第四条用外观链直接渲染预览。
 - 用 DSC03591 重新生成的结果，与 `profiles/` 里的文件逐字节相同。
 
-### Viewer 的 AI 超分
-
-Viewer Extended Hi-Res 的输入、分块和导出链研究见[技术笔记](docs/sdm.md)。
-
 ### 重新标定
 
-合成色卡和重新标定各软件输入编码的步骤见[重新标定说明](docs/recalibration.md)。
+合成色卡和重新标定各软件输入编码的步骤见[照片配置与测量](docs/photo.md#重新标定)。
 
 ## ARW 解码器
 
@@ -201,7 +197,7 @@ python3 sonylook/sony_decode.py /path/to/A7M5.ARW --out out.tif
 | `dxo/`         | DxO PhotoLab 的 LUT 输入模型（`dxo_model.py`）、探针和底座 DCP 生成、LUT 生成                      |
 | `camera_packs/` | 各机型配置包生成器、机型元数据，以及生成 ZIP 安装说明所用的共享模板 |
 | `video/`       | S-Log3 输入转换、传感器矩阵标定、视频 LUT 生成和测试 |
-| `docs/`        | [文档导航](docs/README.md)：处理链、宿主标定、测量方法与本地研究资料索引。原始证据文件和测试导出保存在仓库之外 |
+| `docs/`        | [文档导航](docs/README.md)：照片配置、处理管线和视频 LUT |
 
 ## 说明
 
