@@ -19,7 +19,7 @@
 
 ## Edit 的色彩管线
 
-<img title="" src="images/edit-color-pipeline-zh.svg" alt="Sony Imaging Edge Edit 的逐像素色彩管线" width="700" />
+<img title="" src="images/edit-color-pipeline-zh.svg" alt="Sony Imaging Edge Edit 的逐像素色彩管线" width="100%" />
 
 完整阶段顺序和参数见[处理管线](docs/pipeline.md)。
 

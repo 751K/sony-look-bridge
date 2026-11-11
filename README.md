@@ -19,7 +19,7 @@ Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) 
 
 ## Edit colour pipeline
 
-<img title="" src="images/edit-color-pipeline-en.svg" alt="Per-pixel colour pipeline in Sony Imaging Edge Edit" width="700" />
+<img title="" src="images/edit-color-pipeline-en.svg" alt="Per-pixel colour pipeline in Sony Imaging Edge Edit" width="100%" />
 
 The complete stage order and parameters are documented in the [pipeline notes](docs/pipeline.md).
 
