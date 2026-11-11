@@ -12,8 +12,11 @@ Look parameters come from one sample ARW per camera (README of each pack names t
   conversion inv(FM2_A7M5) · FM2_camera from the Adobe Standard D65 ForwardMatrix, rows normalised to
   sum 1, then the α7 V look without SSCS.
 - RGB2YCC blend weights: the camera writes them per shot from the white balance (0x7848, see
-  docs/pipeline.md 4.3).  The packs use the daylight set (0, 1024, 0, 0) for every camera;
-  --as-shot keeps each sample's own weights (this reproduces the v1.3.0 packs).
+  docs/pipeline.md 4.3).  Every look is built twice: daylight (0, 1024, 0, 0) under the plain name
+  and warm (1024, 0, 0, 0) with the suffix "Warm".  The warm correction set 0x7843 is zero on every
+  body, so the warm variant is the base set alone.  Looks that render identically with both
+  weights (BW) get no warm variant.  --as-shot builds one variant with each sample's own weights
+  (this reproduces the v1.3.0 packs).
 - SSCS weights of 255 on all four CFA sites (α7S III, FX3 samples) are replaced by the default
   32/64/32.
 - The software input calibration (Camera Raw, Capture One, DxO encodings) is the α7 V one.  For the
@@ -50,6 +53,7 @@ import sony_sscs as SC  # noqa: E402
 
 ADOBE = Path("/Library/Application Support/Adobe/CameraRaw/CameraProfiles/Adobe Standard")
 DAYLIGHT = (0, 1024, 0, 0)
+WARM = (1024, 0, 0, 0)
 PORTED = ("FL2", "FL3")
 A7M5_SAMPLE = "Sony-A7-V-ILCE-7M5.ARW"
 
@@ -115,11 +119,22 @@ class Source:
         return C.look_srgb(self.look, lin if self.pre is None else self.pre(lin))
 
 
-def sources(arw, model, a7m5, weights):
+def warm_differs(looks, name, sscs):
+    """True when the warm and daylight weights render this look differently (False for BW)."""
+    x = np.linspace(0, 1, 9)
+    lin = np.stack(np.meshgrid(x, x, x, indexing="ij"), -1).reshape(-1, 3) ** 2.2 * 12000
+    out = [C.look_srgb(R.Look(name, looks, sscs=sscs, ycc_weights=w), lin) for w in (DAYLIGHT, WARM)]
+    return not np.array_equal(out[0], out[1])
+
+
+def sources(arw, model, a7m5, weights, warm_only=False):
+    """Look sources of one camera.  warm_only drops the looks whose warm variant renders the same
+    as the daylight one."""
     looks = R.load_looks(arw)
     sscs = sscs_params(arw)
-    native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights)) for n in C.NAMES if n in looks}
-    if all(n in native for n in PORTED):
+    native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights)) for n in C.NAMES
+              if n in looks and not (warm_only and not warm_differs(looks, n, sscs))}
+    if all(n in looks for n in PORTED):
         return native
     m = np.linalg.inv(fm2("ILCE-7M5")) @ fm2(model)
     m = m / m.sum(1, keepdims=True)
@@ -161,14 +176,15 @@ def build(cam, samples, out, as_shot=False):
     if model != "ILCE-7M5":          # α7 V keeps the DxO model constants measured on its own exports
         set_dxo_model(arw, model)
     try:
-        weights = None if as_shot else DAYLIGHT
-        for name, src in sources(arw, model, str(samples / A7M5_SAMPLE), weights).items():
-            short = C.NAMES[name]
-            acr, c1, dxo = tables(src)
-            A.write_look(f"Look {short}", acr)
-            C.write_icc(c1_dir / f"{prefix}-Look-{short}.icc", f"{prefix} Look {short}", c1)
-            P.write_cube(dxo_dir / f"{prefix} Look {short}.cube", dxo, f"{prefix} Look {short}")
-            print(f"  {short}", flush=True)
+        variants = [("", None, False)] if as_shot else [("", DAYLIGHT, False), (" Warm", WARM, True)]
+        for suffix, weights, warm_only in variants:
+            for name, src in sources(arw, model, str(samples / A7M5_SAMPLE), weights, warm_only).items():
+                short = C.NAMES[name] + suffix
+                acr, c1, dxo = tables(src)
+                A.write_look(f"Look {short}", acr)
+                C.write_icc(c1_dir / f"{prefix}-Look-{short.replace(' ', '-')}.icc", f"{prefix} Look {short}", c1)
+                P.write_cube(dxo_dir / f"{prefix} Look {short}.cube", dxo, f"{prefix} Look {short}")
+                print(f"  {short}", flush=True)
     finally:
         for k, v in DXO_DEFAULTS.items():
             setattr(D, k, v)
@@ -193,7 +209,8 @@ def main():
     ap.add_argument("samples", type=Path)
     ap.add_argument("out", type=Path)
     ap.add_argument("--cameras", help="comma-separated stems (default: all)")
-    ap.add_argument("--as-shot", action="store_true", help="keep each sample's own RGB2YCC blend weights")
+    ap.add_argument("--as-shot", action="store_true",
+                    help="one variant per look with each sample's own RGB2YCC blend weights")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     want = set(a.cameras.split(",")) if a.cameras else None
