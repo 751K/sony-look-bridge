@@ -45,7 +45,7 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 方括号中的阶段按设置运行。输出为解码器矩形（α7 V 为 7008×4672），色彩空间为 sRGB 或 Adobe RGB，格式为 TIFF、JPEG 或 PNG。各阶段的实现与参数见[处理管线](docs/pipeline.md)。
 
 本仓库只保留 Python 实现。包含 Rust、Metal 加速的独立完整解码器使用通用名称
-`sony-arw-decoder`，作为另一个仓库维护。
+[sony-arw-decoder](https://github.com/751K/sony-arw-decoder)，作为另一个仓库维护。
 
 ## 验证结果
 

@@ -44,7 +44,7 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 
 Stages in brackets run when the settings enable them. The output is the decoder rectangle (7008×4672 on the α7 V) in sRGB or Adobe RGB, written as TIFF, JPEG or PNG. See [pipeline notes](docs/pipeline.md) for every stage and parameter.
 
-This repository contains only the Python implementation. A standalone complete decoder with Rust and Metal acceleration is maintained as a separate repository under the generic name `sony-arw-decoder`.
+This repository contains only the Python implementation. A standalone complete decoder with Rust and Metal acceleration is maintained in the separate [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) repository.
 
 ## Validation results
 
