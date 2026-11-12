@@ -27,14 +27,20 @@ Look parameters come from one sample ARW per camera (README of each pack names t
   other cameras the DxO highlight model uses the sample's as-shot white balance and the camera's
   Adobe D65 ForwardMatrix; α7 V keeps the constants measured on its own exports (dxo/dxo_model.py).
 
-usage: build_packs.py SAMPLES_DIR OUT_DIR [--cameras Sony-A7-IV,...] [--as-shot]
-SAMPLES_DIR holds the sample ARWs under the file names listed in CAMERAS.
+usage: build_packs.py SAMPLES_DIR OUT_DIR [--cameras Sony-A7-IV,...] [--as-shot] [--jobs N]
+SAMPLES_DIR holds the sample ARWs under the file names listed in CAMERAS.  Cameras are built in
+parallel worker processes (--jobs, default min(6, CPU count); about 0.8 GB and one minute each).
+Each worker writes its own pack; the output does not depend on the number of jobs.
 """
 import argparse
+import contextlib
+import io
+import os
 import hashlib
 import shutil
 import sys
 import zipfile
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
@@ -234,6 +240,15 @@ def zip_pack(pack):
     return path
 
 
+def build_logged(cam, samples, out, as_shot):
+    """build() in a worker process; returns (zip path, captured log) so logs do not interleave."""
+    log = io.StringIO()
+    with contextlib.redirect_stdout(log):
+        print(cam[0], flush=True)
+        path = build(cam, samples, out, as_shot)
+    return path, log.getvalue()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("samples", type=Path)
@@ -241,15 +256,24 @@ def main():
     ap.add_argument("--cameras", help="comma-separated stems (default: all)")
     ap.add_argument("--as-shot", action="store_true",
                     help="one variant per look with each sample's own RGB2YCC blend weights")
+    ap.add_argument("--jobs", type=int, default=min(6, os.cpu_count() or 1),
+                    help="worker processes, one camera each (default: min(6, CPU count))")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     want = set(a.cameras.split(",")) if a.cameras else None
+    cams = [cam for cam in CAMERAS if not want or cam[0] in want]
     zips = []
-    for cam in CAMERAS:
-        if want and cam[0] not in want:
-            continue
-        print(cam[0], flush=True)
-        zips.append(build(cam, a.samples, a.out, a.as_shot))
+    if a.jobs <= 1:
+        for cam in cams:
+            print(cam[0], flush=True)
+            zips.append(build(cam, a.samples, a.out, a.as_shot))
+    else:
+        with ProcessPoolExecutor(max_workers=a.jobs) as pool:
+            futs = [pool.submit(build_logged, cam, a.samples, a.out, a.as_shot) for cam in cams]
+            for f in as_completed(futs):
+                path, log = f.result()
+                print(log, end="", flush=True)
+                zips.append(path)
     sums = a.out / "SHA256SUMS.txt"
     lines = {}
     if sums.exists():
