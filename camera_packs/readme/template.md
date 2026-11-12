@@ -8,13 +8,15 @@
 
 以 α7 V 为例，白平衡色温约 3700K 以下时相机完全采用暖光参数，约 5400K 以上时完全采用日光参数，其间按色温混合。因此，约 3700K 以下拍摄的照片宜使用暖光版，约 5400K 以上的宜使用日光版，介于两者之间时按画面选择。各机型的过渡区间略有差异，α7 IV 约为 4100K 至 5200K。荧光灯等偏绿光源下，相机还会混入第三组参数，两种版本均不包含该组参数。
 
+Camera Raw / Lightroom 另提供名称以 Auto 结尾的自动版本（如 `{{prefix}} Look ST Auto`）。自动版本按当前白平衡在两组参数之间过渡：约 3200K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑混合，调整色温时无需更换外观。每个自动版本附带一个名称以 `Auto Base` 开头的底座 DCP，该底座仅供对应外观引用，无需单独选择。Capture One 与 DxO PhotoLab 不支持随白平衡变化的配置，仍按色温选择日光版或暖光版。
+
 ## Capture One
 
 将 Capture One 包内的 ICC 配置文件复制至 `~/Library/ColorSync/Profiles/`，随后重新启动 Capture One。在「基本特性」中将配置文件设为 `{{prefix}} Look XX` 或 `{{prefix}} Look XX Warm`，并将曲线设为 **Linear Response**。
 
 ## Adobe Camera Raw / Lightroom
 
-将 DCP 复制至 `~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/`，并将 XMP 复制至 `~/Library/Application Support/Adobe/CameraRaw/Settings/`。重新启动应用，并在配置文件浏览器的 **{{group}}** 分组中选择外观。
+将 DCP 复制至 `~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/`，并将 XMP 复制至 `~/Library/Application Support/Adobe/CameraRaw/Settings/`。DCP 包括 `{{prefix}} Linear Base.dcp` 及全部 `{{prefix}} Auto Base XX.dcp`。重新启动应用，并在配置文件浏览器的 **{{group}}** 分组中选择外观。
 
 ## DxO PhotoLab Elite
 

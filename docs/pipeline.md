@@ -461,5 +461,6 @@ NumPy 参考实现的整图解码耗时约为 28–37 s（Mac mini，Apple M6，
 - **进入配置文件**的是逐像素阶段：SSCS、LinearMatrix16、MainGamma、RGB2YCC、AreaComp、ChromaSuppress、YGamma、YCC2RGB、Effect。前端（白平衡、去马赛克）由宿主软件完成；空间阶段（RawNR、DRO、GeoCorr、Sharpness、Spica、Marble）不进入。
 - 配置文件按相机默认参数渲染：褪色 FL2/FL3 = 1、IN = 3、SH = 6，其余滑块为 0。
 - **SSCS**：在 C1 / ACR 实际导出上都降低了亮区色度误差（Capture One 0.64 → 0.16，Camera Raw 0.61 → 0.33），从 v1.1.0 起包含；DxO 配置同样包含 SSCS。测量使用约 5% 的亮区掩码。
+- **随白平衡变化的 RGB2YCC 参数**（§4.3）：Capture One 和 DxO 以日光版、暖光版两套配置提供；Camera Raw 另有自动版本，利用双光源底座 DCP 的 HueSatMap 随白平衡插值，方法与验证见[照片外观与宿主配置](photo.md)。
 - **Camera Raw 亮区偏亮约 0.5–0.7 级**：来自 Camera Raw 按画面内容自适应的高光压缩，固定的 RGBTable 无法修正。
 - 宿主软件各自的标定见[照片外观与宿主配置](photo.md)。

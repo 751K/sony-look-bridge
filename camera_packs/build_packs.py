@@ -17,6 +17,10 @@ Look parameters come from one sample ARW per camera (README of each pack names t
   body, so the warm variant is the base set alone.  Looks that render identically with both
   weights (BW) get no warm variant.  --as-shot builds one variant with each sample's own weights
   (this reproduces the v1.3.0 packs).
+- Camera Raw also gets an "Auto" profile per colour look ("Look XX Auto"): one look table on a
+  dual-illuminant base DCP whose HueSatMap follows the white balance, warm look at 3200K and below,
+  daylight look at 5500K and above (camera_raw/acr_auto.py).  FL2 keeps the warm table and maps
+  towards the daylight look, with a value axis.  Capture One and DxO have no equivalent.
 - SSCS weights of 255 on all four CFA sites (α7S III, FX3 samples) are replaced by the default
   32/64/32.
 - The software input calibration (Camera Raw, Capture One, DxO encodings) is the α7 V one.  For the
@@ -39,6 +43,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 for p in ("camera_raw", "capture_one", "dxo", "sonylook"):
     sys.path.insert(0, str(ROOT / p))
+import acr_auto as AUTO  # noqa: E402
 import acr_encoding as E  # noqa: E402
 import acr_look as AL  # noqa: E402
 import acr_profiles as A  # noqa: E402
@@ -177,20 +182,45 @@ def build(cam, samples, out, as_shot=False):
         set_dxo_model(arw, model)
     try:
         variants = [("", None, False)] if as_shot else [("", DAYLIGHT, False), (" Warm", WARM, True)]
+        srcs, acrs = {}, {}
         for suffix, weights, warm_only in variants:
             for name, src in sources(arw, model, str(samples / A7M5_SAMPLE), weights, warm_only).items():
                 short = C.NAMES[name] + suffix
                 acr, c1, dxo = tables(src)
+                srcs[name, suffix], acrs[name, suffix] = src, acr
                 A.write_look(f"Look {short}", acr)
                 C.write_icc(c1_dir / f"{prefix}-Look-{short.replace(' ', '-')}.icc", f"{prefix} Look {short}", c1)
                 P.write_cube(dxo_dir / f"{prefix} Look {short}.cube", dxo, f"{prefix} Look {short}")
                 print(f"  {short}", flush=True)
+        if not as_shot:
+            write_auto(acr_dir, prefix, model, arw, srcs, acrs)
     finally:
         for k, v in DXO_DEFAULTS.items():
             setattr(D, k, v)
     (pack / "安装说明.md").write_text(
         render_note(stem, model, prefix, group), encoding="utf-8")
     return zip_pack(pack)
+
+
+def write_auto(acr_dir, prefix, model, arw, srcs, acrs):
+    """Camera Raw Auto profiles: base DCP with the fitted HueSatMap + XMP look table on it."""
+    vmax = AUTO.vmax_from_arw(AW.main_tags(arw))
+    base_name = A.BASE_NAME
+    try:
+        for name, suffix in list(srcs):
+            if suffix != " Warm":
+                continue
+            day, warm = srcs[name, ""], srcs[name, " Warm"]
+            direction, nv = ("day", 16) if name == "FL2" else ("warm", 1)
+            table, target, key = (warm, day, " Warm") if direction == "day" else (day, warm, "")
+            hsm, before, after = AUTO.fit_hsm(table.srgb, target.srgb, vmax, nv)
+            short = C.NAMES[name]
+            A.BASE_NAME = f"{prefix} Auto Base {short}"
+            AUTO.write_base(acr_dir / f"{A.BASE_NAME}.dcp", A.MODEL, A.BASE_NAME, A.ADOBE_STD, hsm, direction)
+            A.write_look(f"Look {short} Auto", acrs[name, key])
+            print(f"  {short} Auto ({direction}, NV {nv}): fit residual ΔE76 {before:.2f} -> {after:.2f}", flush=True)
+    finally:
+        A.BASE_NAME = base_name
 
 
 def zip_pack(pack):
