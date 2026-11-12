@@ -11,7 +11,7 @@
 | LUT 文件                         | 用途                                       |
 | -------------------------------- | ------------------------------------------ |
 | Capture One ICC                  | 照片外观配置文件                           |
-| Camera Raw / Lightroom DCP + XMP | 照片配置文件与 RGBTable                    |
+| Camera Raw / Lightroom DCP + XMP | 照片配置文件与 RGBTable，含白平衡自适应的自动版 |
 | DxO PhotoLab `.cube`             | 照片 LUT Grading                           |
 | S-Log3 `.cube`                   | DaVinci Resolve 等后期软件的 Creative Look |
 
@@ -108,7 +108,17 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 
 以下为照片配置的安装步骤，视频 LUT 见[视频 LUT](#视频-lut)。步骤使用 α7 V 的文件名。各机型 ZIP 内附对应的安装说明。
 
-每个彩色外观另有名称以 Warm 结尾的暖光版本。相机在约 3700K 以下的白平衡下采用暖光色彩参数、约 5400K 以上采用日光参数，因此低色温照片宜使用暖光版，详见[照片管线 §4.3](docs/pipeline.md)。Camera Raw 与 Lightroom 另有名称以 Auto 结尾的自动版本，随白平衡变化：约 3200K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑过渡，详见[照片外观与宿主配置](docs/photo.md)。
+### 外观版本与白平衡
+
+相机按拍摄时的白平衡在每种外观的两组色彩参数之间过渡：约 3700K 以下采用暖光参数，约 5400K 以上采用日光参数，其间混合（α7 V；各机型的过渡区间略有差异）。每个彩色外观因此提供以下版本：
+
+| 版本 | 名称 | 行为 | 适用宿主 |
+| --- | --- | --- | --- |
+| 日光版 | `Look XX` | 采用日光色彩参数 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
+| 暖光版 | `Look XX Warm` | 采用暖光色彩参数 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
+| 自动版 | `Look XX Auto` | 随白平衡变化：约 3200K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑过渡 | 仅 Camera Raw / Lightroom |
+
+在 Camera Raw 与 Lightroom 中建议使用自动版，调整色温时无需更换外观。在 Capture One 与 DxO PhotoLab 中，低色温照片（约 3700K 以下）使用暖光版，其余使用日光版。BW 在任何白平衡下结果相同，只提供一个版本。相机的行为见[照片管线 §4.3](docs/pipeline.md)，自动版的实现见[照片外观与宿主配置](docs/photo.md)。
 
 ### Capture One
 
@@ -119,9 +129,9 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 
 1. 将 `profiles/camera_raw/SonyA7M5 Linear Base.dcp` 与 `profiles/camera_raw/SonyA7M5 Auto Base *.dcp` 复制至 `~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/`。
 2. 将 `profiles/camera_raw/SonyA7M5 Look *.xmp` 复制至 `~/Library/Application Support/Adobe/CameraRaw/Settings/`。
-3. 重新启动 Photoshop / Lightroom，并在配置文件浏览器的 **Sony A7M5** 分组中选择外观。
+3. 重新启动 Photoshop / Lightroom，并在配置文件浏览器的 **Sony A7M5** 分组中选择外观。`Auto Base` 底座供自动版引用，无需单独选择。
 
-⚠️ 兼容性提示：部分 Photoshop / Lightroom 版本可能无法正确加载这些配置（例如配置文件不显示或效果异常）。如果遇到兼容问题，建议更新到较新版本。
+⚠️ 兼容性提示：部分 Photoshop / Lightroom 版本可能无法正确加载这些配置（例如配置文件不显示或效果异常）。例如 Lightroom Classic 15.4.1 能列出外观，但所有外观的效果均与 Linear Base 相同；Lightroom Classic 15.6 与 Camera Raw 18.7 可正确应用。如果遇到兼容问题，建议更新到较新版本。
 
 ### DxO PhotoLab
 

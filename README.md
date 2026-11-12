@@ -11,7 +11,7 @@ The current version covers all 12 α7 V Creative Looks and provides three photo-
 | Output file | Use |
 | --- | --- |
 | Capture One ICC | Photo look profile |
-| Camera Raw / Lightroom DCP + XMP | Photo profile and RGBTable |
+| Camera Raw / Lightroom DCP + XMP | Photo profile and RGBTable, including white-balance-adaptive Auto profiles |
 | DxO PhotoLab `.cube` | Photo LUT Grading |
 | S-Log3 `.cube` | Creative Look LUTs for DaVinci Resolve and other post-processing software |
 
@@ -107,7 +107,17 @@ The α7 V, α7R VI, FX2 and RX1R III packs have 12 native looks; the others have
 
 Install the photo profiles as described below; the video LUTs are described in [Video LUTs](#video-luts). The steps use the α7 V filenames. Each camera ZIP includes its own installation instructions.
 
-Each colour look also has a warm variant whose name ends in Warm. The camera uses its warm colour parameters below about 3700K and its daylight parameters above about 5400K, so use the warm variant for low colour-temperature shots; see [Photo pipeline §4.3](docs/pipeline.md). Camera Raw and Lightroom also get an Auto variant (name ending in Auto) that follows the white balance: it matches the warm variant at about 3200K and below and the daylight variant at about 5500K and above, and blends smoothly in between; see [Photo looks and host profiles](docs/photo.md).
+### Look variants and white balance
+
+The camera moves each look between two sets of colour parameters as the as-shot white balance changes: the warm-light set below about 3700K and the daylight set above about 5400K, blended in between (α7 V; the range differs slightly between cameras). Each colour look is therefore provided in the following variants:
+
+| Variant | Name | Behaviour | Hosts |
+| --- | --- | --- | --- |
+| Daylight | `Look XX` | Daylight colour parameters | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
+| Warm | `Look XX Warm` | Warm-light colour parameters | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
+| Auto | `Look XX Auto` | Follows the white balance: matches Warm at about 3200K and below and Daylight at about 5500K and above, blends smoothly in between | Camera Raw / Lightroom only |
+
+In Camera Raw and Lightroom, Auto is recommended: the look does not need to be switched when the colour temperature is changed. In Capture One and DxO PhotoLab, use Warm for low colour-temperature shots (below about 3700K) and Daylight otherwise. BW renders the same at every white balance and has only one version. See [Photo pipeline §4.3](docs/pipeline.md) for the camera behaviour and [Photo looks and host profiles](docs/photo.md) for how the Auto profiles work.
 
 ### Capture One
 
@@ -119,9 +129,9 @@ Each colour look also has a warm variant whose name ends in Warm. The camera use
 
 1. Copy `profiles/camera_raw/SonyA7M5 Linear Base.dcp` and `profiles/camera_raw/SonyA7M5 Auto Base *.dcp` to `~/Library/Application Support/Adobe/CameraRaw/CameraProfiles/`.
 2. Copy `profiles/camera_raw/SonyA7M5 Look *.xmp` to `~/Library/Application Support/Adobe/CameraRaw/Settings/`.
-3. Restart Photoshop / Lightroom and select a look from the **Sony A7M5** group in the profile browser.
+3. Restart Photoshop / Lightroom and select a look from the **Sony A7M5** group in the profile browser. The `Auto Base` DCPs are used by the Auto looks and do not need to be selected.
 
-⚠️ Compatibility note: some Photoshop / Lightroom versions may not load these profiles correctly (for example, missing profiles or incorrect rendering). If this occurs, update to a newer version.
+⚠️ Compatibility note: some Photoshop / Lightroom versions may not load these profiles correctly (for example, missing profiles or incorrect rendering). Lightroom Classic 15.4.1, for example, lists the looks but renders all of them like the Linear Base; Lightroom Classic 15.6 and Camera Raw 18.7 apply them correctly. If this occurs, update to a newer version.
 
 ### DxO PhotoLab
 
