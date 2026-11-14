@@ -1,8 +1,8 @@
 # α7 V Creative Look 视频 LUT
 
-本 LUT 用于使 S-Log3 视频呈现与 α7 V 照片 Creative Look 一致的色调。共包含 12 种外观 × 2 种输入色域，计 24 个 65³ `.cube`，输出为 Rec.709 / Gamma 2.4。
+本 LUT 用于使 S-Log3 视频呈现与 α7 V 照片 Creative Look 一致的色调。共包含 12 种外观 × 2 种输入色域 × 3 种色温版本，计 72 个 65³ `.cube`，输出为 Rec.709 / Gamma 2.4。
 
-**下载**：[Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v2.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)（[v2.0.0 发布页](https://github.com/751K/sony-look-bridge/releases/tag/v2.0.0)）。`.cube` 文件不存放于仓库；本目录保留生成记录 [`manifest.json`](manifest.json) 和独立校验结果 [`validation.json`](validation.json)。
+**下载**：[Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7-V-SLog3-Video-LUTs.zip)（[v3.1.0 发布页](https://github.com/751K/sony-look-bridge/releases/tag/v3.1.0)）。`.cube` 文件不存放于仓库；本目录保留生成记录 [`manifest.json`](manifest.json) 和独立校验结果 [`validation.json`](validation.json)。
 
 ## 中灰
 
@@ -16,6 +16,16 @@
 | --- | --- |
 | `SLog3_SGamut3_` | S-Log3 / S-Gamut3 |
 | `SLog3_SGamut3Cine_` | S-Log3 / S-Gamut3.Cine |
+
+按拍摄时的白平衡选择色温版本：
+
+| 外观代号 | 版本 | 拍摄白平衡 |
+| --- | --- | --- |
+| `ST` | 日光 | 约 5400K 以上 |
+| `ST-4200K` | 4200K | 约 3800K 至 5400K |
+| `ST-Warm` | 暖光 | 约 3700K 以下 |
+
+相机照片在不同白平衡下的外观颜色不同，S-Log3 与相机 RGB 的对应关系也随白平衡变化；三套 LUT 分别按 2600K、4200K、6500K 的色卡实测生成。介于两档之间时选较近的一档。
 
 外观代号与相机的 Creative Look 一致：ST、PT、NT、VV、VV2、FL、IN、SH、BW、Sepia（相机上为 SE）、FL2、FL3。IN、SH、FL2、FL3 使用相机默认的 Fade，分别为 3、6、1、1。
 

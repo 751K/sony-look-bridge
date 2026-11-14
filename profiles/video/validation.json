@@ -2,148 +2,436 @@
   "independent_library": "colour-science 0.4.7",
   "files": [
     {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_BW-4200K_Rec709_G24_65.cube",
+      "sha256": "ba7169cbc967056c952c3848ed578332fe34cd4af3c741d3f379ed98621c59e3",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_BW-Warm_Rec709_G24_65.cube",
+      "sha256": "1972f68b44025f0c861cdc0fa52dac2688ee5037a39434091018d6c0ece7523a",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
       "name": "SonyA7M5_SLog3_SGamut3Cine_BW_Rec709_G24_65.cube",
-      "sha256": "bf9d4f8dce2d888158df5d3250608ffc9e00ca5e656f1dd0b354bd092d1a01f5",
+      "sha256": "5cc00f8c1005071336743ac2f7567f7d32a4581d277bd231f16fa380c218774c",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL-4200K_Rec709_G24_65.cube",
+      "sha256": "688435dae06223cf28f753abeacca8e26587dc4e33eaa436f9b1876b7164b745",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL-Warm_Rec709_G24_65.cube",
+      "sha256": "8b076c81a1dd73986044518c4577295beedb789c99f9015ac64bac8e67792010",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL2-4200K_Rec709_G24_65.cube",
+      "sha256": "cfdc96883187444a330a737f3fecefde6ff33be1a63bfb3ad72cd3ea5d9f8e91",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL2-Warm_Rec709_G24_65.cube",
+      "sha256": "24459cd4b13459c6547131fd9d41c5b8a62fa4a2c775e7ea81a59de9415ff301",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_FL2_Rec709_G24_65.cube",
-      "sha256": "c13748a0adf989f223c2a0c7a5da0aa3633705e14229c2eaa02fc5eaf47ef26e",
+      "sha256": "044b7fb6ea33374e125bcdda355606e68cb679c488e58a9b30f92eca8c202922",
       "row_count": 274625,
-      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL3-4200K_Rec709_G24_65.cube",
+      "sha256": "6b26521c21605d8b2a20e36e6e11c57e49b0a3d52ea4322ba35a20c0195f943e",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_FL3-Warm_Rec709_G24_65.cube",
+      "sha256": "45d41747d8611d67f975cd30a8dc6241bb376d5fc34e621dc7782b498efe6ce8",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_FL3_Rec709_G24_65.cube",
-      "sha256": "734978dec38b71fe13a4dca9741ad9e41a8db231d62182d720f4926b3f673ad2",
+      "sha256": "8f5871436946dbfe736138b02817ad6ddc71c77e223e0b76ee355bfbdd41f926",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_FL_Rec709_G24_65.cube",
-      "sha256": "7f63a4894f41d82e38eda87ee22c1d91dd3ea1d6b3f8d5c67139b62f356270af",
+      "sha256": "4b98ec4c2cb915a598622dd8c4e4601d3ac80c28710f2f96baf43b2abe0b1d18",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_IN-4200K_Rec709_G24_65.cube",
+      "sha256": "6bb3da9d71e8ef6975df0fbdbe6ed4e88797d52b63351dcc442aefd3d2a45440",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_IN-Warm_Rec709_G24_65.cube",
+      "sha256": "40ffe1dc9090820e6b3287aa93c027cdecd14527b042352100643128ace0417d",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_IN_Rec709_G24_65.cube",
-      "sha256": "b4b65c5ee1a698e9508dc1fa7e757d89bf74a2a7429eaa2fa0da962e62df18e9",
+      "sha256": "b0ef32cc9228800567b51a14aad4a5b380efc30f226bb1d50c20cddebf904ce2",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_NT-4200K_Rec709_G24_65.cube",
+      "sha256": "d17744c5f63db2d9e98f6820d175c5148e4076fb44203d85242ff514e148f354",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_NT-Warm_Rec709_G24_65.cube",
+      "sha256": "f96c0d7e02555cab08f796970b442f87662c9a5133e4eefe421576526a1905b9",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_NT_Rec709_G24_65.cube",
-      "sha256": "5b93ad2e1c2eee1f9133093e30bfbed364c3b751ec84e73354ad61949f27720f",
+      "sha256": "431befbba649c3bdf98cc0e89158e1795bb80a923e011df7b93909281d4eb96f",
       "row_count": 274625,
-      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_PT-4200K_Rec709_G24_65.cube",
+      "sha256": "92b484c8688c8d3ca49b7bd92153f5926b05b061bc08b24415e78672f4abb063",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_PT-Warm_Rec709_G24_65.cube",
+      "sha256": "4e223882b4cf63ed0ca379f17153366b5572316fe0bc8d66ccf86368cdde30e6",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_PT_Rec709_G24_65.cube",
-      "sha256": "d16eb43c4493de9eb1e4b500d7bec0173ca91fa08ed256257bbc981a2ca7070d",
+      "sha256": "802f08f54524285b5d8490721c0414670970fbda5650d79c9b33fb5d62eb34ee",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_SH-4200K_Rec709_G24_65.cube",
+      "sha256": "ae2b8cf3ddb52d615aa49289f025faff7d88cbaa527da4cef230b559dc06f91c",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_SH-Warm_Rec709_G24_65.cube",
+      "sha256": "89c933a7c0670cd09ec0b3773d24257907237eb9eb7793d9db4f0d427e944936",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_SH_Rec709_G24_65.cube",
-      "sha256": "49ac47e9d066c943179b5effa838302b592465d855b19cbd7619aa9eb3d620b9",
+      "sha256": "669f0dcef9dd8e17a181251609cd9da2bf2884dbba90775bda5509e90d870247",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_ST-4200K_Rec709_G24_65.cube",
+      "sha256": "3d747d7e51bb6fc5ad26c66b5bd110a9df959622241c6437aff57353ecbc97e9",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_ST-Warm_Rec709_G24_65.cube",
+      "sha256": "d7aacb0d52873623ca296a70e62da7e079c86c25ae814b808b4594c5b585756c",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_ST_Rec709_G24_65.cube",
-      "sha256": "2c7fb667a58708d04df4c3a20c10ed7e0b820e6a48c49b178c2b5fa1b93d3be0",
-      "row_count": 274625,
-      "independent_interpolator_max_abs_error": 2.220446049250313e-16
-    },
-    {
-      "name": "SonyA7M5_SLog3_SGamut3Cine_Sepia_Rec709_G24_65.cube",
-      "sha256": "ce2aae4a304779d3ca6570bd1eba626825d53523eec52d1be2732d5d186f7347",
+      "sha256": "8626a3e0c68ff47d82531d9b63e548b5073ae2f3a2ab2ccde26e56ce8e74b442",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_Sepia-4200K_Rec709_G24_65.cube",
+      "sha256": "b7d356da89d42fe153781600c7c62504c6efb40430105ad14dd8d20c07cd312e",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_Sepia-Warm_Rec709_G24_65.cube",
+      "sha256": "c2c29beea6b60014794178255d4e15f470828a27ead15a4ab7a34cfe6e17b990",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_Sepia_Rec709_G24_65.cube",
+      "sha256": "129e4eee090ff5afb99d0e66716109a0c20c93b848b6450ed003a9bda3406a4f",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_VV-4200K_Rec709_G24_65.cube",
+      "sha256": "79ab0e40689735c96380fc584122e28e68c75ebf60ff3d09640fd71890dd0845",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_VV-Warm_Rec709_G24_65.cube",
+      "sha256": "57e447a931aed05d56dbdac2a71233a273f1ffa25c28091fcbca8ffa8ca09cbe",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_VV2-4200K_Rec709_G24_65.cube",
+      "sha256": "f7cfc49f138d52f160d7b31f18500c26a9f51d6c25607c192dd453bdf2186e43",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3Cine_VV2-Warm_Rec709_G24_65.cube",
+      "sha256": "3ec8f7438928c7cd98507ebfb60900f81d257c607d7b32b2446a2a0a4fbdad0f",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
       "name": "SonyA7M5_SLog3_SGamut3Cine_VV2_Rec709_G24_65.cube",
-      "sha256": "f46254c59d69f749450374406c5f927aeffdf20ef470213479c35ef2cbb8db0d",
+      "sha256": "4a885db75d9b123e0e16e250c909c3d7d6f92042b61c0a33873351cb16239781",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3Cine_VV_Rec709_G24_65.cube",
-      "sha256": "572e9c9c25909e6e7078eb4e14760959a5ae7aa355860e7ae4fad945e2a8e0ec",
+      "sha256": "130eb0e1fa44fcffa7191ba6aafd00b8627f90cb38fc5b53ecd01ce171489ea9",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
+      "name": "SonyA7M5_SLog3_SGamut3_BW-4200K_Rec709_G24_65.cube",
+      "sha256": "ef28113f490bca9a0a086b0791eddce77d79193e7833dc5ccf51d30716132e47",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_BW-Warm_Rec709_G24_65.cube",
+      "sha256": "2ddf485ff31d7a5a4dbf316f7a50ab92680d517f6ead4dd4fe748733e9a2ce41",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
       "name": "SonyA7M5_SLog3_SGamut3_BW_Rec709_G24_65.cube",
-      "sha256": "fec2421ec079026abc48496bdc6c07e7cf5740ae22713512be66783058b419fc",
+      "sha256": "fda3f964af8b6dc72a4c13812eeb409377341ac27f77bbdfec24cd34e4b72809",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL-4200K_Rec709_G24_65.cube",
+      "sha256": "51490ac08b0dc2dcdb0d2432365e81108db8d3789dccc7ef47b0348ebe70d4e1",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL-Warm_Rec709_G24_65.cube",
+      "sha256": "7174241bc9d3a632da2af1cbf11ce3e01cb639dc404fee06bd699278a5676aa9",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL2-4200K_Rec709_G24_65.cube",
+      "sha256": "5a3d429759b1d1aa39e495f134545e2598ae833f82506c108eca0763bb4e1abd",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL2-Warm_Rec709_G24_65.cube",
+      "sha256": "c6ff63959e0cdc6ca610abe45645b099c3c3f7be91303dda5882fb2272817e0f",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_FL2_Rec709_G24_65.cube",
-      "sha256": "9c4cdc2d8901738f1298db6fd96f83ecd623ea6233b86b1954345853f619fe20",
+      "sha256": "b187c8df13348d4b428833f28663da55f44fe1511b7b1a3cf2bdc68b3f24c33e",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL3-4200K_Rec709_G24_65.cube",
+      "sha256": "049efccf047dc4bb4048410fa09c401c45a1fbd2741fbbe918cf49aed7cee562",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_FL3-Warm_Rec709_G24_65.cube",
+      "sha256": "8f70a475bb3387b33a5df654ba7fb8f87aa99d4be3179f0f5fd5bd3fbde3ef28",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_FL3_Rec709_G24_65.cube",
-      "sha256": "89b776500384f24dc374af87e09b4dd9e51556e5f0aa6a8f880b5513a5353740",
+      "sha256": "ff31b8fef65f8d0d1866ece74e331ebd381bbea9c9d35bb569e5e102b3406761",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_FL_Rec709_G24_65.cube",
-      "sha256": "fbe540d393cba2f14ddde1137d3c731bb92bb3faf55fce3aa2ffe50be27032e8",
+      "sha256": "d7cb4ffbc32a99bf79da98806f5920c2a543c83f6e5a691019747a2f0227464e",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_IN-4200K_Rec709_G24_65.cube",
+      "sha256": "e2e65594b5bb33c233477428e44404b3336411202c7fe6a0ca8e0aec7b254863",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_IN-Warm_Rec709_G24_65.cube",
+      "sha256": "b524d113e0219736530e8ca5899f3cafae60c0f6ef350d8affe76faea1e18764",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_IN_Rec709_G24_65.cube",
-      "sha256": "a20b20daa73a7262ed9b9a0fdec76bc6938ca326899ff52708d337497b688a63",
+      "sha256": "de8fd1af855e35b8ad24403d008ee0f8bb7b1907df67f6641a1bd199586916c4",
       "row_count": 274625,
-      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_NT-4200K_Rec709_G24_65.cube",
+      "sha256": "3220d37b9f9c77a03d8834eca7da7036a417d9383d891ff8f4ee456ee2a14b41",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_NT-Warm_Rec709_G24_65.cube",
+      "sha256": "892546abcaa376aa9cb73901c44bed2b7dc2b7fcc00514bfccdda03f6a5647ea",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_NT_Rec709_G24_65.cube",
-      "sha256": "c7e78b68e949a09e4d4d5d8baacf5cee40143c0c1dfac74cec48eb4f2f09245a",
+      "sha256": "8b5be22caa16841d6fafabfa0326ea68cfa8efb464b1f28e9c43cbaa41ca5410",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_PT-4200K_Rec709_G24_65.cube",
+      "sha256": "8477f53b31633f22951cb09d88cc1f3c1e584533ff30b96ffaa5ec5c12aac6b6",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_PT-Warm_Rec709_G24_65.cube",
+      "sha256": "9eb887890082ce290a4326a3952e19c311db70101f87f210c72e44b90f7a160c",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_PT_Rec709_G24_65.cube",
-      "sha256": "b24813cf214b91ee8e0b3c2972212739ece0a181f4b73febed9199f71608e806",
+      "sha256": "42a8f2a3b4facaeb4148a9d1c3f473c93b9745df9e922ba6808cbf7fcf2fea36",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_SH-4200K_Rec709_G24_65.cube",
+      "sha256": "8ba4642d9cef01e9784e574c41dc324d785f4d2952c4823f011876779400d8c8",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_SH-Warm_Rec709_G24_65.cube",
+      "sha256": "7e53c2caa1c88a36d04a737e606536a88de07d162427516500bd558e32ad2456",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_SH_Rec709_G24_65.cube",
+      "sha256": "1c8a460f9733dd17895fdbe538c51ac5b85e68b14e0a86250c1a8751bcefadec",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_ST-4200K_Rec709_G24_65.cube",
+      "sha256": "0791255f26f151d8285887691326b7284030199efdf7c36fd8aad85dfc798360",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     },
     {
-      "name": "SonyA7M5_SLog3_SGamut3_SH_Rec709_G24_65.cube",
-      "sha256": "6a4f76f32cfe4f7a2e360d91f5d63e017af8533d69ad564000186c344cf46810",
+      "name": "SonyA7M5_SLog3_SGamut3_ST-Warm_Rec709_G24_65.cube",
+      "sha256": "a1f7a4fe8ed4d079521715f89bd9d8d6c0ba14deed8673b2603cee9766226f97",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_ST_Rec709_G24_65.cube",
-      "sha256": "f04eceb8f303d7d239e932b646811b5811f504f34aef098b0ad8c60dbbc10210",
+      "sha256": "5d4e844912e7299a23f4b8a606f8b8a4de99ad35bccb3a50abb5fee6a47badb6",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_Sepia-4200K_Rec709_G24_65.cube",
+      "sha256": "834612e26902bbbb6d2bff7d712093d419882c1b09c52724c085f414f7a8b1e8",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_Sepia-Warm_Rec709_G24_65.cube",
+      "sha256": "8152f1e9f2296d31f5d7097dbceaca4abd4796ca1cdb30e56cb009e3d6b742a1",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_Sepia_Rec709_G24_65.cube",
-      "sha256": "2190a2d58d91488a0b6572483e66762c513d5ba44e1d7bb6adedb7167c1ca8a9",
+      "sha256": "a0440d297054b8f66ab3dc4485439b04848eeed422417fca34268ef3e2c2f39b",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_VV-4200K_Rec709_G24_65.cube",
+      "sha256": "162460ebfe192ebc21bcf3e6c578eedb4bdf8a1b1c61f1989995567250c67fd4",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_VV-Warm_Rec709_G24_65.cube",
+      "sha256": "95d27b145719d0704c42b4514425d3850ec245c37a422f899b4252fe6a2ebcb9",
       "row_count": 274625,
       "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_VV2-4200K_Rec709_G24_65.cube",
+      "sha256": "6055b4b5613c620ed2fcf135cf6871b4153b286d30b1c68748f1336c8a83906c",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "name": "SonyA7M5_SLog3_SGamut3_VV2-Warm_Rec709_G24_65.cube",
+      "sha256": "7a1af95ee4787ae83c75dfd98eabf339dfb1a081158e13a8f868153df796781d",
+      "row_count": 274625,
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_VV2_Rec709_G24_65.cube",
-      "sha256": "d59892904f8ad72850af9ce5abc122cc6284ff63a627ba021f8ff6561dbb7fb6",
+      "sha256": "e25f30856ef4478c4e82368792a965afae669d75652c1458c8b44a397e8025b6",
       "row_count": 274625,
-      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
+      "independent_interpolator_max_abs_error": 2.220446049250313e-16
     },
     {
       "name": "SonyA7M5_SLog3_SGamut3_VV_Rec709_G24_65.cube",
-      "sha256": "b07bed6548c92ec58474e21abe0b8d6b7bcc6b39523aefa4f95975e2079c8ebb",
+      "sha256": "e7f33c41fdaf973695888f1624ea2368bc3af0da1d3d0c5e37b5410c3cff4a54",
       "row_count": 274625,
-      "independent_interpolator_max_abs_error": 2.220446049250313e-16
+      "independent_interpolator_max_abs_error": 3.3306690738754696e-16
     }
   ],
   "input_transforms": {
@@ -157,63 +445,183 @@
   "cross_gamut": {
     "BW": {
       "samples": 12000,
-      "mae_8bit": 0.06163509360904599,
-      "p99_8bit": 0.24640036288674266
+      "mae_8bit": 0.06011935398327531,
+      "p99_8bit": 0.22759992288108832
+    },
+    "BW-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.05997331701721469,
+      "p99_8bit": 0.23674543277419122
+    },
+    "BW-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.0662446807300933,
+      "p99_8bit": 0.28305577600353465
     },
     "FL": {
       "samples": 12000,
-      "mae_8bit": 0.10754428748725285,
-      "p99_8bit": 0.9823125932241099
+      "mae_8bit": 0.0929700790858997,
+      "p99_8bit": 0.6656998983709078
+    },
+    "FL-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.09668132593970194,
+      "p99_8bit": 0.7837303808336593
+    },
+    "FL-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.10231092716091801,
+      "p99_8bit": 0.8398882086712719
     },
     "FL2": {
       "samples": 12000,
-      "mae_8bit": 0.09096226038916835,
-      "p99_8bit": 0.553272961182285
+      "mae_8bit": 0.0850923939201219,
+      "p99_8bit": 0.5077804013970615
+    },
+    "FL2-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.08156197531741194,
+      "p99_8bit": 0.45269933515254984
+    },
+    "FL2-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.08908390930649351,
+      "p99_8bit": 0.5434116052475335
     },
     "FL3": {
       "samples": 12000,
-      "mae_8bit": 0.09493263598593396,
-      "p99_8bit": 0.646315458653149
+      "mae_8bit": 0.09007512523555901,
+      "p99_8bit": 0.6021455761951751
+    },
+    "FL3-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.0860312256606594,
+      "p99_8bit": 0.5581280554906489
+    },
+    "FL3-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.08929835583390759,
+      "p99_8bit": 0.6458255639805983
     },
     "IN": {
       "samples": 12000,
-      "mae_8bit": 0.07259433600670745,
-      "p99_8bit": 0.356927451799312
+      "mae_8bit": 0.06621067095980059,
+      "p99_8bit": 0.32912907566754657
+    },
+    "IN-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.06947580629055816,
+      "p99_8bit": 0.34249318210340646
+    },
+    "IN-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.07588347668031384,
+      "p99_8bit": 0.41027859027950025
     },
     "NT": {
       "samples": 12000,
-      "mae_8bit": 0.09294540237856952,
-      "p99_8bit": 0.4695019935819658
+      "mae_8bit": 0.08521850827998918,
+      "p99_8bit": 0.4243288334797108
+    },
+    "NT-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.08704243318354479,
+      "p99_8bit": 0.4648329213270192
+    },
+    "NT-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.09206857557789482,
+      "p99_8bit": 0.4913405392414118
     },
     "PT": {
       "samples": 12000,
-      "mae_8bit": 0.12753536674236662,
-      "p99_8bit": 1.1578536796552519
+      "mae_8bit": 0.11135236549842459,
+      "p99_8bit": 0.9072367703858712
+    },
+    "PT-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.1280033917757344,
+      "p99_8bit": 1.2306911491411794
+    },
+    "PT-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.1480948934201733,
+      "p99_8bit": 1.4372255657926427
     },
     "SH": {
       "samples": 12000,
-      "mae_8bit": 0.08600905181618777,
-      "p99_8bit": 0.5252633843975028
+      "mae_8bit": 0.079516142404874,
+      "p99_8bit": 0.4934771558145769
+    },
+    "SH-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.07974268624477883,
+      "p99_8bit": 0.45403950704781604
+    },
+    "SH-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.09891292321338639,
+      "p99_8bit": 0.7067165480555945
     },
     "ST": {
       "samples": 12000,
-      "mae_8bit": 0.11695958638538781,
-      "p99_8bit": 0.9038292874041289
+      "mae_8bit": 0.10294143481891023,
+      "p99_8bit": 0.6995825832778747
+    },
+    "ST-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.11660994421981873,
+      "p99_8bit": 0.9663427468581213
+    },
+    "ST-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.1311552838568564,
+      "p99_8bit": 1.199353140937938
     },
     "Sepia": {
       "samples": 12000,
-      "mae_8bit": 0.103393016422872,
-      "p99_8bit": 0.8565433046205657
+      "mae_8bit": 0.09875308244492526,
+      "p99_8bit": 0.8270470893538499
+    },
+    "Sepia-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.10618099122733045,
+      "p99_8bit": 0.9084342502890026
+    },
+    "Sepia-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.11388938371637328,
+      "p99_8bit": 0.9532704595825318
     },
     "VV": {
       "samples": 12000,
-      "mae_8bit": 0.15963834251595668,
-      "p99_8bit": 1.7548012372360233
+      "mae_8bit": 0.13720874003763928,
+      "p99_8bit": 1.4261656950587331
+    },
+    "VV-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.1600448357418855,
+      "p99_8bit": 1.708925493330934
+    },
+    "VV-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.18552562059442976,
+      "p99_8bit": 1.9942714090965068
     },
     "VV2": {
       "samples": 12000,
-      "mae_8bit": 0.13808065574063902,
-      "p99_8bit": 1.5682624877736915
+      "mae_8bit": 0.11513588068181282,
+      "p99_8bit": 1.0936214485085494
+    },
+    "VV2-4200K": {
+      "samples": 12000,
+      "mae_8bit": 0.134450538106971,
+      "p99_8bit": 1.608301657773152
+    },
+    "VV2-Warm": {
+      "samples": 12000,
+      "mae_8bit": 0.15894634186342324,
+      "p99_8bit": 1.8412637657058704
     }
   }
 }
