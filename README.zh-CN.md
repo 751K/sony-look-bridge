@@ -14,7 +14,7 @@
 | Camera Raw / Lightroom DCP + XMP | 照片配置文件与 RGBTable，含白平衡自适应的自动版 |
 | DxO PhotoLab `.cube`             | 照片 LUT Grading                           |
 | S-Log3 `.cube`                   | DaVinci Resolve 等后期软件的 Creative Look |
-| DaVinci Resolve DCTL             | 按白平衡在三套视频 LUT 之间过渡            |
+| DaVinci Resolve DCTL             | 视频 Creative Look，可按素材的白平衡调节   |
 
 相关介绍：[Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube（英文）](https://youtu.be/LeK9HhhYosQ)
 

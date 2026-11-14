@@ -14,7 +14,7 @@ The current version covers all 12 α7 V Creative Looks and provides three photo-
 | Camera Raw / Lightroom DCP + XMP | Photo profile and RGBTable, including white-balance-adaptive Auto profiles |
 | DxO PhotoLab `.cube` | Photo LUT Grading |
 | S-Log3 `.cube` | Creative Look LUTs for DaVinci Resolve and other post-processing software |
-| DaVinci Resolve DCTL | Blends the three video LUT variants by the white balance |
+| DaVinci Resolve DCTL | Video Creative Looks with a white-balance control |
 
 Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube (English)](https://youtu.be/LeK9HhhYosQ)
 
