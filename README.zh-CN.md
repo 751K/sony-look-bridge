@@ -52,7 +52,7 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 
 ![相机 HEIF 与本仓库解码器在三种色温下的 ColorChecker 对照，以及各外观的平均色差](images/compare_chart_zh.png)
 
-以 α7 V 在 2600K、4200K 与 6500K 的 COB 光源下拍摄 ColorChecker Passport，每种光源拍摄全部 12 种外观。图中将相机同时写入的 HEIF 与本仓库解码器的输出逐块比较，解码器采用 ARW 中记录的相机设置。上方色卡为 ST，每个色块左半为相机 HEIF，右半为解码器输出；下表为 Passport 两页共 50 个色块的平均色差。FL2 与 FL3 按 Edit 的默认值以 Fade 0 解码，而相机使用 Fade 1；改用相机的 Fade 后，2600K 下两者分别为 0.34 与 0.23。SE 的偏差原因尚在排查。
+以 α7 V 在 2600K、4200K 与 6500K 的 COB 光源下拍摄 ColorChecker Passport，每种光源拍摄全部 12 种外观。图中将相机同时写入的 HEIF 与本仓库解码器的输出逐块比较，解码器采用 ARW 中记录的相机设置。上方色卡为 ST，每个色块左半为相机 HEIF，右半为解码器输出；下表为 Passport 两页共 50 个色块的平均色差。FL2 与 FL3 按 Edit 的默认值以 Fade 0 解码，而相机使用 Fade 1；改用相机的 Fade 后，2600K 下两者分别为 0.34 与 0.23。
 
 ## 兼容性
 
