@@ -118,11 +118,14 @@ Standard DCP。
 
 `sonylook/edit_binary.py --export-tables FILE` 可将生成器读取的 Edit 常量表导出为一个约
 47 KB 的文件；设置 `SONY_EDIT_TABLES=FILE` 后，生成器改从该文件读取，不再需要安装 Edit，
-生成结果逐字节相同。该文件包含 Sony 的数据，不得提交到仓库。
+生成结果逐字节相同。该文件包含 Sony 的数据，不得提交到仓库。其他机型的配置还需要
+各机型 Adobe Standard DCP 中的色彩矩阵：`camera_raw/dcp.py --export-adobe FILE DCP ...`
+将其导出为一个 JSON 文件，设置 `ADOBE_STANDARD_MATRICES=FILE` 后无需安装 Camera Raw。
 
 `.github/workflows/release.yml` 在 macOS 上执行上述流程：推送 `v*` 标签后，工作流生成全部
 附件并创建发布草稿，发布说明需手动填写后再发布；也可手动运行工作流，仅取得附件。常量表以
-base64 形式拆分保存在仓库 Secret `EDIT_TABLES_1` 与 `EDIT_TABLES_2` 中；α7 V 与 α7C II
+base64 形式拆分保存在仓库 Secret `EDIT_TABLES_1` 与 `EDIT_TABLES_2` 中，Adobe 色彩矩阵保存在
+`ADOBE_STANDARD_MATRICES` 中；α7 V 与 α7C II
 的样张不在公开 RAW 库中，保存在本仓库的 `samples` 发布中。
 
 ## 验证与测量

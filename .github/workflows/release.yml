@@ -4,7 +4,9 @@
 #
 # The Edit constant tables come from the secrets EDIT_TABLES_1 and EDIT_TABLES_2: the base64 of
 # `python sonylook/edit_binary.py --export-tables FILE`, split in two because a secret holds at
-# most 48 KB.  Sample ARWs: camera_packs/samples.json.
+# most 48 KB.  The secret ADOBE_STANDARD_MATRICES holds the matrices of the cameras' Adobe Standard
+# profiles (`python camera_raw/dcp.py --export-adobe FILE DCP ...`).  Sample ARWs:
+# camera_packs/samples.json.
 name: Release
 
 on:
@@ -51,16 +53,19 @@ jobs:
       - name: Fetch sample ARWs
         run: python camera_packs/fetch_samples.py samples
 
-      - name: Edit tables
+      - name: Edit tables and Adobe matrices
         env:
           T1: ${{ secrets.EDIT_TABLES_1 }}
           T2: ${{ secrets.EDIT_TABLES_2 }}
+          ADOBE: ${{ secrets.ADOBE_STANDARD_MATRICES }}
         run: |
-          if [ -z "$T1" ] || [ -z "$T2" ]; then
-            echo "::error::secrets EDIT_TABLES_1 / EDIT_TABLES_2 are not set"; exit 1
+          if [ -z "$T1" ] || [ -z "$T2" ] || [ -z "$ADOBE" ]; then
+            echo "::error::secrets EDIT_TABLES_1 / EDIT_TABLES_2 / ADOBE_STANDARD_MATRICES are not set"; exit 1
           fi
           printf '%s%s' "$T1" "$T2" | base64 --decode > "$RUNNER_TEMP/edit_tables.xz"
+          printf '%s' "$ADOBE" > "$RUNNER_TEMP/adobe_standard.json"
           echo "SONY_EDIT_TABLES=$RUNNER_TEMP/edit_tables.xz" >> "$GITHUB_ENV"
+          echo "ADOBE_STANDARD_MATRICES=$RUNNER_TEMP/adobe_standard.json" >> "$GITHUB_ENV"
 
       - name: Build release assets
         run: python camera_packs/make_release.py samples out --version "$VERSION" --jobs 3

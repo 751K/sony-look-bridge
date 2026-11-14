@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
-"""Read/write DNG Camera Profile (.dcp) files: TIFF-style 'IIRC' container with DNG profile tags."""
+"""Read/write DNG Camera Profile (.dcp) files: TIFF-style 'IIRC' container with DNG profile tags.
+
+The generators read only the matrices of Adobe's own camera profiles (ADOBE_FIELDS).
+`dcp.py --export-adobe OUT.json DCP ...` writes those fields of the given profiles to one file; with
+ADOBE_STANDARD_MATRICES=OUT.json, read() serves a profile of the same file name from it instead of the
+disk, so the packs can be built without Camera Raw installed (the release workflow).  The file holds
+Adobe data: keep it private, never commit it.
+"""
+import json
+import os
 import struct
+import sys
+from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 
@@ -16,7 +28,20 @@ TSIZE = {1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8, 11: 4, 12: 8}
 TFMT = {1: "B", 3: "H", 4: "I", 9: "i", 11: "f", 12: "d"}
 
 
+ADOBE_FIELDS = ("ColorMatrix1", "ColorMatrix2", "ForwardMatrix1", "ForwardMatrix2",
+                "CalibrationIlluminant1", "CalibrationIlluminant2")
+
+
+@lru_cache(maxsize=1)
+def _adobe_file():
+    path = os.environ.get("ADOBE_STANDARD_MATRICES")
+    return json.loads(Path(path).read_text()) if path else None
+
+
 def read(path):
+    stored = _adobe_file()
+    if stored is not None and Path(path).name in stored:
+        return {k: list(v) for k, v in stored[Path(path).name].items()}
     b = open(path, "rb").read()
     assert b[:4] == b"IIRC", b[:4]
     off = struct.unpack_from("<I", b, 4)[0]
@@ -68,3 +93,11 @@ def write(path, entries):
             head += struct.pack("<HHII", tag, typ, cnt, data_off + len(blob)); blob += data
     out = b"IIRC" + struct.pack("<I", ifd_off) + struct.pack("<H", len(items)) + bytes(head) + b"\0\0\0\0" + bytes(blob)
     open(path, "wb").write(out)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 4 or sys.argv[1] != "--export-adobe":
+        raise SystemExit("usage: dcp.py --export-adobe OUT.json DCP ...")
+    out = {Path(f).name: {k: v for k, v in read(f).items() if k in ADOBE_FIELDS} for f in sys.argv[3:]}
+    Path(sys.argv[2]).write_text(json.dumps(out, sort_keys=True))
+    print(f"{sys.argv[2]}: {len(out)} profiles")
