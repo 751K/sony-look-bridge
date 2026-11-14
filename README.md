@@ -65,43 +65,43 @@ Each camera pack contains profiles for Capture One, Camera Raw / Lightroom and D
 
 The α7 V, α7R VI, FX2 and RX1R III packs have 12 native looks; the others have 10 native looks plus FL2 / FL3 ported from α7 V. New packs use the α7 V input calibration; ST and FL2 were tested in ACR on α7C II. Each ZIP includes installation notes for its camera.
 
-[sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A1-Creative-Looks.zip
+[sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A1-Creative-Looks.zip
 
-[sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A1-II-Creative-Looks.zip
+[sony-a1-ii]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A1-II-Creative-Looks.zip
 
-[sony-a9-iii]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A9-III-Creative-Looks.zip
+[sony-a9-iii]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A9-III-Creative-Looks.zip
 
-[sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7-IV-Creative-Looks.zip
+[sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7-IV-Creative-Looks.zip
 
-[sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7-V-Creative-Looks.zip
+[sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7-V-Creative-Looks.zip
 
-[sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7R-V-Creative-Looks.zip
+[sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7R-V-Creative-Looks.zip
 
-[sony-a7r-vi]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7R-VI-Creative-Looks.zip
+[sony-a7r-vi]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7R-VI-Creative-Looks.zip
 
-[sony-a7s-iii]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7S-III-Creative-Looks.zip
+[sony-a7s-iii]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7S-III-Creative-Looks.zip
 
-[sony-a7c-ii]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7C-II-Creative-Looks.zip
+[sony-a7c-ii]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7C-II-Creative-Looks.zip
 
-[sony-a7cr]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7CR-Creative-Looks.zip
+[sony-a7cr]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7CR-Creative-Looks.zip
 
-[sony-a6700]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A6700-Creative-Looks.zip
+[sony-a6700]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A6700-Creative-Looks.zip
 
-[sony-fx2]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-FX2-Creative-Looks.zip
+[sony-fx2]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-FX2-Creative-Looks.zip
 
-[sony-fx3]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-FX3-Creative-Looks.zip
+[sony-fx3]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-FX3-Creative-Looks.zip
 
-[sony-fx30]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-FX30-Creative-Looks.zip
+[sony-fx30]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-FX30-Creative-Looks.zip
 
-[sony-rx1r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-RX1R-III-Creative-Looks.zip
+[sony-rx1r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-RX1R-III-Creative-Looks.zip
 
-[sony-zv-e1]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-ZV-E1-Creative-Looks.zip
+[sony-zv-e1]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-ZV-E1-Creative-Looks.zip
 
-[sony-zv-e10-ii]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-ZV-E10-II-Creative-Looks.zip
+[sony-zv-e10-ii]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-ZV-E10-II-Creative-Looks.zip
 
-[release]: https://github.com/751K/sony-look-bridge/releases/tag/v3.1.0
+[release]: https://github.com/751K/sony-look-bridge/releases/tag/v4.0.0
 
-[checksums]: https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/SHA256SUMS.txt
+[checksums]: https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/SHA256SUMS.txt
 
 ## Usage
 
@@ -143,9 +143,9 @@ In Camera Raw and Lightroom, Auto is recommended: the look does not need to be s
 
 ### Video LUTs
 
-**[Download Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v3.1.0/Sony-A7-V-SLog3-Video-LUTs.zip)** ([v3.1.0 release](https://github.com/751K/sony-look-bridge/releases/tag/v3.1.0)).
+**[Download Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)** ([v4.0.0 release](https://github.com/751K/sony-look-bridge/releases/tag/v4.0.0)).
 
-For video content, the project provides LUTs produced for the A7M5, with separate versions for S-Gamut3 and S-Gamut3.Cine. Each look comes in daylight, 4200K and warm variants for the white balance of the footage. The video LUTs output Rec.709 / Gamma 2.4.
+For video content, the project provides LUTs produced for the A7M5, with separate versions for S-Gamut3 and S-Gamut3.Cine. Each look comes in daylight, 4200K and warm variants for the white balance of the footage; DaVinci Resolve DCTLs blend the three by a white-balance slider. The video LUTs output Rec.709 / Gamma 2.4.
 
 See [usage](profiles/video/README.md) and [calibration and generation](docs/video.md).
 

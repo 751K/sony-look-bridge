@@ -107,6 +107,14 @@ N (S-Gamut3.Cine → 相机 RGB) =
 
 `fit` 输出的 `exposure_scale` 表示单次配对的比例；生成器的 `sony_scale` 表示采用的 Sony 原生刻度。三个色卡标定文件沿用 `sony_scale = 5203.2`；可通过生成器的 `--sony-scale` 为新的拟合文件指定所需刻度。`--exposure` 控制 LUT 输入的曝光补偿，与标定刻度属于不同参数。
 
+## 随白平衡过渡
+
+`.cube` 只是固定的 RGB 映射，无法读取素材的白平衡。`video/make_dctl.py` 生成的 DCTL 同时加载一种外观的三套 LUT，并按 White Balance 滑块混合输出：3700K 及以下为暖光版，4640K 为 4200K 版，5470K 及以上为日光版，各段之间按 mired 线性插值。
+
+- 4640K 是 4200K 色卡光源下视频记录的白平衡。3700K 与 5470K 是照片外观完全进入暖光或日光状态的位置（[照片管线 §4.3](pipeline.md)），已从照片的 Camera Raw 色温换算到视频记录的色温：三种光源下两种色温在 mired 上呈线性关系（2777K / 2520K、4560K / 4640K、6503K / 7510K）。
+- 中间锚点不能省略。在 4200K 色卡上，按相机权重直接混合暖光版与日光版的输出为 1.90 ΔE2000，4200K 版为 0.70；三点插值时若权重从 0.63 偏至 0.32，结果为 0.98。
+- 相机的过渡权重并不只取决于色温（同一色温下偏绿的光源权重不同），滑块可按画面微调。
+
 ## 生成与验证
 
 所需环境包括根目录 `requirements.txt` 中的依赖、本机安装的 Imaging Edge Edit 和一张 α7 V ARW。色块拟合需要 `ffmpeg` / `ffprobe`；独立验证脚本还需要 `colour-science`：
@@ -115,6 +123,7 @@ N (S-Gamut3.Cine → 相机 RGB) =
 python3 -m pip install colour-science
 python3 video/video_look.py /path/to/A7M5.ARW --write --eval --out DIR
 python3 video/validate_luts.py DIR
+python3 video/make_dctl.py DIR
 python3 -m unittest discover -s video -p 'test_*.py' -v
 ```
 
