@@ -7,7 +7,10 @@ Input DIR (from a measurement run, not in the repository):
                           other page; decoder = sonylook/sony_decode.decode with the camera
                           defaults, camera = the HEIF written with the same shot
   DSC0xxxx_{cam,dec}_crop.npy   ColorChecker page crops (sRGB 0..1) of the ST frames
-Top: ST at each light, every patch split down the middle (left camera, right decoder).
+Top: ST at each light, every patch split down the middle (left camera, right decoder).  The shots
+differ in exposure (the 2600K one is about half a stop darker in the camera's own HEIF), so each
+chart is scaled in linear light, both halves alike, until its white patch matches WHITE_L; this is
+for display only, the ΔE values come from the unscaled data.
 Bottom: mean ΔE2000 over the 50 patches for every look and light.
 usage: make_chart_comparison.py DIR [OUT_DIR]   (writes compare_chart_{en,zh}.png)
 """
@@ -31,6 +34,7 @@ SCALE = 7008 / 1400
 XS = [688, 776, 863, 952]
 YS = [208, 297, 385, 475, 565, 655]
 HALF = 150                                     # half patch side drawn from the decoder, full px
+WHITE_L = 92.0                                 # display lightness of the white patch (CIE L*)
 COPY = {
     "zh": dict(title="相机直出与解码器对照", sub="α7 V · ST", table="各外观色差 ΔE2000"),
     "en": dict(title="Camera vs decoder", sub="α7 V · ST", table="Colour difference ΔE2000"),
@@ -41,8 +45,31 @@ def font(size, bold=False, cjk=False):
     return ImageFont.truetype(FONT_CJK if cjk else FONT_LATIN, size, index=1 if bold else 0)
 
 
+def srgb_decode(v):
+    return np.where(v <= 0.04045, v / 12.92, ((v + 0.055) / 1.055) ** 2.4)
+
+
+def srgb_encode(v):
+    v = np.clip(v, 0, 1)
+    return np.where(v <= 0.0031308, v * 12.92, 1.055 * v ** (1 / 2.4) - 0.055)
+
+
+def white_gain(cam):
+    """Linear gain that brings the brightest ColorChecker patch of the camera crop to WHITE_L."""
+    y = []
+    for x in XS:
+        for yy in YS:
+            cx, cy = round(x * SCALE) - CROP_ORIGIN[0], round(yy * SCALE) - CROP_ORIGIN[1]
+            rgb = srgb_decode(cam[cy - HALF // 2:cy + HALF // 2, cx - HALF:cx].reshape(-1, 3)).mean(0)
+            y.append(rgb @ (0.2126, 0.7152, 0.0722))
+    target = ((WHITE_L + 16) / 116) ** 3
+    return target / max(y)
+
+
 def split_chart(cam, dec):
     """Camera crop with the right half of every ColorChecker patch taken from the decoder."""
+    g = white_gain(cam)
+    cam, dec = (srgb_encode(srgb_decode(a) * g) for a in (cam, dec))
     out = cam.copy()
     for x in XS:
         for y in YS:

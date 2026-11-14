@@ -51,7 +51,7 @@ This repository contains only the Python implementation. A standalone complete d
 
 ![ColorChecker comparison of the camera HEIF and this repository's decoder at three colour temperatures, with the mean colour difference of every look](images/compare_chart_en.png)
 
-The α7 V shot a ColorChecker Passport under a COB light at 2600K, 4200K and 6500K, with all 12 looks at each light. The figure compares the HEIF the camera wrote alongside each RAW with this repository's decoder, which uses the camera settings recorded in the ARW. In the ST charts, the left half of every patch is the camera HEIF and the right half the decoder; the table gives the mean colour difference over the 50 patches of both Passport pages. FL2 and FL3 are decoded with Fade 0, Edit's default, while the camera uses Fade 1; with the camera's Fade they are 0.34 and 0.23 at 2600K.
+The α7 V shot a ColorChecker Passport under a COB light at 2600K, 4200K and 6500K, with all 12 looks at each light. The figure compares the HEIF the camera wrote alongside each RAW with this repository's decoder, which uses the camera settings recorded in the ARW. In the ST charts, the left half of every patch is the camera HEIF and the right half the decoder, with the three charts brought to the same white-patch brightness for display; the table gives the mean colour difference over the 50 patches of both Passport pages. FL2 and FL3 are decoded with Fade 0, Edit's default, while the camera uses Fade 1; with the camera's Fade they are 0.34 and 0.23 at 2600K.
 
 ## Compatibility
 
