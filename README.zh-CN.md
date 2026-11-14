@@ -14,6 +14,7 @@
 | Camera Raw / Lightroom DCP + XMP | 照片配置文件与 RGBTable，含白平衡自适应的自动版 |
 | DxO PhotoLab `.cube`             | 照片 LUT Grading                           |
 | S-Log3 `.cube`                   | DaVinci Resolve 等后期软件的 Creative Look |
+| DaVinci Resolve DCTL             | 按白平衡在三套视频 LUT 之间过渡            |
 
 相关介绍：[Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube（英文）](https://youtu.be/LeK9HhhYosQ)
 
@@ -118,7 +119,9 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 | 暖光版 | `Look XX Warm` | 采用暖光色彩参数 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
 | 自动版 | `Look XX Auto` | 随白平衡变化：约 3200K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑过渡 | 仅 Camera Raw / Lightroom |
 
-在 Camera Raw 与 Lightroom 中建议使用自动版，调整色温时无需更换外观。在 Capture One 与 DxO PhotoLab 中，低色温照片（约 3700K 以下）使用暖光版，其余使用日光版。BW 在任何白平衡下结果相同，只提供一个版本。相机的行为见[照片管线 §4.3](docs/pipeline.md)，自动版的实现见[照片外观与宿主配置](docs/photo.md)。
+在 Camera Raw 与 Lightroom 中建议使用自动版，调整色温时无需更换外观。在 Capture One 与 DxO PhotoLab 中，低色温照片（约 3700K 以下）使用暖光版，其余使用日光版。BW 在任何白平衡下结果相同，只提供一个版本。相机的行为见[照片管线 §4.1 与 §4.3](docs/pipeline.md)，自动版的实现见[照片外观与宿主配置](docs/photo.md)。
+
+α7 V 的暖光版与自动版采用实拍色卡得到的暖光色彩表。其他机型尚无这些色彩表，其暖光版与自动版只包含部分随白平衡变化的参数，在暖光下的准确度低于 α7 V；由 α7 V 移植的 FL2 与 FL3 除外。
 
 ### Capture One
 

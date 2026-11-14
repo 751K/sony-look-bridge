@@ -14,6 +14,7 @@ The current version covers all 12 α7 V Creative Looks and provides three photo-
 | Camera Raw / Lightroom DCP + XMP | Photo profile and RGBTable, including white-balance-adaptive Auto profiles |
 | DxO PhotoLab `.cube` | Photo LUT Grading |
 | S-Log3 `.cube` | Creative Look LUTs for DaVinci Resolve and other post-processing software |
+| DaVinci Resolve DCTL | Blends the three video LUT variants by the white balance |
 
 Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube (English)](https://youtu.be/LeK9HhhYosQ)
 
@@ -117,7 +118,9 @@ The camera moves each look between two sets of colour parameters as the as-shot 
 | Warm | `Look XX Warm` | Warm-light colour parameters | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
 | Auto | `Look XX Auto` | Follows the white balance: matches Warm at about 3200K and below and Daylight at about 5500K and above, blends smoothly in between | Camera Raw / Lightroom only |
 
-In Camera Raw and Lightroom, Auto is recommended: the look does not need to be switched when the colour temperature is changed. In Capture One and DxO PhotoLab, use Warm for low colour-temperature shots (below about 3700K) and Daylight otherwise. BW renders the same at every white balance and has only one version. See [Photo pipeline §4.3](docs/pipeline.md) for the camera behaviour and [Photo looks and host profiles](docs/photo.md) for how the Auto profiles work.
+In Camera Raw and Lightroom, Auto is recommended: the look does not need to be switched when the colour temperature is changed. In Capture One and DxO PhotoLab, use Warm for low colour-temperature shots (below about 3700K) and Daylight otherwise. BW renders the same at every white balance and has only one version. See [Photo pipeline §4.1 and §4.3](docs/pipeline.md) for the camera behaviour and [Photo looks and host profiles](docs/photo.md) for how the Auto profiles work.
+
+The α7 V Warm and Auto profiles use warm-light colour tables measured on a ColorChecker. The other cameras do not have these tables yet: their Warm and Auto profiles carry only part of the white-balance-dependent parameters and are less accurate under warm light than the α7 V, except for FL2 and FL3, which are ported from the α7 V.
 
 ### Capture One
 
