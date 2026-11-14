@@ -49,6 +49,13 @@ def fma(a,b,c): return _fmaf(a,b,c)
 
 def read_constants(target=None):
     import edit_binary
+    if target is None and edit_binary.table_file() is not None:     # SONY_EDIT_TABLES
+        result = {}
+        for name, addr40 in CONSTANT_ADDRESSES.items():
+            raw = edit_binary.read_va(addr40, 36)
+            result[name] = {'vmaddr': f'0x{addr40:x}', 'raw_hex': raw.hex(),
+                            'values': list(struct.unpack('<9f', raw))}
+        return result, {'path': None, 'sha256': edit_binary.edit_sha(), 'matrices': result}
     data = Path(target).read_bytes() if target else edit_binary.arm64_slice()
     sha = hashlib.sha256(data).hexdigest()
     magic,cpu,subtype,filetype,ncmds,sizeofcmds,flags,reserved = struct.unpack_from('<8I',data)

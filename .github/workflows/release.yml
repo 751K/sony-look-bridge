@@ -1,0 +1,91 @@
+# Builds every release asset (18 camera packs, the α7 V video LUT pack with DCTLs, SHA256SUMS.txt).
+# A pushed tag v* gets a draft release with the assets; the notes are written by hand before
+# publishing.  Run it by hand (workflow_dispatch) to get the assets as a workflow artifact only.
+#
+# The Edit constant tables come from the secrets EDIT_TABLES_1 and EDIT_TABLES_2: the base64 of
+# `python sonylook/edit_binary.py --export-tables FILE`, split in two because a secret holds at
+# most 48 KB.  Sample ARWs: camera_packs/samples.json.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version written into the LUT README, e.g. v4.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 120
+    env:
+      VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy==2.4.6 scipy==1.17.1 rawpy==0.27.1 tifffile==2026.10.15 \
+            Pillow==12.2.0 colour-science==0.4.7
+
+      - name: Cache sample ARWs
+        uses: actions/cache@v4
+        with:
+          path: samples
+          key: samples-${{ hashFiles('camera_packs/samples.json') }}
+
+      - name: Fetch sample ARWs
+        run: python camera_packs/fetch_samples.py samples
+
+      - name: Edit tables
+        env:
+          T1: ${{ secrets.EDIT_TABLES_1 }}
+          T2: ${{ secrets.EDIT_TABLES_2 }}
+        run: |
+          if [ -z "$T1" ] || [ -z "$T2" ]; then
+            echo "::error::secrets EDIT_TABLES_1 / EDIT_TABLES_2 are not set"; exit 1
+          fi
+          printf '%s%s' "$T1" "$T2" | base64 --decode > "$RUNNER_TEMP/edit_tables.xz"
+          echo "SONY_EDIT_TABLES=$RUNNER_TEMP/edit_tables.xz" >> "$GITHUB_ENV"
+
+      - name: Build release assets
+        run: python camera_packs/make_release.py samples out --version "$VERSION" --jobs 3
+
+      - name: Checksums
+        run: cat out/SHA256SUMS.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ env.VERSION }}
+          path: |
+            out/*.zip
+            out/SHA256SUMS.txt
+          retention-days: 14
+          compression-level: 0
+
+      - name: Draft release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" out/*.zip out/SHA256SUMS.txt --clobber
+          else
+            gh release create "$VERSION" --draft --verify-tag --title "$VERSION" \
+              --notes "Release notes to be written." out/*.zip out/SHA256SUMS.txt
+          fi

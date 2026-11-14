@@ -164,7 +164,7 @@ RAW → [RawNR] → ITP → [DRO] → [GeoCorr] → SSCS → LinearMatrix16 → 
 | `capture_one/`  | C1 配置生成、合成色卡、测量与对比                                                                                                                                                                     |
 | `camera_raw/`   | ACR 表格式、DCP 读写、配置生成、测量与对比                                                                                                                                                            |
 | `dxo/`          | DxO PhotoLab 的 LUT 输入模型（`dxo_model.py`）、探针和底座 DCP 生成、LUT 生成                                                                                                                         |
-| `camera_packs/` | 各机型配置包生成器、机型元数据，以及生成 ZIP 安装说明所用的共享模板                                                                                                                                   |
+| `camera_packs/` | 各机型配置包生成器、机型元数据、生成 ZIP 安装说明所用的共享模板，以及发布构建脚本                                                                                                                                   |
 | `video/`        | S-Log3 输入转换、传感器矩阵标定、视频 LUT 生成和测试                                                                                                                                                  |
 | `docs/`         | [文档导航](docs/README.md)：照片配置、处理管线和视频 LUT                                                                                                                                              |
 

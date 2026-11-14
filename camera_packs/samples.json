@@ -1,0 +1,128 @@
+[
+ {
+  "file": "Sony-A1-II-ILCE-1M2.ARW",
+  "model": "ILCE-1M2",
+  "source": "https://raw.pixls.us/getfile.php/7828/nice/Sony%20-%20ILCE-1M2%20-%2014bit%20lossless%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "33ec5187659f8af4589113afbd138ec8d1cd14f6999d36a12de87ad5d8c7d439"
+ },
+ {
+  "file": "Sony-A1-ILCE-1.ARW",
+  "model": "ILCE-1",
+  "source": "https://raw.pixls.us/getfile.php/4466/nice/Sony%20-%20ILCE-1%20-%2014bit%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "4012536ee0f938d8c5c5e932bb7953a03134abbd9f3f4c664cb2526c1903d492"
+ },
+ {
+  "file": "Sony-A6700-ILCE-6700.ARW",
+  "model": "ILCE-6700",
+  "source": "https://raw.pixls.us/getfile.php/6736/nice/Sony%20-%20ILCE-6700%20-%2014bit%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "dc3e2ed22f46fcef778553767e0703bc37cfb043f107afe2d7e6e4dbca34200a"
+ },
+ {
+  "file": "Sony-A7-IV-ILCE-7M4.ARW",
+  "model": "ILCE-7M4",
+  "source": "https://raw.pixls.us/getfile.php/6929/nice/Sony%20-%20ILCE-7M4%20-%2014bit%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "851b43c2116c4139104a5036f83ac3b6a148789b2142214dd7192c13972b25b6"
+ },
+ {
+  "file": "Sony-A7-V-ILCE-7M5.ARW",
+  "model": "ILCE-7M5",
+  "source": "https://github.com/751K/sony-look-bridge/releases/download/samples/DSC03591.ARW",
+  "license": "project sample, see the samples release",
+  "sha256": "f6497612cca3077b0a9e34ac4ca3826090115d335e80c4b78119bc16fd042bbd"
+ },
+ {
+  "file": "Sony-A7C-II-ILCE-7CM2.ARW",
+  "model": "ILCE-7CM2",
+  "source": "https://github.com/751K/sony-look-bridge/releases/download/samples/A7CII-ProbeChart.ARW",
+  "license": "project sample, see the samples release",
+  "sha256": "76ddbd680050f698e0fff7aa9e38a9021620def92854d52ef4af037c4f4b4e39"
+ },
+ {
+  "file": "Sony-A7CR-ILCE-7CR.ARW",
+  "model": "ILCE-7CR",
+  "source": "https://raw.pixls.us/getfile.php/7032/nice/Sony%20-%20ILCE-7CR%20-%2014bit%2014bit%20losseless%20compressed%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "3e1642f3a1ae7c9f93228c5f09f27e362608e6a4ca1b3e5d8dd9eb8fae576997"
+ },
+ {
+  "file": "Sony-A7R-V-ILCE-7RM5.ARW",
+  "model": "ILCE-7RM5",
+  "source": "https://raw.pixls.us/getfile.php/6232/nice/Sony%20-%20ILCE-7RM5%20-%2014bit%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "c294c388ad9bccbee169f87b9ceb661001515fb039d63f587dcabba76df5636d"
+ },
+ {
+  "file": "Sony-A7R-VI-ILCE-7RM6.ARW",
+  "model": "ILCE-7RM6",
+  "source": "https://rawdb.dnglab.org/api/download/Sony/ILCE-7RM6/raw_modes/ILCE-7RM6_FF_land_RAW.ARW",
+  "license": "CC0-1.0",
+  "sha256": "5cb3c870bc961cf6b079d56c860d0cdf11acd1afd04e5fb8dbe041bcfd2d6201"
+ },
+ {
+  "file": "Sony-A7S-III-ILCE-7SM3.ARW",
+  "model": "ILCE-7SM3",
+  "source": "https://raw.pixls.us/getfile.php/5417/nice/Sony%20-%20ILCE-7SM3%20-%2014bit%2014bit%20uncompressed%20(3:2).ARW",
+  "license": "CC0-1.0",
+  "sha256": "876c7b74c957b6d8c7f9a1c285806d4a3f62269c1a3af070965bcc02fcf903f1"
+ },
+ {
+  "file": "Sony-A9-III-ILCE-9M3.ARW",
+  "model": "ILCE-9M3",
+  "source": "https://raw.pixls.us/getfile.php/7362/nice/Sony%20-%20ILCE-9M3%20-%2014bit%20(3:2).ARW",
+  "license": "CC0-1.0",
+  "sha256": "8ca6e7954a9541b76e3ac1f9f596f538ed59a5d6f68e76837fdbf3e566569f28"
+ },
+ {
+  "file": "Sony-FX2-ILME-FX2.ARW",
+  "model": "ILME-FX2",
+  "source": "https://raw.pixls.us/getfile.php/8809/nice/Sony%20-%20ILME-FX2%20-%2014bit%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "fc7cf5cc9ab91fe1d45b5469e532c17507312091f6664f09dd7988a00744d2a2"
+ },
+ {
+  "file": "Sony-FX3-ILME-FX3.ARW",
+  "model": "ILME-FX3",
+  "source": "https://raw.pixls.us/getfile.php/6874/nice/Sony%20-%20ILME-FX3%20-%2014bit%20(3:2).ARW",
+  "license": "CC0-1.0",
+  "sha256": "394ceb1a356be8b17f18dc013bfd22895ba6ec7195f578b9be1c2fd0d5ea4773"
+ },
+ {
+  "file": "Sony-FX30-ILME-FX30.ARW",
+  "model": "ILME-FX30",
+  "source": "https://raw.pixls.us/getfile.php/6499/nice/Sony%20-%20ILME-FX30%20-%2012bit%2012bit%20compressed%20(3:2).ARW",
+  "license": "CC0-1.0",
+  "sha256": "87a187dd3f30d6704112bb1d5e8e4ef8ce2f30af3236acdabc85980aa8da3872"
+ },
+ {
+  "file": "Sony-RX1R-III-DSC-RX1RM3.ARW",
+  "model": "DSC-RX1RM3",
+  "source": "https://raw.pixls.us/getfile.php/8545/nice/Sony%20-%20DSC-RX1RM3%20-%2014bit%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "988fbc289c36a189f788a187732847509a2e819d8a9eaf0b841efc1c1360859b"
+ },
+ {
+  "file": "Sony-ZV-1-II-ZV-1M2.ARW",
+  "model": "ZV-1M2",
+  "source": "https://raw.pixls.us/getfile.php/8461/nice/Sony%20-%20ZV-1M2%20-%2012bit%20(3:2).ARW",
+  "license": "CC0-1.0",
+  "sha256": "2a45845a93ab5e428868366d6575a264818b184541b1c114ab4de980872a7184"
+ },
+ {
+  "file": "Sony-ZV-E1-ZV-E1.ARW",
+  "model": "ZV-E1",
+  "source": "https://raw.pixls.us/getfile.php/6813/nice/Sony%20-%20ZV-E1%20-%2014bit%20(3:2).ARW",
+  "license": "CC0-1.0",
+  "sha256": "d1e37dcdd0a590c62dc1d5c693f0bd202e51929b5a32d6c00b0dd1bc738620b4"
+ },
+ {
+  "file": "Sony-ZV-E10-II-ZV-E10M2.ARW",
+  "model": "ZV-E10M2",
+  "source": "https://raw.pixls.us/getfile.php/8021/nice/Sony%20-%20ZV-E10M2%20-%2012bit%20(4:3).ARW",
+  "license": "CC0-1.0",
+  "sha256": "49db06da969cf3894cf070d9171fe0ed4d0f125e16a87b5eba7eaec27cd75595"
+ }
+]

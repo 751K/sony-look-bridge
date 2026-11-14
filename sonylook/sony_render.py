@@ -61,9 +61,8 @@ def _edit_sha():
     """SHA-256 of the Edit arm64 slice, for cache keys of Edit-derived tables."""
     global _EDIT_SHA
     if _EDIT_SHA is None:
-        import hashlib
         import edit_binary
-        _EDIT_SHA = hashlib.sha256(edit_binary.arm64_slice()).hexdigest()
+        _EDIT_SHA = edit_binary.edit_sha()
     return _EDIT_SHA
 
 

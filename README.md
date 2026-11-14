@@ -164,7 +164,7 @@ See [usage](profiles/video/README.md) and [calibration and generation](docs/vide
 | `capture_one/` | Capture One profile generation, synthetic chart, measurement and comparison |
 | `camera_raw/` | Camera Raw table format, DCP read/write, profile generation, measurement and comparison |
 | `dxo/` | DxO PhotoLab model of the LUT input (`dxo_model.py`), probe and base-DCP generation, LUT generation |
-| `camera_packs/` | Per-camera pack generator, camera metadata and the shared installation-note template used in each ZIP |
+| `camera_packs/` | Per-camera pack generator, camera metadata, the shared installation-note template used in each ZIP and the release build scripts |
 | `video/` | S-Log3 input transforms, sensor-matrix calibration, video LUT generation and tests |
 | `docs/` | [Documentation index](docs/README.md): photo profiles, pipeline and video LUTs |
 

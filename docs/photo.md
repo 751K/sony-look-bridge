@@ -109,6 +109,22 @@ python3 camera_packs/build_packs.py SAMPLES_DIR OUTPUT_DIR
 Edit，以读取外观常量表；如需生成其他机型包，还需提供对应 ARW 与 Adobe
 Standard DCP。
 
+### 自动发布
+
+`camera_packs/make_release.py SAMPLES_DIR OUT_DIR --version vX.Y.Z` 生成一次发布的全部附件：
+各机型配置包、α7 V 视频 LUT 包（含 DCTL）以及 `SHA256SUMS.txt`。样张清单见
+`camera_packs/samples.json`，`camera_packs/fetch_samples.py` 按清单下载样张并核对校验值。
+视频 LUT 只取决于 α7 V 的外观参数，与所用的 α7 V 样张无关。
+
+`sonylook/edit_binary.py --export-tables FILE` 可将生成器读取的 Edit 常量表导出为一个约
+47 KB 的文件；设置 `SONY_EDIT_TABLES=FILE` 后，生成器改从该文件读取，不再需要安装 Edit，
+生成结果逐字节相同。该文件包含 Sony 的数据，不得提交到仓库。
+
+`.github/workflows/release.yml` 在 macOS 上执行上述流程：推送 `v*` 标签后，工作流生成全部
+附件并创建发布草稿，发布说明需手动填写后再发布；也可手动运行工作流，仅取得附件。常量表以
+base64 形式拆分保存在仓库 Secret `EDIT_TABLES_1` 与 `EDIT_TABLES_2` 中；α7 V 与 α7C II
+的样张不在公开 RAW 库中，保存在本仓库的 `samples` 发布中。
+
 ## 验证与测量
 
 本仓库 README 中的当前对照图使用 DSC03591 的 ST 外观，并以 Sony Edit 导出为参考。

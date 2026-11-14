@@ -7,9 +7,17 @@ them, so callers keep using the 4.0 addresses with either build.
 Location: $SONY_EDIT_BINARY, else the default macOS install path. Universal (fat) binaries are handled;
 the arm64 slice is used as is (same bytes as `lipo -thin arm64`).
 Set SONY_EDIT_SKIP_CHECK=1 to use another build anyway (addresses will most likely be wrong).
+
+Table file: `edit_binary.py --export-tables FILE` writes the tables this project reads (the
+_TABLE_SIZES list, about 150 KB, xz compressed) from the installed Edit.  With SONY_EDIT_TABLES=FILE
+they are read from that file instead of the Edit binary, so the profiles can be built on a machine
+without Edit (the release workflow).  The file holds Sony data: keep it private, never commit it.
 """
 import hashlib
+import json
+import lzma
 import os
+import sys
 import struct
 from functools import lru_cache
 from pathlib import Path
@@ -91,8 +99,43 @@ def arm64_slice():
 
 
 @lru_cache(maxsize=1)
+def table_file():
+    """(meta, {4.0 table VA: bytes}) from $SONY_EDIT_TABLES, or None to read the Edit binary."""
+    path = os.environ.get("SONY_EDIT_TABLES")
+    if not path:
+        return None
+    head, _, body = lzma.decompress(Path(path).read_bytes()).partition(b"\n")
+    meta = json.loads(head)
+    if hashlib.sha256(body).hexdigest() != meta["tables_sha256"]:
+        raise ValueError(f"{path}: table data does not match its checksum")
+    tables, off = {}, 0
+    for va in sorted(_TABLE_SIZES):
+        tables[va] = body[off:off + _TABLE_SIZES[va]]
+        off += _TABLE_SIZES[va]
+    if off != len(body):
+        raise ValueError(f"{path}: {len(body)} bytes of tables, expected {off}")
+    return meta, tables
+
+
+def export_tables(path):
+    """Write the table file for SONY_EDIT_TABLES from the installed Edit."""
+    body = b"".join(read_va(va, _TABLE_SIZES[va]) for va in sorted(_TABLE_SIZES))
+    meta = dict(edit_version=_BUILD_MAPS[_default_sha()][0], edit_arm64_sha256=_default_sha(),
+                tables_sha256=hashlib.sha256(body).hexdigest())
+    data = lzma.compress(json.dumps(meta).encode() + b"\n" + body, preset=9 | lzma.PRESET_EXTREME)
+    Path(path).write_bytes(data)
+    return meta, len(data)
+
+
+@lru_cache(maxsize=1)
 def _default_sha():
-    return hashlib.sha256(arm64_slice()).hexdigest()
+    t = table_file()
+    return t[0]["edit_arm64_sha256"] if t else hashlib.sha256(arm64_slice()).hexdigest()
+
+
+def edit_sha():
+    """SHA-256 of the Edit arm64 slice the tables come from (cache keys, manifests)."""
+    return _default_sha()
 
 
 def resolve_va(va, sha=None):
@@ -124,9 +167,22 @@ def segments():
 
 
 def read_va(va, n):
+    t = table_file()
+    if t is not None:
+        for base, data in t[1].items():
+            if base <= va and va + n <= base + len(data):
+                return data[va - base:va - base + n]
+        raise ValueError(f"0x{va:x}+{n} is not in the table file")
     va = resolve_va(va)
     for name, vmaddr, vmsize, fileoff, filesize in segments():
         if vmaddr <= va and va + n <= vmaddr + filesize:
             o = fileoff + va - vmaddr
             return arm64_slice()[o:o + n]
     raise ValueError(f"0x{va:x}+{n} is not file-backed")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3 or sys.argv[1] != "--export-tables":
+        raise SystemExit("usage: edit_binary.py --export-tables FILE")
+    meta, size = export_tables(sys.argv[2])
+    print(f"{sys.argv[2]}: Edit {meta['edit_version']}, {size} bytes")
