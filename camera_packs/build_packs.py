@@ -14,9 +14,11 @@ Look parameters come from one sample ARW per camera (README of each pack names t
 - RGB2YCC blend weights: the camera writes them per shot from the white balance (0x7848, see
   docs/pipeline.md 4.3).  Every look is built twice: daylight (0, 1024, 0, 0) under the plain name
   and warm (1024, 0, 0, 0) with the suffix "Warm".  The warm correction set 0x7843 is zero on every
-  body, so the warm variant is the base set alone.  Looks that render identically with both
-  weights (BW) get no warm variant.  --as-shot builds one variant with each sample's own weights
-  (this reproduces the v1.3.0 packs).
+  body, so the warm variant is the base set alone.  The same weights blend each look's
+  LinearMatrix16 (0x780f) between its warm and daylight tables; the warm tables come from
+  sonylook/warm_780f.json (α7 V, also used by the ported FL2/FL3), other cameras keep the daylight
+  table.  Looks that render identically with both weights (BW) get no warm variant.  --as-shot
+  builds one variant with each sample's own weights (this reproduces the v1.3.0 packs).
 - Camera Raw also gets an "Auto" profile per colour look ("Look XX Auto"): one look table on a
   dual-illuminant base DCP whose HueSatMap follows the white balance, warm look at 3200K and below,
   daylight look at 5500K and above (camera_raw/acr_auto.py).  FL2 keeps the warm table and maps
