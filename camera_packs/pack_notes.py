@@ -22,8 +22,11 @@ SSCS_VALIDATION = (
 )
 
 
-def render_note(stem: str, model: str, prefix: str, group: str) -> str:
-    """Return the Chinese installation note for one camera."""
+def render_note(stem: str, model: str, prefix: str, group: str, single=("BW",)) -> str:
+    """Return the Chinese installation note for one camera.
+
+    single: looks built without a Warm variant (they render the same at both weights).
+    """
     records = json.loads(NOTES.read_text(encoding="utf-8"))
     note = records[stem]
     title = note["title"]
@@ -52,6 +55,8 @@ def render_note(stem: str, model: str, prefix: str, group: str) -> str:
         "prefix": prefix,
         "group": group,
         "validation": validation,
+        "single": f"{single[0]} 在两种权重下结果相同，只提供一个版本。" if len(single) == 1
+                  else f"{'、'.join(single[:-1])} 与 {single[-1]} 在两种权重下结果相同，各只提供一个版本。",
     }
     text = TEMPLATE.read_text(encoding="utf-8")
     for key, value in values.items():

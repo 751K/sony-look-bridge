@@ -205,8 +205,9 @@ def build(cam, samples, out, as_shot=False):
     finally:
         for k, v in DXO_DEFAULTS.items():
             setattr(D, k, v)
+    single = [C.NAMES[n] for n, s in srcs if s == "" and (n, " Warm") not in srcs] if not as_shot else ["BW"]
     (pack / "安装说明.md").write_text(
-        render_note(stem, model, prefix, group), encoding="utf-8")
+        render_note(stem, model, prefix, group, single), encoding="utf-8")
     return zip_pack(pack)
 
 
