@@ -11,7 +11,7 @@
 
 | 阶段 | 移植 | 默认运行 | 进入配置文件 | 节 |
 | --- | --- | --- | --- | --- |
-| 前端：黑电平、缩放、白平衡（自定义模式数据来源待确认） | `sony_frontend.py` | 是 | 否（宿主软件负责） | §2 |
+| 前端：黑电平、缩放、白平衡（自定义模式数据来源待确认） | `sony_frontend.py` | 是 | 否（后期软件负责） | §2 |
 | RawNR | `sony_rawnr.py` | 按设置 | 否 | §3.1 |
 | ITP 去马赛克 | `sony_itp.py` | 是 | 否 | §3.2 |
 | DRO（ZcTaskVatr） | `sony_dro.py` | 按设置 | 否 | §3.3 |
@@ -503,4 +503,4 @@ NumPy 参考实现的整图解码耗时约为 28–37 s（Mac mini，Apple M6，
 
 ## 11. 与配置文件的关系
 
-配置文件只包含逐像素阶段：LinearMatrix16、MainGamma、RGB2YCC、AreaComp、YGamma、YCC2RGB 与 Effect。SSCS 与 ChromaSuppress 按相机直出不包含（§10.3），照片配置与视频 LUT 都如此。前端（白平衡、去马赛克）和空间阶段（RawNR、DRO、GeoCorr、Sharpness、Spica、Marble）由宿主软件完成。各版本的构成、宿主输入标定和验证结果见[照片配置](photo.md)。
+配置文件只包含逐像素阶段：LinearMatrix16、MainGamma、RGB2YCC、AreaComp、YGamma、YCC2RGB 与 Effect。SSCS 与 ChromaSuppress 按相机直出不包含（§10.3），照片配置与视频 LUT 都如此。前端（白平衡、去马赛克）和空间阶段（RawNR、DRO、GeoCorr、Sharpness、Spica、Marble）由后期软件完成。各版本的构成、输入标定和验证结果见[照片配置](photo.md)。

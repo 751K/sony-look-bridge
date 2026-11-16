@@ -1,6 +1,6 @@
 # 开发与发布
 
-本页说明如何在本地生成配置文件与视频 LUT、如何重新标定宿主软件，以及发布附件如何构建。各配置的原理与验证见[照片配置](photo.md)和[视频 LUT](video.md)。
+本页说明如何在本地生成配置文件与视频 LUT、如何重新标定后期软件，以及发布附件如何构建。各配置的原理与验证见[照片配置](photo.md)和[视频 LUT](video.md)。
 
 ## 环境
 
@@ -49,7 +49,7 @@ python3 dxo/dxo_look.py /path/to/A7M5.ARW --write
 python3 camera_packs/build_packs.py SAMPLES_DIR OUTPUT_DIR
 ```
 
-前三条命令生成 `profiles/` 中的 α7 V 配置。`build_packs.py` 为每个机型生成一个 ZIP，包含三种宿主的配置和由 `camera_packs/readme/` 生成的安装说明；`--cameras Sony-A7-IV,...` 可只生成部分机型，`--jobs N` 设置并行进程数，每个进程约占 0.8 GB 内存。
+前三条命令生成 `profiles/` 中的 α7 V 配置。`build_packs.py` 为每个机型生成一个 ZIP，包含三种后期软件的配置和由 `camera_packs/readme/` 生成的安装说明；`--cameras Sony-A7-IV,...` 可只生成部分机型，`--jobs N` 设置并行进程数，每个进程约占 0.8 GB 内存。
 
 ## 生成视频 LUT
 
@@ -81,15 +81,15 @@ python3 -m unittest discover -s video -p 'test_*.py' -v
 
 单元测试覆盖 S-Log3 码值、白点、高光压缩、文件顺序和合成色块图拟合。照片外观链的各阶段已在模拟器中与 Edit 的原始函数逐位比较，方法见[处理管线](pipeline.md)。
 
-## 重新标定宿主软件
+## 重新标定后期软件
 
-`chart/SonyChart.ARW` 是一张合法的 α7 V ARW，包含 48 级灰阶和 6³ 个相机 RGB 色块，可由 Capture One 与 Camera Raw 直接打开。宿主软件更新后输入行为可能改变，此时按以下顺序重新标定：
+`chart/SonyChart.ARW` 是一张合法的 α7 V ARW，包含 48 级灰阶和 6³ 个相机 RGB 色块，可由 Capture One 与 Camera Raw 直接打开。后期软件更新后输入行为可能改变，此时按以下顺序重新标定：
 
 1. 使用探针配置测量合成色卡的实际输入值。
 2. Capture One：生成 Probe 配置并导出，用 `capture_one/measure_chart.py` 测量，再用 `capture_one/fit_c1_encoding.py` 拟合并更新 `c1_encoding_table.json`。
 3. Camera Raw：生成 Probe 配置，关闭镜头校正后导出 16 位 ProPhoto，用 `camera_raw/measure_acr_chart.py` 与 `camera_raw/acr_encoding.py` 拟合。
 4. DxO PhotoLab：用 `dxo/dxo_profiles.py probes` 与 `base2` 生成探针和底座，按同样方法检验 `dxo/dxo_model.py`。
-5. 重新生成三种宿主的配置，并以实拍 RAW 和 Edit 导出图做几何配准与色差检查。
+5. 重新生成三种后期软件的配置，并以实拍 RAW 和 Edit 导出图做几何配准与色差检查。
 
 合成色卡可以从任意一张 α7 V ARW 重建：
 
