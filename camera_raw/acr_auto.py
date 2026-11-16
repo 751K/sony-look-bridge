@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """Auto profiles for Camera Raw / Lightroom: one look that follows the white balance.
 
-Sony cameras blend two RGB2YCC parameter sets of each look by the as-shot white balance (warm set
-below about 3700K, daylight set above about 5400K on the α7 V; docs/pipeline.md 4.3).  A Camera Raw
+Sony cameras blend two RGB2YCC parameter sets of each look by the as-shot white balance (on the α7 V
+with a Kelvin white balance: warm set at 4100K and below, daylight set at 5400K and above, linear in
+mired between; docs/pipeline.md 4.3).  A Camera Raw
 XMP profile holds one look table, but its base DCP can be dual-illuminant, and Camera Raw interpolates
 the DCP's HueSatMap between the two calibration illuminants by the white balance (in mired).
 
 The base DCP 'PREFIX Auto Base XX.dcp' is the Linear Base (ForwardMatrix = ProPhoto -> XYZ D50, so
 linear ProPhoto is the white-balanced camera RGB) with
-- CalibrationIlluminant1/2 = ISO studio tungsten (3200K) / D55 (5500K),
+- CalibrationIlluminant1/2 = cool white fluorescent (4150K in the DNG SDK) / D55 (5500K), the
+  standard pair closest to the camera's transition (about 4000K-5100K as Camera Raw reads it),
 - ColorMatrix1/2 = the camera's Adobe Standard StdA / D65 matrices interpolated in mired to those
-  temperatures, so white balance between 3200K and 5500K reads as with Adobe Standard,
+  temperatures, so white balance between 4150K and 5500K reads as with Adobe Standard,
 - a HueSatMap (90 hue x 30 saturation x NV value; DNG order value, hue, saturation; linear value
   encoding) at one illuminant and identity at the other.
 
 The XMP 'PREFIX Look XX Auto' holds one of the two looks; the HueSatMap moves its input so that the
 result matches the other look:
-- direction "warm" (default): the table is the daylight look, HueSatMap1 (3200K) maps to the warm look;
+- direction "warm" (default): the table is the daylight look, HueSatMap1 (4150K) maps to the warm look;
 - direction "day": the table is the warm look, HueSatMap2 (5500K) maps to the daylight look.  FL2
   needs this: its warm look reaches saturated yellows that the daylight table cannot output, while the
   reverse (removing saturation) is reachable.  FL2 also gets a 16-level value axis.
@@ -33,9 +35,9 @@ import numpy as np
 import dcp
 
 NH, NS = 90, 30
-T1, T2 = 3200.0, 5500.0
-ILL1, ILL2 = 24, 20                     # EXIF LightSource: ISO studio tungsten, D55
-ILLUMINANT_K = {17: 2856.0, 21: 6504.0, 20: 5503.0, 23: 5003.0, 24: 3200.0}
+T1, T2 = 4150.0, 5500.0
+ILL1, ILL2 = 14, 20                     # EXIF LightSource: cool white fluorescent, D55
+ILLUMINANT_K = {17: 2856.0, 21: 6504.0, 20: 5503.0, 23: 5003.0, 24: 3200.0, 14: 4150.0}
 WHITE = 4000.0                          # Sony linear value of diffuse white
 EXPOSURES = (0.06, 0.15, 0.35, 0.7)     # x WHITE, value (max channel) of the 2D fit samples
 PROPHOTO_TO_XYZ = np.array([[0.7976749, 0.1351917, 0.0313534],
@@ -46,7 +48,7 @@ PROPHOTO_TO_XYZ = np.array([[0.7976749, 0.1351917, 0.0313534],
 def vmax_from_arw(main_tags):
     """Sony linear value of the raw white level 0x787f in the green channel (ZcTaskITP scaling)."""
     t = lambda k: [int(v) for v in str(main_tags[k]).split()]
-    g = t("0x7313")[1] * int(main_tags["0x7809"]) / 256
+    g = t("0x7313")[1] * int(main_tags.get("0x7809", 256)) / 256      # 256 when absent (older bodies)
     return int(main_tags["0x7311"]) / 32768 * g * 0.0625 * (t("0x787f")[1] - t("0x7310")[1])
 
 
@@ -157,7 +159,7 @@ def _cm_at(cm1, cm2, t1, t2, T):
 
 
 def write_base(path, model, name, adobe_std, table, direction="warm"):
-    """Dual-illuminant base DCP with the fitted HueSatMap at 3200K (warm) or 5500K (day)."""
+    """Dual-illuminant base DCP with the fitted HueSatMap at 4150K (warm) or 5500K (day)."""
     a = dcp.read(adobe_std)
     cm1, cm2 = (np.array(a[k], float).reshape(3, 3) for k in ("ColorMatrix1", "ColorMatrix2"))
     t1, t2 = ILLUMINANT_K[a["CalibrationIlluminant1"][0]], ILLUMINANT_K[a["CalibrationIlluminant2"][0]]

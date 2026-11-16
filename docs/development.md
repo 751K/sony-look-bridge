@@ -34,7 +34,7 @@ python3 camera_raw/dcp.py --export-adobe adobe_standard.json "/Library/Applicati
 
 设置 `SONY_EDIT_TABLES=edit_tables.xz` 与 `ADOBE_STANDARD_MATRICES=adobe_standard.json` 后，生成器从这两个文件读取数据，生成结果与读取本机安装时逐字节相同。常量表文件约 47 KB，矩阵文件约 8 KB。
 
-样张清单 `camera_packs/samples.json` 记录每张样张的来源和 SHA-256。16 张来自 raw.pixls.us 与 rawdb.dnglab.org，许可为 CC0；α7 V 与 α7C II 的样张不在公开 RAW 库中，保存在本仓库的 `samples` 发布中。以下命令下载全部样张并核对校验值：
+样张清单 `camera_packs/samples.json` 记录每张样张的来源和 SHA-256。17 张来自 raw.pixls.us 与 rawdb.dnglab.org，许可为 CC0；α7 V 与 α7C II 的样张不在公开 RAW 库中，保存在本仓库的 `samples` 发布中。以下命令下载全部样张并核对校验值：
 
 ```bash
 python3 camera_packs/fetch_samples.py SAMPLES_DIR
@@ -99,7 +99,7 @@ python3 capture_one/make_chart.py SOURCE.ARW
 
 ## 发布
 
-`camera_packs/make_release.py` 生成一次发布的全部附件：17 个机型的配置包、α7 V 视频 LUT 包（含 DCTL 与 `video/release_readme.txt` 生成的说明）以及 `SHA256SUMS.txt`。
+`camera_packs/make_release.py` 生成一次发布的全部附件：各机型的配置包、α7 V 视频 LUT 包（含 DCTL 与 `video/release_readme.txt` 生成的说明）以及 `SHA256SUMS.txt`。
 
 ```bash
 python3 camera_packs/make_release.py SAMPLES_DIR OUT_DIR --version vX.Y.Z

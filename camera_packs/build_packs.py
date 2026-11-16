@@ -11,6 +11,8 @@ Look parameters come from one sample ARW per camera (README of each pack names t
   white-balanced RGB goes through SSCS (float path, the camera's parameters), then the camera-RGB
   conversion inv(FM2_A7M5) · FM2_camera from the Adobe Standard D65 ForwardMatrix, rows normalised to
   sum 1, then the α7 V look without SSCS.
+- Cameras from before Creative Look (PORT_ALL, e.g. the α7R III with Creative Style) get all 12
+  looks from the α7 V the same way; their own Creative Style IFDs are not used.
 - RGB2YCC blend weights: the camera writes them per shot from the white balance (0x7848, see
   docs/pipeline.md 4.3).  Every look is built twice: daylight (0, 1024, 0, 0) under the plain name
   and warm (1024, 0, 0, 0) with the suffix "Warm".  The warm correction set 0x7843 is zero on every
@@ -20,7 +22,7 @@ Look parameters come from one sample ARW per camera (README of each pack names t
   table.  Looks that render identically with both weights (BW) get no warm variant.  --as-shot
   builds one variant with each sample's own weights (this reproduces the v1.3.0 packs).
 - Camera Raw also gets an "Auto" profile per colour look ("Look XX Auto"): one look table on a
-  dual-illuminant base DCP whose HueSatMap follows the white balance, warm look at 3200K and below,
+  dual-illuminant base DCP whose HueSatMap follows the white balance, warm look at 4150K and below,
   daylight look at 5500K and above (camera_raw/acr_auto.py).  FL2 keeps the warm table and maps
   towards the daylight look, with a value axis.  Capture One and DxO have no equivalent.
 - SSCS weights of 255 on all four CFA sites (α7S III, FX3 samples) are replaced by the default
@@ -68,6 +70,7 @@ ADOBE = Path("/Library/Application Support/Adobe/CameraRaw/CameraProfiles/Adobe 
 DAYLIGHT = (0, 1024, 0, 0)
 WARM = (1024, 0, 0, 0)
 PORTED = ("FL2", "FL3")
+PORT_ALL = {"ILCE-7RM3"}          # Creative Style bodies: every look is ported from the α7 V
 A7M5_SAMPLE = "Sony-A7-V-ILCE-7M5.ARW"
 
 # stem, profile prefix, model (EXIF / Adobe), display name (Camera Raw group), sample file, native FL2/FL3
@@ -79,6 +82,7 @@ CAMERAS = [
     ("Sony-A7-V", "SonyA7M5", "ILCE-7M5", "Sony A7M5", A7M5_SAMPLE, True),
     ("Sony-A7C-II", "SonyA7CM2", "ILCE-7CM2", "Sony A7C II", "Sony-A7C-II-ILCE-7CM2.ARW", False),
     ("Sony-A7CR", "SonyA7CR", "ILCE-7CR", "Sony A7CR", "Sony-A7CR-ILCE-7CR.ARW", False),
+    ("Sony-A7R-III", "SonyA7RM3", "ILCE-7RM3", "Sony A7R III", "Sony-A7R-III-ILCE-7RM3.ARW", False),
     ("Sony-A7R-V", "SonyA7RM5", "ILCE-7RM5", "Sony A7R V", "Sony-A7R-V-ILCE-7RM5.ARW", False),
     ("Sony-A7R-VI", "SonyA7RM6", "ILCE-7RM6", "Sony A7R VI", "Sony-A7R-VI-ILCE-7RM6.ARW", True),
     ("Sony-A7S-III", "SonyA7SM3", "ILCE-7SM3", "Sony A7S III", "Sony-A7S-III-ILCE-7SM3.ARW", False),
@@ -143,12 +147,16 @@ def warm_differs(looks, name, sscs):
 def sources(arw, model, a7m5, weights, warm_only=False):
     """Look sources of one camera.  warm_only drops the looks whose warm variant renders the same
     as the daylight one."""
-    looks = R.load_looks(arw)
     sscs = sscs_params(arw)
-    native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights)) for n in C.NAMES
-              if n in looks and not (warm_only and not warm_differs(looks, n, sscs))}
-    if all(n in looks for n in PORTED):
-        return native
+    if model in PORT_ALL:
+        native, ported = {}, tuple(C.NAMES)
+    else:
+        looks = R.load_looks(arw)
+        native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights)) for n in C.NAMES
+                  if n in looks and not (warm_only and not warm_differs(looks, n, sscs))}
+        if all(n in looks for n in PORTED):
+            return native
+        ported = PORTED
     m = np.linalg.inv(fm2("ILCE-7M5")) @ fm2(model)
     m = m / m.sum(1, keepdims=True)
     m5 = R.load_looks(a7m5)
@@ -157,7 +165,9 @@ def sources(arw, model, a7m5, weights, warm_only=False):
         s = np.stack(SC.sscs_float(lin[..., 0], lin[..., 1], lin[..., 2], sscs), -1)
         return s @ m.T
 
-    for n in PORTED:
+    for n in ported:
+        if warm_only and not warm_differs(m5, n, None):
+            continue
         native[n] = Source(R.Look(n, m5, sscs=None, ycc_weights=weights), pre)
     return native
 

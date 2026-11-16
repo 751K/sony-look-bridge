@@ -4,13 +4,13 @@
 Each DCTL loads the look's three LUT variants (Warm, 4200K, Daylight; video_look.py) from its own
 folder and blends their outputs by a White Balance slider, linearly in mired between anchors:
 
-  3700K and below   Warm
+  4100K and below   Warm
   4640K             4200K     (the clip white balance the camera recorded under the 4200K chart light)
-  5470K and above   Daylight
+  5400K and above   Daylight
 
-3700K and 5470K are where the camera's photo looks reach the full warm / daylight state
-(docs/pipeline.md 4.3), moved to the clip white-balance scale: the clip and Camera Raw temperatures of
-the three chart lights are linear in mired (docs/video.md).  The outputs of three anchors, not two,
+4100K and 5400K are where the camera's photo looks reach the full warm / daylight state, measured by
+a Kelvin white-balance sweep of the α7 V (docs/pipeline.md 4.3).  Photo and clip white balance share
+the camera's Kelvin scale.  The outputs of three anchors, not two,
 are blended: Warm and Daylight alone are 1.9 ΔE2000 off at 4200K, the 4200K anchor 0.7.
 
 usage: make_dctl.py LUT_DIR [--out DIR]   (default: write next to the LUTs)
@@ -22,7 +22,7 @@ from pathlib import Path
 
 LOOKS = ("ST", "PT", "NT", "VV", "VV2", "FL", "IN", "SH", "BW", "Sepia", "FL2", "FL3")
 GAMUTS = ("SGamut3", "SGamut3Cine")
-WARM_K, MID_K, DAY_K = 3700.0, 4640.0, 5470.0
+WARM_K, MID_K, DAY_K = 4100.0, 4640.0, 5400.0
 GRID = 65
 
 

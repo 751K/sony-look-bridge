@@ -70,16 +70,16 @@ The α7 V, α7R VI, FX2 and RX1R III have 12 native looks; the other cameras hav
 
 ## Choosing a variant
 
-The camera changes a look's colours with the as-shot white balance: it uses the warm-light parameters below about 3700K and the daylight parameters above about 5400K, blending in between (α7 V; other cameras differ slightly). A profile cannot read the white balance, so each colour look comes in these variants:
+The camera changes a look's colours with the as-shot white balance: it uses the warm-light parameters at about 4100K and below and the daylight parameters at about 5400K and above, blending in between (α7 V camera white-balance setting; other cameras differ slightly). A profile cannot read the white balance, so each colour look comes in these variants:
 
 | Variant | Name | Behaviour | Applications |
 | --- | --- | --- | --- |
 | Daylight | `Look XX` | Daylight parameters | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
 | Warm | `Look XX Warm` | Warm-light parameters | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
-| Auto | `Look XX Auto` | Follows the white balance: matches Warm at about 3200K and below and Daylight at about 5500K and above, blending smoothly in between | Camera Raw / Lightroom only |
+| Auto | `Look XX Auto` | Follows the white balance: matches Warm at about 4150K and below and Daylight at about 5500K and above, blending smoothly in between | Camera Raw / Lightroom only |
 
 - In Camera Raw and Lightroom, use Auto; the look does not need to be changed when the colour temperature is adjusted.
-- In Capture One and DxO PhotoLab, use Warm for photos shot below about 3700K and Daylight otherwise.
+- In Capture One and DxO PhotoLab, use Warm for photos shot below about 4700K and Daylight otherwise.
 - BW renders the same at every white balance and has a single version; so does SE on the α7 V.
 
 The video LUTs are likewise split into daylight, 4200K and warm sets by the white balance of the footage; the DaVinci Resolve DCTLs blend continuously between the three.

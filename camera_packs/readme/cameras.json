@@ -38,6 +38,14 @@
     "source": "https://raw.pixls.us/getfile.php/7032/nice/Sony%20-%20ILCE-7CR%20-%2014bit%2014bit%20losseless%20compressed%20(4:3).ARW",
     "native_fl2_fl3": false
   },
+  "Sony-A7R-III": {
+    "title": "Sony α7R III",
+    "source": "https://raw.pixls.us/data/Sony/ILCE-7RM3/Sony_-_ILCE-7RM3_-_14bit_compressed_(3:2).ARW",
+    "native_fl2_fl3": false,
+    "intro": "适用机型为 Sony α7R III（ILCE-7RM3）。该机型机内为 Creative Style，没有 Creative Look；本包将 α7 V 的 12 种 Creative Look 移植到 α7R III 的 RAW，目标为 α7 V 的 sRGB 颜色和影调。",
+    "looks": "ST、VV、NT、PT、FL、VV2、IN、SH、BW、SE、FL2、FL3 均从 α7 V 移植：α7R III 的相机 RGB 先经其 SSCS，再按 Adobe Standard 的 D65 Forward Matrix 换算为 α7 V 的相机 RGB，之后按 α7 V 的外观渲染，褪色量与 α7 V 相同。样张以 CC0-1.0 提供。[样张来源](https://raw.pixls.us/data/Sony/ILCE-7RM3/Sony_-_ILCE-7RM3_-_14bit_compressed_(3:2).ARW)",
+    "validation": "已核对样张校验值、配置文件和机型标识。两个 DCP 使用本机型的 Adobe Standard 色彩矩阵，DxO 的高光模型使用样张的拍摄白平衡。软件输入响应沿用 α7 V 模型。各外观为 α7 V 外观的移植，与 α7R III 机内的 Creative Style 不同；软件内导入和实拍色差待验证。"
+  },
   "Sony-A7R-V": {
     "title": "Sony A7R V",
     "source": "https://raw.pixls.us/getfile.php/6232/nice/Sony%20-%20ILCE-7RM5%20-%2014bit%20(4:3).ARW",

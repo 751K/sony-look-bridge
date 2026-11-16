@@ -49,6 +49,13 @@
   "sha256": "3e1642f3a1ae7c9f93228c5f09f27e362608e6a4ca1b3e5d8dd9eb8fae576997"
  },
  {
+  "file": "Sony-A7R-III-ILCE-7RM3.ARW",
+  "model": "ILCE-7RM3",
+  "source": "https://raw.pixls.us/data/Sony/ILCE-7RM3/Sony_-_ILCE-7RM3_-_14bit_compressed_(3:2).ARW",
+  "license": "CC0-1.0",
+  "sha256": "a7b0279a11b36055fca1fd598be9f708b2f9d89b0d30178fd81d1d594547fc7a"
+ },
+ {
   "file": "Sony-A7R-V-ILCE-7RM5.ARW",
   "model": "ILCE-7RM5",
   "source": "https://raw.pixls.us/getfile.php/6232/nice/Sony%20-%20ILCE-7RM5%20-%2014bit%20(4:3).ARW",

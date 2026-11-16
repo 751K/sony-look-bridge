@@ -7,14 +7,14 @@ These LUTs make S-Log3 footage imitate the tone of the α7 V Creative Looks in p
   variants, 65^3 .cube (72 files), and 24 DaVinci Resolve DCTLs (*_WB.dctl) that blend the
   three variants of a look by a White Balance slider.
 - Pick the variant by the white balance of the footage:
-    ST          daylight, about 5400K and above
-    ST-4200K    about 3800K to 5400K
-    ST-Warm     warm light, about 3700K and below
+    ST          daylight, about 5000K and above
+    ST-4200K    about 4300K to 5000K
+    ST-Warm     warm light, about 4300K and below
   The camera's look colours and the S-Log3 to camera RGB relation both change with the white
   balance; each variant uses a ColorChecker measurement at 6500K, 4200K or 2600K.
 - DCTL: keep the DCTLs and the LUTs together in one folder inside Resolve's LUT folder, add the
   ResolveFX DCTL effect on the node and set White Balance K to the clip's white balance:
-  Warm at 3700K and below, 4200K at 4640K, Daylight at 5470K and above, linear in mired between.
+  Warm at 4100K and below, 4200K at 4640K, Daylight at 5400K and above, linear in mired between.
 - Input: S-Log3 (10-bit CV / 1023), S-Gamut3 or S-Gamut3.Cine as named in the file.
 - Output: Rec.709 primaries, Gamma 2.4. Do not add another Log-to-709 or ACES output transform.
 - Mid-grey differs from conventional S-Log3 LUTs.
@@ -33,14 +33,14 @@ These LUTs make S-Log3 footage imitate the tone of the α7 V Creative Looks in p
   65³ .cube，共 72 个；另附 24 个 DaVinci Resolve DCTL（*_WB.dctl），按 White Balance 滑块
   在同一外观的三套版本之间过渡。
 - 按素材的拍摄白平衡选择版本：
-    ST          日光，约 5400K 以上
-    ST-4200K    约 3800K 至 5400K
-    ST-Warm     暖光，约 3700K 以下
+    ST          日光，约 5000K 以上
+    ST-4200K    约 4300K 至 5000K
+    ST-Warm     暖光，约 4300K 以下
   相机外观的颜色与 S-Log3 至相机 RGB 的关系都随白平衡变化；三套分别按 6500K、4200K、2600K
   的色卡实测生成。
 - DCTL：将 DCTL 与 LUT 放在 Resolve LUT 目录下的同一文件夹中，在节点上添加 ResolveFX DCTL，
-  将 White Balance K 设为素材的白平衡：3700K 及以下为暖光版，4640K 为 4200K 版，
-  5470K 及以上为日光版，其间按 mired 线性过渡。
+  将 White Balance K 设为素材的白平衡：4100K 及以下为暖光版，4640K 为 4200K 版，
+  5400K 及以上为日光版，其间按 mired 线性过渡。
 - 输入：S-Log3（10-bit CV / 1023），色域见文件名中的 S-Gamut3 或 S-Gamut3.Cine。
 - 输出：Rec.709 原色，Gamma 2.4。不应再叠加 Log 至 Rec.709 或 ACES 输出转换。
 - 中灰位置与常规 S-Log3 LUT 不同。

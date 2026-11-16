@@ -17,9 +17,9 @@
 
 | 外观代号 | 版本 | 拍摄白平衡 |
 | --- | --- | --- |
-| `ST` | 日光 | 约 5400K 以上 |
-| `ST-4200K` | 4200K | 约 3800K 至 5400K |
-| `ST-Warm` | 暖光 | 约 3700K 以下 |
+| `ST` | 日光 | 约 5000K 以上 |
+| `ST-4200K` | 4200K | 约 4300K 至 5000K |
+| `ST-Warm` | 暖光 | 约 4300K 以下 |
 
 外观代号与相机一致：ST、PT、NT、VV、VV2、FL、IN、SH、BW、Sepia（相机上为 SE）、FL2、FL3。IN、SH、FL2、FL3 使用相机默认的褪色，分别为 3、6、1、1。
 
@@ -37,7 +37,7 @@ LUT 按测光 **+1⅔ 档**（相机显示 +1.7）的 S-Log3 素材设计，18% 
 
 ### 按白平衡调节的 DCTL
 
-每种外观和输入色域各有一个 DCTL，文件名以 `_WB.dctl` 结尾。DCTL 读取同一文件夹中该外观的三套 LUT，按 **White Balance K** 滑块在三套之间连续过渡：3700K 及以下为暖光版，4640K 为 4200K 版，5470K 及以上为日光版。滑块应设为素材拍摄时相机的白平衡。
+每种外观和输入色域各有一个 DCTL，文件名以 `_WB.dctl` 结尾。DCTL 读取同一文件夹中该外观的三套 LUT，按 **White Balance K** 滑块在三套之间连续过渡：4100K 及以下为暖光版，4640K 为 4200K 版，5400K 及以上为日光版。滑块应设为素材拍摄时相机的白平衡。
 
 1. 将 DCTL 与 72 个 LUT 放在 Resolve LUT 目录下的同一个子文件夹中。macOS 的 LUT 目录为 `/Library/Application Support/Blackmagic Design/DaVinci Resolve/LUT/`。
 2. 重启 Resolve，或在 DCTL 列表中刷新。

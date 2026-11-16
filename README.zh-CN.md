@@ -71,16 +71,16 @@
 
 ## 选择版本
 
-相机会按拍摄时的白平衡改变外观的颜色：约 3700K 以下采用暖光参数，约 5400K 以上采用日光参数，其间逐渐过渡（以 α7 V 为例，各机型略有差异）。配置文件无法读取白平衡，因此每个彩色外观提供以下版本：
+相机会按拍摄时的白平衡改变外观的颜色：约 4100K 及以下采用暖光参数，约 5400K 及以上采用日光参数，其间逐渐过渡（以 α7 V 的白平衡设定值为例，各机型略有差异）。配置文件无法读取白平衡，因此每个彩色外观提供以下版本：
 
 | 版本 | 名称 | 行为 | 支持的软件 |
 | --- | --- | --- | --- |
 | 日光版 | `Look XX` | 采用日光参数 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
 | 暖光版 | `Look XX Warm` | 采用暖光参数 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
-| 自动版 | `Look XX Auto` | 随白平衡变化：约 3200K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑过渡 | 仅 Camera Raw / Lightroom |
+| 自动版 | `Look XX Auto` | 随白平衡变化：约 4150K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑过渡 | 仅 Camera Raw / Lightroom |
 
 - 在 Camera Raw 与 Lightroom 中建议使用自动版，调整色温时无需更换外观。
-- 在 Capture One 与 DxO PhotoLab 中，约 3700K 以下拍摄的照片使用暖光版，其余使用日光版。
+- 在 Capture One 与 DxO PhotoLab 中，约 4700K 以下拍摄的照片使用暖光版，其余使用日光版。
 - BW 在任何白平衡下结果相同，只有一个版本；α7 V 的 SE 也是如此。
 
 视频 LUT 同样按拍摄白平衡分为日光、4200K 和暖光三套；DaVinci Resolve 的 DCTL 可以在三套之间连续调节。

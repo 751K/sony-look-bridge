@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Download the sample ARWs listed in samples.json and check their SHA-256.
 
-16 samples are CC0 files from raw.pixls.us / rawdb.dnglab.org; the α7 V and α7C II samples are
+Most samples are CC0 files from raw.pixls.us / rawdb.dnglab.org; the α7 V and α7C II samples are
 assets of this repository's `samples` release.  Files already present with the right checksum are
 kept.  usage: fetch_samples.py DIR
 """
