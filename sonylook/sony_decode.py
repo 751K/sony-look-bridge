@@ -71,7 +71,7 @@ def _sr2_tags(arw):
 
 
 def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble=None,
-           detail=True, lens=True, sscs=True, pad=32, strip=512, verbose=False,
+           detail=True, lens=True, sscs=True, highlights="camera", pad=32, strip=512, verbose=False,
            ):
     """Decode an ARW to the exported image (H, W, 3) uint16 0..16383.
 
@@ -82,6 +82,9 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
     look:   look name from arw_looks.look_ifds ("Standard", "FL2", ...); None follows the
             settings (0x8000: 1 = the look the camera shot with, SR2 0x7770; else a look id).
     raw:    optional full visible CFA image (uint16); read with rawpy if None.
+    highlights: "camera" (default) skips SSCS and ChromaSuppress, as the camera's own JPEG/HEIF
+            does (2026-11-16 chart bracket: -3..+3 EV within 0.43 ΔE of the HEIF, against 1.93 at
+            +2 EV with them); "edit" runs both, bit-exact to Edit's export.  "camera" overrides sscs.
     nr/dro/marble/lens/sscs: None = follow the develop settings: Edit's saved session
             when present, else the values Edit starts from for an unsaved ARW
             (develop_settings.camera_defaults).  SSCS always runs unless disabled.  detail: True/False (or
@@ -214,6 +217,10 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
     timings["geocorr"] = time.perf_counter() - t
 
     # --- SSCS (the builder always inserts it, right after GeoCorr) ------------
+    if highlights not in ("edit", "camera"):
+        raise ValueError(f"highlights must be 'edit' or 'camera', not {highlights!r}")
+    if highlights == "camera":
+        sscs = False
     sscs_params = SC.params_from_tags(tags) if sscs else None
     lin = np.stack(planes, -1).astype(np.uint16)
     del planes
@@ -258,7 +265,7 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
         fade_level = None
         fade = 0 if look in ("FL2", "FL3") else None
     lk = R.Look(look, looks, fade=fade, fade_level=fade_level,
-                output_mode=1 if output == "adobe" else 0,
+                output_mode=1 if output == "adobe" else 0, chroma_suppress=highlights != "camera",
                 tone_curves=tone_curves, shade=shade, **tone)
     rt = {}
     if marble:
@@ -300,6 +307,8 @@ def main():
     ap.add_argument("--no-detail", action="store_true")
     ap.add_argument("--no-lens", action="store_true")
     ap.add_argument("--no-sscs", action="store_true")
+    ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],
+                    help="camera: no SSCS / ChromaSuppress, as the camera's JPEG (default); edit: both, as Edit")
     ap.add_argument("--pad", type=int, default=32, help="expand the decoder rect by N px of raw margin")
     ap.add_argument("--strip", type=int, default=512, help="row-band height for the render (0 = whole image)")
     a = ap.parse_args()
