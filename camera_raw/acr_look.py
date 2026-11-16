@@ -81,19 +81,20 @@ def main():
     ap.add_argument("--looks", default=",".join(C.NAMES))
     ap.add_argument("--eval", action="store_true")
     ap.add_argument("--write", action="store_true")
-    ap.add_argument("--no-sscs", action="store_true",
-                    help="leave out Sony's SSCS stage (bright, saturated colours towards luma; in since v1.1.0)")
+    ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],
+                    help="camera (default): leave out SSCS and ChromaSuppress, as the camera's own JPEG does; edit: keep both, as Imaging Edge Edit")
     ap.add_argument("--out", help="output folder (default profiles/camera_raw)")
     a = ap.parse_args()
     if a.out:
         A.OUT = Path(a.out)
     looks = R.load_looks(a.arw, neutral=True)
-    sscs = None if a.no_sscs else SC.params_from_arw(a.arw)
+    edit = a.highlights == "edit"
+    sscs = SC.params_from_arw(a.arw) if edit else None
     lin = R.front_end_sony(a.arw, 4) if a.eval else None
     if a.write:
         A.OUT.mkdir(exist_ok=True); A.write_base()
     for name in a.looks.split(","):
-        look = R.Look(name, looks, sscs=sscs)
+        look = R.Look(name, looks, sscs=sscs, chroma_suppress=edit)
         tab = build(look, a.grid)
         msg = f"{C.NAMES[name]:4s}"
         if a.eval:

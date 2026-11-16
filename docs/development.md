@@ -21,7 +21,7 @@ python3 -m pip install colour-science
 | --- | --- | --- | --- |
 | Imaging Edge Edit 的常量表 | 色相 atan 表、对比度曲线族、饱和度表等外观链共用的常量 | 本机安装的 Edit 4.0.00.10312 或 4.1.00.03062（macOS），可用 `SONY_EDIT_BINARY` 指定路径 | 常量表文件，见下文 |
 | 各机型 Adobe Standard DCP | 底座 DCP 的 ColorMatrix 与 ForwardMatrix | 本机安装的 Camera Raw | 矩阵文件，见下文 |
-| 样张 ARW | 各机型的外观参数与 SSCS 参数 | 任意一张对应机型的 ARW | `camera_packs/samples.json` 列出的样张 |
+| 样张 ARW | 各机型的外观参数；α7 V 的样张另提供视频 LUT 所用的 SSCS 参数 | 任意一张对应机型的 ARW | `camera_packs/samples.json` 列出的样张 |
 
 `sonylook/edit_binary.py` 在运行时读取 Edit 的常量表，并校验 arm64 部分的 SHA-256。4.0 与 4.1 的表地址不同，代码以 4.0 的地址为准，并为 4.1 建立了地址映射。本仓库不包含 Sony 的程序或数据。
 

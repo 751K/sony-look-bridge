@@ -315,7 +315,7 @@ def main():
     img = decode(a.arw, a.look, output=a.color_space,
                  nr=False if a.no_nr else None, dro=False if a.no_dro else None,
                  marble=False if a.no_marble else None, detail=not a.no_detail,
-                 lens=not a.no_lens, sscs=not a.no_sscs, pad=a.pad, strip=a.strip, verbose=True,
+                 lens=not a.no_lens, sscs=not a.no_sscs, highlights=a.highlights, pad=a.pad, strip=a.strip, verbose=True,
                  )
     print(img.shape, img.dtype, int(img.min()), int(img.max()))
     if a.out:

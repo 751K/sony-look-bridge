@@ -12,7 +12,7 @@ Sony Creative Look 可以视为一个逐像素映射 *f*：输入是白平衡后
 相机 RGB ── E ──▶ 配置文件 f ∘ E⁻¹ ──▶ f(相机 RGB)
 ```
 
-*f* 由外观链的逐像素阶段组成：SSCS、LinearMatrix16、MainGamma、RGB2YCC、AreaComp、ChromaSuppress、YGamma、YCC2RGB，以及 BW 与 SE 的 Effect。降噪、去马赛克、DRO、锐化和 Marble 等空间处理不进入配置，由宿主软件完成。配置按相机的默认外观参数生成：IN、SH、FL2、FL3 的褪色分别为 3、6、1、1，其余滑块为 0。
+*f* 由外观链的逐像素阶段组成：LinearMatrix16、MainGamma、RGB2YCC、AreaComp、YGamma、YCC2RGB，以及 BW 与 SE 的 Effect。Edit 在这一段还运行 SSCS 与 ChromaSuppress，两者在亮区把颜色拉向中性；相机直出不做这两步，配置与相机一致，也不包含它们。在色卡曝光包围中，包含这两步时 +2 EV 与相机 HEIF 相差 1.93 ΔE2000，去掉后为 0.43；在 7 张实拍照片与机内嵌入 JPEG 的对照中，受这两步影响的像素有 6 张误差下降（由 2.0–4.7 降至 0.6–2.2），1 张舞台灯光照片由 0.94 升至 1.04（详见 [解码管线](pipeline.md) §10.3）。降噪、去马赛克、DRO、锐化和 Marble 等空间处理不进入配置，由宿主软件完成。配置按相机的默认外观参数生成：IN、SH、FL2、FL3 的褪色分别为 3、6、1、1，其余滑块为 0。
 
 下图显示相机 RGB 经中性显影、ST 与 FL2 后的颜色分布：
 
@@ -53,11 +53,11 @@ HueSatMap 逐格拟合色相偏移、饱和度缩放和亮度缩放，目标为�
 
 ### 其他机型
 
-各机型包按同一流程生成，外观参数与 SSCS 参数取自各机型的样张。α7 V、α7R VI、FX2 与 RX1R III 包含 12 种原生外观；其余具备 Creative Look 的机型包含 10 种原生外观，FL2 与 FL3 从 α7 V 移植：相机 RGB 先经该机型的 SSCS，再按 Adobe Standard 的 D65 ForwardMatrix 换算到 α7 V 的相机 RGB，之后按 α7 V 的外观渲染。
+各机型包按同一流程生成，外观参数取自各机型的样张。α7 V、α7R VI、FX2 与 RX1R III 包含 12 种原生外观；其余具备 Creative Look 的机型包含 10 种原生外观，FL2 与 FL3 从 α7 V 移植：相机 RGB 按 Adobe Standard 的 D65 ForwardMatrix 换算到 α7 V 的相机 RGB，之后按 α7 V 的外观渲染。
 
 α7R III 早于 Creative Look，机内只有 Creative Style。它的 12 种外观全部按上述方法从 α7 V 移植，机内的 Creative Style 参数不使用；因此其配置呈现的是 α7 V 的外观，而不是 α7R III 机内的颜色。
 
-各机型都沿用 α7 V 的宿主输入标定。底座 DCP 使用各自的 Adobe Standard 矩阵，DxO 的高光模型使用样张的拍摄白平衡。α7S III 与 FX3 的样张 SSCS 权重为无效值 255，生成时改用默认权重 32/64/32。相机的饱和度设置会缩放 ARW 中所有外观的 RGB2YCC 增益，因此样张若调过饱和度，生成时先按 MakerNote 记录的饱和度还原增益；α7 IV 的样张为 −3，α7C II 的样张为 +1，还原前两者的配置与饱和度 0 的结果平均相差 1.7–2.7 与 0.4–0.9 ΔE2000。
+各机型都沿用 α7 V 的宿主输入标定。底座 DCP 使用各自的 Adobe Standard 矩阵，DxO 的高光模型使用样张的拍摄白平衡。相机的饱和度设置会缩放 ARW 中所有外观的 RGB2YCC 增益，因此样张若调过饱和度，生成时先按 MakerNote 记录的饱和度还原增益；α7 IV 的样张为 −3，α7C II 的样张为 +1，还原前两者的配置与饱和度 0 的结果平均相差 1.7–2.7 与 0.4–0.9 ΔE2000。
 
 ## 验证
 
@@ -102,7 +102,7 @@ Edit 打开未保存的 ARW 时，FL2 与 FL3 的褪色为 0，而相机的默�
 | Capture One | 0.24 | 0.58 |
 | Camera Raw | 0.44 | 0.49 |
 
-导出哈希、几何配准和未取整的结果记录在 `images/compare_ST.measurements.json`。剩余误差主要来自宿主自身的去马赛克、锐化和高光处理。SSCS 显著降低了亮区的色度误差：加入 SSCS 后，约 5% 最亮区域的色度误差在 Capture One 中由 0.64 降至 0.16，在 Camera Raw 中由 0.61 降至 0.33。
+导出哈希、几何配准和未取整的结果记录在 `images/compare_ST.measurements.json`。剩余误差主要来自宿主自身的去马赛克、锐化和高光处理。表中结果测量时，配置包含 SSCS 与 ChromaSuppress，与 Edit 相同。配置现按相机直出去掉这两步，亮区因此有意偏离 Edit：用解码器估算，DSC03591 整幅的平均色度差变化约 0.07，约 5% 最亮区域约 1.3。
 
 FL2 与 FL3 的宿主导出早期也做过对照，8 位 RGB MAE 在 Capture One 中分别为 1.05 与 1.21，在 Camera Raw 中为 1.15 与 1.27（ST 为 1.17 与 1.27）。其余外观没有宿主导出对照。α7C II 另在 Camera Raw 中验证过 ST 与 FL2。
 

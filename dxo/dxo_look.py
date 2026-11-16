@@ -37,17 +37,19 @@ def main():
     ap.add_argument("--looks", default=",".join(C.NAMES))
     ap.add_argument("--eval", action="store_true")
     ap.add_argument("--write", action="store_true")
-    ap.add_argument("--no-sscs", action="store_true")
+    ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],
+                    help="camera (default): leave out SSCS and ChromaSuppress, as the camera's own JPEG does; edit: keep both, as Imaging Edge Edit")
     ap.add_argument("--out", help="output folder (default profiles/dxo)")
     a = ap.parse_args()
     out = Path(a.out) if a.out else P.OUT
     looks = R.load_looks(a.arw, neutral=True)
-    sscs = None if a.no_sscs else SC.params_from_arw(a.arw)
+    edit = a.highlights == "edit"
+    sscs = SC.params_from_arw(a.arw) if edit else None
     lin = np.minimum(R.front_end_sony(a.arw, 4), D.CLIP) if a.eval else None
     if a.write:
         out.mkdir(parents=True, exist_ok=True)
     for name in a.looks.split(","):
-        look = R.Look(name, looks, sscs=sscs)
+        look = R.Look(name, looks, sscs=sscs, chroma_suppress=edit)
         tab = build(look, a.grid)
         msg = f"{C.NAMES[name]:4s}"
         if a.eval:

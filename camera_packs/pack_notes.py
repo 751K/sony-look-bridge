@@ -16,10 +16,6 @@ DEFAULT_VALIDATION = (
     "DxO 的高光模型使用样张的拍摄白平衡。软件输入响应和默认褪色量沿用 α7 V 模型。"
     "软件内导入和实拍色差待验证。"
 )
-SSCS_VALIDATION = (
-    "样张的 SSCS 权重标签四项均为 255，生成时采用默认权重 32/64/32，"
-    "高光色彩待用 Sony Edit 导出验证。"
-)
 
 
 def render_note(stem: str, model: str, prefix: str, group: str, single=("BW",)) -> str:
@@ -46,8 +42,6 @@ def render_note(stem: str, model: str, prefix: str, group: str, single=("BW",)) 
                 "换算相机 RGB，褪色量设为 1。"
             )
     validation = note.get("validation", DEFAULT_VALIDATION)
-    if note.get("sscs_warning"):
-        validation += "\n\n" + SSCS_VALIDATION
     values = {
         "title": title,
         "intro": intro,

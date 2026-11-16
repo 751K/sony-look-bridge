@@ -215,8 +215,8 @@ def main():
     ap.add_argument("--grid", type=int, default=65)
     ap.add_argument("--looks", default=",".join(NAMES))
     ap.add_argument("--out", default=str(HERE.parent / "profiles" / "capture_one"))
-    ap.add_argument("--no-sscs", action="store_true",
-                    help="leave out Sony's SSCS stage (bright, saturated colours towards luma; in since v1.1.0)")
+    ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],
+                    help="camera (default): leave out SSCS and ChromaSuppress, as the camera's own JPEG does; edit: keep both, as Imaging Edge Edit")
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     if a.probes:
@@ -228,9 +228,10 @@ def main():
         ap.error("ARW required (or --probes)")
     looks = R.load_looks(a.arw, neutral=True)
     import sony_sscs as SC
-    sscs = None if a.no_sscs else SC.params_from_arw(a.arw)
+    edit = a.highlights == "edit"
+    sscs = SC.params_from_arw(a.arw) if edit else None
     for name in a.looks.split(","):
-        look = R.Look(name, looks, sscs=sscs)
+        look = R.Look(name, looks, sscs=sscs, chroma_suppress=edit)
         lab = build_clut(look, a.grid)
         fn = out / f"SonyA7M5-Look-{NAMES[name]}.icc"
         write_icc(fn, f"SonyA7M5 Look {NAMES[name]}", lab)

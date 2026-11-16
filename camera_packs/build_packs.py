@@ -136,24 +136,27 @@ class Source:
         return C.look_srgb(self.look, lin if self.pre is None else self.pre(lin))
 
 
-def warm_differs(looks, name, sscs):
+def warm_differs(looks, name, sscs, edit=False):
     """True when the warm and daylight weights render this look differently (False for BW)."""
     x = np.linspace(0, 1, 9)
     lin = np.stack(np.meshgrid(x, x, x, indexing="ij"), -1).reshape(-1, 3) ** 2.2 * 12000
-    out = [C.look_srgb(R.Look(name, looks, sscs=sscs, ycc_weights=w), lin) for w in (DAYLIGHT, WARM)]
+    out = [C.look_srgb(R.Look(name, looks, sscs=sscs, ycc_weights=w, chroma_suppress=edit), lin)
+           for w in (DAYLIGHT, WARM)]
     return not np.array_equal(out[0], out[1])
 
 
-def sources(arw, model, a7m5, weights, warm_only=False):
+def sources(arw, model, a7m5, weights, warm_only=False, highlights="camera"):
     """Look sources of one camera.  warm_only drops the looks whose warm variant renders the same
-    as the daylight one."""
-    sscs = sscs_params(arw)
+    as the daylight one.  highlights "camera" leaves out SSCS and ChromaSuppress (the camera's own
+    JPEG has neither); "edit" keeps both as Imaging Edge Edit does."""
+    edit = highlights == "edit"
+    sscs = sscs_params(arw) if edit else None
     if model in PORT_ALL:
         native, ported = {}, tuple(C.NAMES)
     else:
         looks = R.load_looks(arw, neutral=True)
-        native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights)) for n in C.NAMES
-                  if n in looks and not (warm_only and not warm_differs(looks, n, sscs))}
+        native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights, chroma_suppress=edit))
+                  for n in C.NAMES if n in looks and not (warm_only and not warm_differs(looks, n, sscs, edit))}
         if all(n in looks for n in PORTED):
             return native
         ported = PORTED
@@ -162,13 +165,13 @@ def sources(arw, model, a7m5, weights, warm_only=False):
     m5 = R.load_looks(a7m5, neutral=True)
 
     def pre(lin):
-        s = np.stack(SC.sscs_float(lin[..., 0], lin[..., 1], lin[..., 2], sscs), -1)
+        s = lin if sscs is None else np.stack(SC.sscs_float(lin[..., 0], lin[..., 1], lin[..., 2], sscs), -1)
         return s @ m.T
 
     for n in ported:
-        if warm_only and not warm_differs(m5, n, None):
+        if warm_only and not warm_differs(m5, n, None, edit):
             continue
-        native[n] = Source(R.Look(n, m5, sscs=None, ycc_weights=weights), pre)
+        native[n] = Source(R.Look(n, m5, sscs=None, ycc_weights=weights, chroma_suppress=edit), pre)
     return native
 
 
@@ -182,7 +185,7 @@ def tables(src):
     return acr, c1, dxo
 
 
-def build(cam, samples, out, as_shot=False):
+def build(cam, samples, out, as_shot=False, highlights="camera"):
     stem, prefix, model, group, sample, _ = cam
     arw = str(samples / sample)
     pack = out / f"{stem}-Creative-Looks"
@@ -202,7 +205,8 @@ def build(cam, samples, out, as_shot=False):
         variants = [("", None, False)] if as_shot else [("", DAYLIGHT, False), (" Warm", WARM, True)]
         srcs, acrs = {}, {}
         for suffix, weights, warm_only in variants:
-            for name, src in sources(arw, model, str(samples / A7M5_SAMPLE), weights, warm_only).items():
+            for name, src in sources(arw, model, str(samples / A7M5_SAMPLE), weights, warm_only,
+                                     highlights).items():
                 short = C.NAMES[name] + suffix
                 acr, c1, dxo = tables(src)
                 srcs[name, suffix], acrs[name, suffix] = src, acr
@@ -253,12 +257,12 @@ def zip_pack(pack):
     return path
 
 
-def build_logged(cam, samples, out, as_shot):
+def build_logged(cam, samples, out, as_shot, highlights="camera"):
     """build() in a worker process; returns (zip path, captured log) so logs do not interleave."""
     log = io.StringIO()
     with contextlib.redirect_stdout(log):
         print(cam[0], flush=True)
-        path = build(cam, samples, out, as_shot)
+        path = build(cam, samples, out, as_shot, highlights)
     return path, log.getvalue()
 
 
@@ -271,6 +275,8 @@ def main():
                     help="one variant per look with each sample's own RGB2YCC blend weights")
     ap.add_argument("--jobs", type=int, default=min(6, os.cpu_count() or 1),
                     help="worker processes, one camera each (default: min(6, CPU count))")
+    ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],
+                    help="camera (default): leave out SSCS and ChromaSuppress, as the camera's own JPEG does; edit: keep both, as Imaging Edge Edit")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     want = set(a.cameras.split(",")) if a.cameras else None
@@ -279,10 +285,10 @@ def main():
     if a.jobs <= 1:
         for cam in cams:
             print(cam[0], flush=True)
-            zips.append(build(cam, a.samples, a.out, a.as_shot))
+            zips.append(build(cam, a.samples, a.out, a.as_shot, a.highlights))
     else:
         with ProcessPoolExecutor(max_workers=a.jobs) as pool:
-            futs = [pool.submit(build_logged, cam, a.samples, a.out, a.as_shot) for cam in cams]
+            futs = [pool.submit(build_logged, cam, a.samples, a.out, a.as_shot, a.highlights) for cam in cams]
             for f in as_completed(futs):
                 path, log = f.result()
                 print(log, end="", flush=True)
