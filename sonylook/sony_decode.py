@@ -179,7 +179,7 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
     # --- DRO / Vatr (dev+0x238 / 0x8022) --------------------------------------
     t = time.perf_counter()
     if dro is None:
-        dro = int(st.get(DS.DRO_ON, 0)) == 1
+        dro = DS.dro_on(st)
     if dro:
         pts = DRO.curve_points_from_arw(arw)
         if pts is None:
