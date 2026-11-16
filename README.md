@@ -2,7 +2,7 @@
 
 [中文](README.zh-CN.md) | English
 
-This project reproduces the photo development and Creative Looks of Sony Imaging Edge Edit in Python and turns them into profiles and LUTs for post-processing software, so that RAW files look as they do in the camera in Capture One, Camera Raw / Lightroom, DxO PhotoLab and DaVinci Resolve.
+This project reproduces the camera's photo development and Creative Looks in Python, stage by stage, using the development pipeline of Sony Imaging Edge Edit as the blueprint and the camera's own output as the reference wherever the two differ. It turns them into profiles and LUTs for post-processing software, so that RAW files look as they do in the camera in Capture One, Camera Raw / Lightroom, DxO PhotoLab and DaVinci Resolve.
 
 - **Photo**: Creative Look profiles for 17 Sony cameras, each in Capture One, Camera Raw / Lightroom and DxO PhotoLab formats.
 - **Video**: S-Log3 LUTs for the α7 V, 12 looks × 2 input gamuts × 6 white-balance variants, plus DaVinci Resolve DCTLs with a white-balance control.
@@ -127,7 +127,7 @@ See [Photo profiles § Limitations](docs/photo.md#局限) for details.
 
 <img title="" src="images/edit-color-pipeline-en.svg" alt="Per-pixel colour pipeline in Sony Imaging Edge Edit" width="100%" />
 
-This repository reproduces Edit's processing stage by stage and compares each stage bit for bit with Edit's own functions. `sonylook/sony_decode.py` decodes a complete image with the development settings stored in the ARW. Only the Python implementation is kept here; the complete decoder with Rust and Metal acceleration is maintained in the separate [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) repository.
+This repository reproduces the processing stage by stage with Edit as the blueprint and compares each stage bit for bit with Edit's own functions; the output as a whole is then checked against the camera's own HEIF and JPEG. Where the two differ, the camera wins: the camera skips SSCS and ChromaSuppress, so the profiles and the decoder leave them out by default. `sonylook/sony_decode.py` decodes a complete image with the development settings stored in the ARW. Only the Python implementation is kept here; the complete decoder with Rust and Metal acceleration is maintained in the separate [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) repository.
 
 The documentation is written in Chinese:
 

@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-本项目用 Python 复现了 Sony Imaging Edge Edit 的照片显影与 Creative Look，并将其转换为后期软件可用的配置文件和 LUT，使 RAW 在 Capture One、Camera Raw / Lightroom、DxO PhotoLab 和 DaVinci Resolve 中呈现与相机一致的颜色。
+本项目以 Sony Imaging Edge Edit 的显影管线为蓝本，用 Python 逐阶段复现相机的照片显影与 Creative Look，与相机直出不一致之处以相机直出为准；再将其转换为后期软件可用的配置文件和 LUT，使 RAW 在 Capture One、Camera Raw / Lightroom、DxO PhotoLab 和 DaVinci Resolve 中呈现与相机一致的颜色。
 
 - **照片**：17 款 Sony 机型的 Creative Look 配置，每款都提供 Capture One、Camera Raw / Lightroom 与 DxO PhotoLab 三种格式。
 - **视频**：α7 V 的 S-Log3 LUT，12 种外观 × 2 种输入色域 × 6 种色温版本，另附可按白平衡调节的 DaVinci Resolve DCTL。
@@ -128,7 +128,7 @@
 
 <img title="" src="images/edit-color-pipeline-zh.svg" alt="Sony Imaging Edge Edit 的逐像素色彩管线" width="100%" />
 
-本仓库逐阶段复现了 Edit 的处理管线，并与 Edit 的原始函数逐位比较。`sonylook/sony_decode.py` 可以按 ARW 中保存的显影设置解码出完整图像。本仓库只保留 Python 实现；带 Rust 与 Metal 加速的完整解码器在独立的 [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) 仓库中维护。
+本仓库以 Edit 的处理管线为蓝本逐阶段复现，各阶段与 Edit 的原始函数逐位比较；整体输出再以相机直出的 HEIF 与 JPEG 为参照验证。两者不一致时按相机处理：例如相机直出不做 SSCS 与 ChromaSuppress，配置与解码器默认也不包含这两步。`sonylook/sony_decode.py` 可以按 ARW 中保存的显影设置解码出完整图像。本仓库只保留 Python 实现；带 Rust 与 Metal 加速的完整解码器在独立的 [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) 仓库中维护。
 
 | 文档 | 内容 |
 | --- | --- |
