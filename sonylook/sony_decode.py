@@ -71,7 +71,7 @@ def _sr2_tags(arw):
 
 
 def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble=None,
-           detail=True, lens=True, sscs=True, highlights="camera", pad=32, strip=512, verbose=False,
+           detail=True, lens=True, sscs=True, highlights="camera", dro_model="camera", pad=32, strip=512, verbose=False,
            ):
     """Decode an ARW to the exported image (H, W, 3) uint16 0..16383.
 
@@ -85,6 +85,10 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
     highlights: "camera" (default) skips SSCS and ChromaSuppress, as the camera's own JPEG/HEIF
             does (2026-11-16 chart bracket: -3..+3 EV within 0.43 ΔE of the HEIF, against 1.93 at
             +2 EV with them); "edit" runs both, bit-exact to Edit's export.  "camera" overrides sscs.
+    dro_model: "camera" (default) builds the DRO grid as the camera's own HEIFs imply (sony_dro.MODELS:
+            luma samples, 1-EV bins, wider range kernel; Lv1-Lv5 on a chart and three room scenes about
+            half the error of Edit's grid); "edit" is Edit's grid, bit-exact.  Both read the whole
+            sensor buffer, as Edit does, not the decoder rect.
     nr/dro/marble/lens/sscs: None = follow the develop settings: Edit's saved session
             when present, else the values Edit starts from for an unsaved ARW
             (develop_settings.camera_defaults).  SSCS always runs unless disabled.  detail: True/False (or
@@ -158,7 +162,7 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
     x0, y0, x1, y1 = DP.crop_rect(arw)
     if (x0 | y0) & 1:
         raise ValueError("odd decoder-rect origin breaks the RGGB phase")
-    raw_crop = raw[y0:y1, x0:x1]              # decoder rect, for the DRO grid
+    raw_dro = raw                             # whole sensor buffer, for the DRO grid (as Edit)
     Hr, Wr = raw.shape
     ex0, ey0 = max(x0 - pad, 0), max(y0 - pad, 0)
     ex1, ey1 = min(x1 + pad, Wr), min(y1 + pad, Hr)
@@ -188,7 +192,7 @@ def decode(arw, look=None, *, output="srgb", raw=None, nr=None, dro=None, marble
         if pts is None:
             raise NotImplementedError("DRO on but the ARW has no camera curve (0x781b/0x781c)")
         dro_black = (black[0], black[1], black[3])
-        G = DRO.build_grid(raw_crop, *pts, black=dro_black)
+        G = DRO.build_grid(raw_dro, *pts, black=dro_black, model=dro_model)
         H, W = planes[0].shape
         out = [np.empty((H, W), np.uint16) for _ in range(3)]
         for ya in range(0, H, DRO_STRIP):
@@ -309,13 +313,15 @@ def main():
     ap.add_argument("--no-sscs", action="store_true")
     ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],
                     help="camera: no SSCS / ChromaSuppress, as the camera's JPEG (default); edit: both, as Edit")
+    ap.add_argument("--dro-model", default="camera", choices=["camera", "edit"],
+                    help="DRO grid: camera (default, fitted to the camera's HEIFs) or edit (bit-exact to Edit)")
     ap.add_argument("--pad", type=int, default=32, help="expand the decoder rect by N px of raw margin")
     ap.add_argument("--strip", type=int, default=512, help="row-band height for the render (0 = whole image)")
     a = ap.parse_args()
     img = decode(a.arw, a.look, output=a.color_space,
                  nr=False if a.no_nr else None, dro=False if a.no_dro else None,
                  marble=False if a.no_marble else None, detail=not a.no_detail,
-                 lens=not a.no_lens, sscs=not a.no_sscs, highlights=a.highlights, pad=a.pad, strip=a.strip, verbose=True,
+                 lens=not a.no_lens, sscs=not a.no_sscs, highlights=a.highlights, dro_model=a.dro_model, pad=a.pad, strip=a.strip, verbose=True,
                  )
     print(img.shape, img.dtype, int(img.min()), int(img.max()))
     if a.out:
