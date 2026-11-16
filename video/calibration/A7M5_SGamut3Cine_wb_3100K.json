@@ -1,0 +1,48 @@
+{
+  "version": 4,
+  "gamut": "SGamut3Cine",
+  "matrix": [
+    [
+      0.9387506032909073,
+      0.06916363807597407,
+      -0.007914241366881436
+    ],
+    [
+      0.02031290945430155,
+      1.0387931588015245,
+      -0.05910606825582587
+    ],
+    [
+      -0.0440183263036119,
+      0.28399845770547144,
+      0.7600198685981404
+    ]
+  ],
+  "matrix_meaning": "SGamut3Cine linear (S-Log3 decoded) -> white-balanced A7M5 camera RGB, normalised so equal RGB maps to equal RGB",
+  "sony_scale": 5203.2,
+  "sony_scale_meaning": "carried over from A7M5_SGamut3Cine_sensor_matrix.json (screen chart and night pairs); not re-measured here",
+  "source": {
+    "chart": "ColorChecker Passport Photo 2: Classic page (24), left page saturated (7) and neutral (7) columns",
+    "light": "one lamp, fixed; photo and clip shot back to back",
+    "white_balance": "ColorTemp 3100K in both modes",
+    "photo": "DSC06897.ARW",
+    "clip": "C2713.MP4",
+    "clip_white_balance_K": 3100,
+    "camera_rgb2ycc_weights_at_this_white_balance": [
+      1024,
+      0,
+      0,
+      0
+    ]
+  },
+  "white_balance_difference": [
+    0.998646893370765,
+    1.0033219321273072,
+    0.9980311745019277
+  ],
+  "patches_used": 38,
+  "fit_relative_error": {
+    "mean": 0.007674217349286136,
+    "p95": 0.029171011634394877
+  }
+}

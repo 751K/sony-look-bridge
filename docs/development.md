@@ -63,7 +63,7 @@ python3 video/make_dctl.py DIR
 | --- | --- |
 | `--looks ST,FL2` | 选择外观；默认全部 12 种 |
 | `--gamuts SGamut3,SGamut3Cine` | 选择输入色域 |
-| `--variants Daylight,4200K,Warm` | 选择色温版本；默认三套 |
+| `--variants 2500K,4300K,...` | 选择色温版本；默认六套（2500K、3100K、4300K、4900K、5300K、7500K） |
 | `--exposure -1.667` | LUT 输入的曝光补偿；默认按素材测光 +1⅔ 档设计 |
 | `--sensor-matrix PATH` | 为所有版本指定同一个标定文件，代替各版本的色卡标定 |
 | `--sony-scale VALUE` | 指定照片端的 Sony 原生刻度 |

@@ -5,7 +5,7 @@
 本项目用 Python 复现了 Sony Imaging Edge Edit 的照片显影与 Creative Look，并将其转换为后期软件可用的配置文件和 LUT，使 RAW 在 Capture One、Camera Raw / Lightroom、DxO PhotoLab 和 DaVinci Resolve 中呈现与相机一致的颜色。
 
 - **照片**：17 款 Sony 机型的 Creative Look 配置，每款都提供 Capture One、Camera Raw / Lightroom 与 DxO PhotoLab 三种格式。
-- **视频**：α7 V 的 S-Log3 LUT，12 种外观 × 2 种输入色域 × 3 种色温版本，另附可按白平衡调节的 DaVinci Resolve DCTL。
+- **视频**：α7 V 的 S-Log3 LUT，12 种外观 × 2 种输入色域 × 6 种色温版本，另附可按白平衡调节的 DaVinci Resolve DCTL。
 
 相关介绍：[Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube（英文）](https://youtu.be/LeK9HhhYosQ)
 
@@ -83,7 +83,7 @@
 - 在 Capture One 与 DxO PhotoLab 中，约 4700K 以下拍摄的照片使用暖光版，其余使用日光版。
 - BW 在任何白平衡下结果相同，只有一个版本；α7 V 的 SE 也是如此。
 
-视频 LUT 同样按拍摄白平衡分为日光、4200K 和暖光三套；DaVinci Resolve 的 DCTL 可以在三套之间连续调节。
+视频 LUT 按拍摄白平衡分为 2500K 至 7500K 的六套；DaVinci Resolve 的 DCTL 可以在六套之间连续调节。
 
 ## 安装
 

@@ -5,7 +5,7 @@
 This project reproduces the photo development and Creative Looks of Sony Imaging Edge Edit in Python and turns them into profiles and LUTs for post-processing software, so that RAW files look as they do in the camera in Capture One, Camera Raw / Lightroom, DxO PhotoLab and DaVinci Resolve.
 
 - **Photo**: Creative Look profiles for 17 Sony cameras, each in Capture One, Camera Raw / Lightroom and DxO PhotoLab formats.
-- **Video**: S-Log3 LUTs for the α7 V, 12 looks × 2 input gamuts × 3 white-balance variants, plus DaVinci Resolve DCTLs with a white-balance control.
+- **Video**: S-Log3 LUTs for the α7 V, 12 looks × 2 input gamuts × 6 white-balance variants, plus DaVinci Resolve DCTLs with a white-balance control.
 
 Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube (English)](https://youtu.be/LeK9HhhYosQ)
 
@@ -82,7 +82,7 @@ The camera changes a look's colours with the as-shot white balance: it uses the 
 - In Capture One and DxO PhotoLab, use Warm for photos shot below about 4700K and Daylight otherwise.
 - BW renders the same at every white balance and has a single version; so does SE on the α7 V.
 
-The video LUTs are likewise split into daylight, 4200K and warm sets by the white balance of the footage; the DaVinci Resolve DCTLs blend continuously between the three.
+The video LUTs are split into six sets from 2500K to 7500K by the white balance of the footage; the DaVinci Resolve DCTLs blend continuously between them.
 
 ## Installation
 

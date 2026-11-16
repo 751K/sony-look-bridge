@@ -2,11 +2,12 @@
 """Build A7M5 S-Log3 / S-Gamut3(.Cine) -> Creative Look -> Rec.709 gamma 2.4 LUTs.
 
 Video is mapped back to white-balanced camera RGB with a measured sensor matrix (calibration/) and
-then runs through the photo look chain.  Both depend on the white balance, so the LUTs come in three
-variants, each with the ColorChecker matrix fitted at its light and the camera's look state there:
-  Daylight (no suffix)  6500K matrix, RGB2YCC / LinearMatrix16 weights 0 1024 0 0
-  4200K    (-4200K)     4200K matrix, weights 644 380 0 0 (the camera's at that light)
-  Warm     (-Warm)      2600K matrix, weights 1024 0 0 0 (warm LinearMatrix16 tables)
+then runs through the photo look chain.  Both depend on the clip's white balance: the matrix changes
+non-monotonically with it, and the photo look blends its warm and daylight states.  The LUTs come in
+six variants, one per anchor white balance (2500, 3100, 4300, 4900, 5300 and 7500K), each with the
+matrix fitted on a chart clip and photo shot back to back at that Kelvin setting
+(A7M5_SGamut3Cine_wb_<K>K.json) and the camera's photo weights there (0x7848 of that photo).
+make_dctl.py blends neighbouring variants by the clip's white balance.
 
 usage: video_look.py A7M5.ARW --write --eval
 """
@@ -28,13 +29,13 @@ import sony_render as R  # noqa: E402
 import sony_sscs as SC  # noqa: E402
 import video_color as V  # noqa: E402
 
-CALIBRATION = HERE / "calibration" / "A7M5_SGamut3Cine_chart_6500K.json"
+# Anchor white balances (Kelvin) and the camera's RGB2YCC / LinearMatrix16 weights there.
+ANCHORS = {2500: (1024, 0, 0, 0), 3100: (1024, 0, 0, 0), 4300: (844, 180, 0, 0),
+           4900: (312, 712, 0, 0), 5300: (4, 1020, 0, 0), 7500: (0, 1024, 0, 0)}
+CALIBRATION = HERE / "calibration" / "A7M5_SGamut3Cine_wb_5300K.json"
 # variant: (file-name suffix, calibration file, RGB2YCC / LinearMatrix16 blend weights)
-VARIANTS = {
-    "Daylight": ("", HERE / "calibration" / "A7M5_SGamut3Cine_chart_6500K.json", (0, 1024, 0, 0)),
-    "4200K": ("-4200K", HERE / "calibration" / "A7M5_SGamut3Cine_chart_4200K.json", (644, 380, 0, 0)),
-    "Warm": ("-Warm", HERE / "calibration" / "A7M5_SGamut3Cine_chart_2600K.json", (1024, 0, 0, 0)),
-}
+VARIANTS = {f"{k}K": (f"-{k}K", HERE / "calibration" / f"A7M5_SGamut3Cine_wb_{k}K.json", w)
+            for k, w in ANCHORS.items()}
 # Default exposure: S-Log3 shot at +1 2/3 EV over the meter.
 EXPOSURE = -1.667
 # Sony's hue-index luminance weights (LM16 hue calculation), used for camera-space gamut handling.
@@ -249,7 +250,7 @@ def main():
                 if a.write:
                     path = a.out / filename
                     write_cube(path, table, f"Sony A7M5 S-Log3 {gamut} {short} to Rec709 Gamma 2.4",
-                               f"{variant} variant; chart sensor matrix; photo look chain on camera RGB")
+                               f"{variant} variant; chart sensor matrix at this white balance; photo look chain on camera RGB")
                     entry["sha256"] = sha256(path)
                 report["files"].append(entry)
                 print(filename + (f'  MAE {entry["evaluation"]["mae"]:.3f}' if a.eval else ""), flush=True)

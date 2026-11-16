@@ -2,7 +2,7 @@
 """Build every release asset into OUT_DIR: the camera packs, the α7 V video LUT pack and SHA256SUMS.txt.
 
   1. build_packs.py SAMPLES_DIR OUT_DIR                 -> Sony-<camera>-Creative-Looks.zip
-  2. video/video_look.py (α7 V sample) --write --eval  -> Sony-A7-V-SLog3-Video-LUTs/ (72 cubes)
+  2. video/video_look.py (α7 V sample) --write --eval  -> Sony-A7-V-SLog3-Video-LUTs/ (144 cubes)
      video/validate_luts.py, video/make_dctl.py, video/release_readme.txt
                                                         -> Sony-A7-V-SLog3-Video-LUTs.zip
   3. SHA256SUMS.txt over all ZIPs.
