@@ -41,7 +41,7 @@ def main():
     ap.add_argument("--out", help="output folder (default profiles/dxo)")
     a = ap.parse_args()
     out = Path(a.out) if a.out else P.OUT
-    looks = R.load_looks(a.arw)
+    looks = R.load_looks(a.arw, neutral=True)
     sscs = None if a.no_sscs else SC.params_from_arw(a.arw)
     lin = np.minimum(R.front_end_sony(a.arw, 4), D.CLIP) if a.eval else None
     if a.write:

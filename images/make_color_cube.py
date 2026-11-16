@@ -89,7 +89,7 @@ def srgb_to_xyz(code):
 
 def looks(arw):
     """{(look, output_mode): Look}; mode 1 = Edit's Adobe RGB output (sRGB -> Adobe RGB matrix in LM16)."""
-    data = R.load_looks(str(arw))
+    data = R.load_looks(str(arw), neutral=True)
     sscs = SC.params_from_arw(str(arw))
     return {(k, m): R.Look(k, data, sscs=sscs, output_mode=m) for k in ("Standard", "FL2") for m in (0, 1)}
 

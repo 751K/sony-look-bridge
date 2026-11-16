@@ -226,7 +226,7 @@ def main():
         return
     if not a.arw:
         ap.error("ARW required (or --probes)")
-    looks = R.load_looks(a.arw)
+    looks = R.load_looks(a.arw, neutral=True)
     import sony_sscs as SC
     sscs = None if a.no_sscs else SC.params_from_arw(a.arw)
     for name in a.looks.split(","):

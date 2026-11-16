@@ -197,7 +197,7 @@ def main():
         ap.error("unknown look or gamut; gamuts: SGamut3,SGamut3Cine")
     if any(v not in VARIANTS for v in variants):
         ap.error("unknown variant; variants: " + ",".join(VARIANTS))
-    looks = R.load_looks(str(a.arw))
+    looks = R.load_looks(str(a.arw), neutral=True)
     if looks["_main"]["SonyModelID"] != 407:
         ap.error("an A7M5 ARW is required")
     sscs = SC.params_from_arw(a.arw)

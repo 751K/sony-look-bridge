@@ -151,7 +151,7 @@ def sources(arw, model, a7m5, weights, warm_only=False):
     if model in PORT_ALL:
         native, ported = {}, tuple(C.NAMES)
     else:
-        looks = R.load_looks(arw)
+        looks = R.load_looks(arw, neutral=True)
         native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights)) for n in C.NAMES
                   if n in looks and not (warm_only and not warm_differs(looks, n, sscs))}
         if all(n in looks for n in PORTED):
@@ -159,7 +159,7 @@ def sources(arw, model, a7m5, weights, warm_only=False):
         ported = PORTED
     m = np.linalg.inv(fm2("ILCE-7M5")) @ fm2(model)
     m = m / m.sum(1, keepdims=True)
-    m5 = R.load_looks(a7m5)
+    m5 = R.load_looks(a7m5, neutral=True)
 
     def pre(lin):
         s = np.stack(SC.sscs_float(lin[..., 0], lin[..., 1], lin[..., 2], sscs), -1)

@@ -11,7 +11,7 @@ Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) 
 
 ![ColorChecker comparison of the camera HEIF and this repository's decoder at three colour temperatures, with the mean colour difference of every look](images/compare_chart_en.png)
 
-The figure uses a ColorChecker Passport shot with the α7 V at 2600K, 4200K and 6500K. It compares the HEIF written by the camera with this repository's decoder, which uses the camera settings recorded in the ARW. The charts show the ST look: the left half of every patch is the camera HEIF and the right half the decoder, with the three charts brought to the same white-patch brightness. The table gives the mean ΔE2000 over the 50 patches of both pages. FL2 and FL3 are decoded with Edit's default Fade, which differs from the camera's setting, hence the larger difference. See [Photo profiles § Validation](docs/photo.md#验证) for the profiles themselves.
+The figure uses a ColorChecker Passport shot with the α7 V at 2600K, 4200K and 6500K. It compares the HEIF written by the camera with this repository's decoder, which uses the camera settings recorded in the ARW. The charts show the ST look: the left half of every patch is the camera HEIF and the right half the decoder, with the three charts brought to the same white-patch brightness. The table gives the mean ΔE2000 over the 50 patches of both pages. See [Photo profiles § Validation](docs/photo.md#验证) for the profiles themselves.
 
 ## Download
 
