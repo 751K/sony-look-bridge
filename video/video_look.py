@@ -183,6 +183,9 @@ def main():
                          "variant's own chart calibration")
     ap.add_argument("--sony-scale", type=float,
                     help="override the calibration's Sony native value per unit S-Log3 scene reflection")
+    ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],
+                    help="camera (default): leave out SSCS and ChromaSuppress, as the camera's own JPEG does; "
+                         "edit: keep both, as Imaging Edge Edit")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--eval", action="store_true")
     a = ap.parse_args()
@@ -201,7 +204,8 @@ def main():
     looks = R.load_looks(str(a.arw), neutral=True)
     if looks["_main"]["SonyModelID"] != 407:
         ap.error("an A7M5 ARW is required")
-    sscs = SC.params_from_arw(a.arw)
+    edit = a.highlights == "edit"
+    sscs = SC.params_from_arw(a.arw) if edit else None
     report = {
         "camera": "Sony ILCE-7M5", "grid": a.grid,
         "input": "S-Log3, full-code normalized; gamut identified per LUT",
@@ -210,7 +214,7 @@ def main():
         "working_encoding": "ACES2065-1 AP0 linear; Sony gamut conversion with CAT02 D65/D60 adaptation",
         "gamut_handling": "negative camera RGB desaturated to equal RGB at Sony hue-index luminance",
         "calibration": "measured Sony scale at equal photo / S-Log3 metering (ISO-normalised pairs)",
-        "exposure_ev": a.exposure, "sscs": sscs,
+        "exposure_ev": a.exposure, "highlights": a.highlights, "sscs": sscs,
         "source_arw": {"name": a.arw.name, "sha256": sha256(a.arw)},
         "edit_arm64_sha256": R._edit_sha(),
         "generator_sha256": {p.name: sha256(p) for p in (HERE / "video_look.py", HERE / "video_color.py",
@@ -227,7 +231,7 @@ def main():
         sony_scale = a.sony_scale if a.sony_scale is not None else bridge.data.get("sony_scale")
         if sony_scale is None or not 0 < sony_scale < 1e6:
             ap.error("a positive Sony scale is required (calibration sony_scale or --sony-scale)")
-        standard = R.Look("Standard", looks, sscs=sscs, ycc_weights=weights)
+        standard = R.Look("Standard", looks, sscs=sscs, ycc_weights=weights, chroma_suppress=edit)
         scale, limit = calibrate(standard, sony_scale)
         if limit <= 0.9:
             raise ValueError("ST white point must be above the 90% shoulder start")
@@ -237,7 +241,8 @@ def main():
             "sensor_matrix": {"file": calibration.name, "sha256": sha256(calibration),
                               "gamut": bridge.data["gamut"], "matrix": bridge.matrix.tolist()}}
         for name in dict.fromkeys(names[n] for n in requested):
-            look = standard if name == "Standard" else R.Look(name, looks, sscs=sscs, ycc_weights=weights)
+            look = standard if name == "Standard" else R.Look(name, looks, sscs=sscs, ycc_weights=weights,
+                                                              chroma_suppress=edit)
             for gamut in dict.fromkeys(gamuts):
                 short = NAMES[name] + suffix
                 filename = f"SonyA7M5_SLog3_{gamut}_{short}_Rec709_G24_{a.grid}.cube"

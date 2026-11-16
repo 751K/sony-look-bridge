@@ -11,13 +11,13 @@ S-Log3 / S-Gamut3(.Cine)
   → 线性 ACES2065-1（AP0）
   → 实测矩阵：线性 S-Gamut3.Cine → 白平衡后的相机 RGB（按色温版本选用）
   → 曝光调整 → 负值向灰轴收缩 → 高光压缩 → Sony 原生刻度
-  → 照片外观链：SSCS → LinearMatrix16 → MainGamma → RGB2YCC → … → YGamma
+  → 照片外观链：LinearMatrix16 → MainGamma → RGB2YCC → … → YGamma
   → sRGB 解码 → Gamma 2.4 编码
 ```
 
 S-Log3 反函数、色域转换和 CAT02 白点适配采用 [Sony 的 ACES 转换代码](https://github.com/aces-aswf/aces-input-and-colorspaces/blob/main/sony/CSC.Sony.SLog3_SGamut3Cine_to_ACES.ctl)；[Sony 的说明](https://github.com/aces-aswf/aces-input-and-colorspaces/blob/main/sony/README.md)分别列出了两种输入色域。经 ACES 中转与直接做色域转换在数学上等价。
 
-线性 S-Gamut3.Cine 到相机 RGB 的矩阵由同一机位下照片与视频的实测颜色得到，并按灰轴归一化。曝光补偿后，若相机 RGB 的最大通道超过 0.9，三个通道按同一比例压缩高光。12 种外观各生成 S-Gamut3 与 S-Gamut3.Cine 两种输入版本，输出为 Rec.709 / Gamma 2.4。
+线性 S-Gamut3.Cine 到相机 RGB 的矩阵由同一机位下照片与视频的实测颜色得到，并按灰轴归一化。曝光补偿后，若相机 RGB 的最大通道超过 0.9，三个通道按同一比例压缩高光。外观链与照片配置相同，按相机直出不包含 SSCS 与 ChromaSuppress（见[照片配置](photo.md)）；正常曝光的色卡视频上，去掉这两步前后的整条路径误差均为 0.49 ΔE2000，差异只出现在接近饱和的亮色上。12 种外观各生成 S-Gamut3 与 S-Gamut3.Cine 两种输入版本，输出为 Rec.709 / Gamma 2.4。
 
 ## 色温版本
 
@@ -99,7 +99,7 @@ python3 video/sensor_calibration.py fit PHOTO.ARW CLIP.MP4 --out sensor_matrix.j
 
 ## 验证
 
-- **插值误差**：144 个 65³ LUT 相对直接计算的四面体插值误差 MAE 为 0.10–0.27、p99 为 0.36–2.45，单位为 8 位输出码值。灰阶检查要求各通道单调递增；Sepia 检查亮度，允许 1e-4 的舍入误差。`validation.json` 记录了用 `colour-science` 独立读回的结果，以及 ACES 矩阵和两种输入色域的对照。
+- **插值误差**：144 个 65³ LUT 相对直接计算的四面体插值误差 MAE 为 0.10–0.26、p99 为 0.35–2.36，单位为 8 位输出码值。灰阶检查要求各通道单调递增；Sepia 检查亮度，允许 1e-4 的舍入误差。`validation.json` 记录了用 `colour-science` 独立读回的结果，以及 ACES 矩阵和两种输入色域的对照。
 - **色卡**：26 档白平衡下的结果见[随白平衡过渡](#随白平衡过渡)。
 - **S-Gamut3 输入**：矩阵只在 S-Gamut3.Cine 下标定，S-Gamut3 版本经固定的色域换算得到。同一色卡改用 S-Gamut3 在 2500K 至 7500K 每 1000K 各录一段并配拍照片，经六套 LUT 的完整路径与相机 HEIF 的 ΔE2000 平均值为 0.41–0.82；直接在这些 S-Gamut3 视频上拟合矩阵为 0.39–0.80，v4.0.0 为 0.79–3.54。
 - **ISO**：标定都在 ISO 800 下完成。4300K 下以 ISO 800 至 12800 各录一段，快门随 ISO 加快以保持曝光，矩阵与 ISO 800 的差异不超过 0.005；跨过第二档原生 ISO 8000 时也没有变化，2500K 与 7500K 下的 6400 与 8000 同样一致。六套 LUT 的完整路径为 0.50–0.73，随 ISO 略有上升，来自暗部色块的噪声。
