@@ -11,7 +11,7 @@ Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) 
 
 ![ColorChecker comparison of the camera HEIF and this repository's decoder at three colour temperatures, with the mean colour difference of every look](images/compare_chart_en.png)
 
-The figure uses a ColorChecker Passport shot with the α7 V at 2600K, 4200K and 6500K. It compares the HEIF written by the camera with this repository's decoder, which uses the camera settings recorded in the ARW. The charts show the ST look: the left half of every patch is the camera HEIF and the right half the decoder, with the three charts brought to the same white-patch brightness. The table gives the mean ΔE2000 over the 50 patches of both pages. See [Photo profiles § Validation](docs/photo.md#验证) for the profiles themselves.
+The figure uses a ColorChecker Passport shot with the α7 V at 2600K, 4200K and 6500K, with DRO off. It compares the HEIF written by the camera with this repository's decoder, which uses the camera settings recorded in the ARW. The charts show the ST look: the left half of every patch is the camera HEIF and the right half the decoder, with the three charts brought to the same white-patch brightness. The table gives the mean ΔE2000 over the 50 patches of both pages. See [Photo profiles § Validation](docs/photo.md#验证) for the profiles themselves.
 
 ## Download
 
@@ -127,7 +127,7 @@ See [Photo profiles § Limitations](docs/photo.md#局限) for details.
 
 <img title="" src="images/edit-color-pipeline-en.svg" alt="Per-pixel colour pipeline in Sony Imaging Edge Edit" width="100%" />
 
-This repository reproduces the processing stage by stage with Edit as the blueprint and compares each stage bit for bit with Edit's own functions; the output as a whole is then checked against the camera's own HEIF and JPEG. Where the two differ, the camera wins: the camera skips SSCS and ChromaSuppress, so the profiles and the decoder leave them out by default. `sonylook/sony_decode.py` decodes a complete image with the development settings stored in the ARW. Only the Python implementation is kept here; the complete decoder with Rust and Metal acceleration is maintained in the separate [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) repository.
+This repository reproduces the processing stage by stage with Edit as the blueprint and compares each stage bit for bit with Edit's own functions; the output as a whole is then checked against the camera's own HEIF and JPEG. Where the two differ, the camera wins: the camera skips SSCS and ChromaSuppress, so the profiles and the decoder leave them out by default; likewise, the decoder by default estimates DRO's local brightness with a grid fitted to the camera's HEIFs instead of Edit's. `sonylook/sony_decode.py` decodes a complete image with the development settings stored in the ARW. Only the Python implementation is kept here; the complete decoder with Rust and Metal acceleration is maintained in the separate [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) repository.
 
 The documentation is written in Chinese:
 

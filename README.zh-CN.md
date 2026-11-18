@@ -11,7 +11,7 @@
 
 ![相机 HEIF 与本仓库解码器在三种色温下的 ColorChecker 对照，以及各外观的平均色差](images/compare_chart_zh.png)
 
-上图以 α7 V 在 2600K、4200K 与 6500K 下拍摄的 ColorChecker Passport 为例，比较相机直出的 HEIF 与本仓库按 ARW 中的相机设置解码的结果。上方为 ST 外观，每个色块左半为相机 HEIF、右半为解码器输出，三块色卡已按白块统一显示亮度；下表为两页共 50 个色块的平均色差 ΔE2000。各配置的验证见[照片配置 § 验证](docs/photo.md#验证)。
+上图以 α7 V 在 2600K、4200K 与 6500K 下拍摄的 ColorChecker Passport 为例（拍摄时 DRO 关闭），比较相机直出的 HEIF 与本仓库按 ARW 中的相机设置解码的结果。上方为 ST 外观，每个色块左半为相机 HEIF、右半为解码器输出，三块色卡已按白块统一显示亮度；下表为两页共 50 个色块的平均色差 ΔE2000。各配置的验证见[照片配置 § 验证](docs/photo.md#验证)。
 
 ## 下载
 
@@ -128,7 +128,7 @@
 
 <img title="" src="images/edit-color-pipeline-zh.svg" alt="Sony Imaging Edge Edit 的逐像素色彩管线" width="100%" />
 
-本仓库以 Edit 的处理管线为蓝本逐阶段复现，各阶段与 Edit 的原始函数逐位比较；整体输出再以相机直出的 HEIF 与 JPEG 为参照验证。两者不一致时按相机处理：例如相机直出不做 SSCS 与 ChromaSuppress，配置与解码器默认也不包含这两步。`sonylook/sony_decode.py` 可以按 ARW 中保存的显影设置解码出完整图像。本仓库只保留 Python 实现；带 Rust 与 Metal 加速的完整解码器在独立的 [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) 仓库中维护。
+本仓库以 Edit 的处理管线为蓝本逐阶段复现，各阶段与 Edit 的原始函数逐位比较；整体输出再以相机直出的 HEIF 与 JPEG 为参照验证。两者不一致时按相机处理：例如相机直出不做 SSCS 与 ChromaSuppress，配置与解码器默认也不包含这两步；DRO 的局部亮度，解码器默认也改用按相机 HEIF 拟合的网格，而不沿用 Edit 的网格。`sonylook/sony_decode.py` 可以按 ARW 中保存的显影设置解码出完整图像。本仓库只保留 Python 实现；带 Rust 与 Metal 加速的完整解码器在独立的 [sony-arw-decoder](https://github.com/751K/sony-arw-decoder) 仓库中维护。
 
 | 文档 | 内容 |
 | --- | --- |
