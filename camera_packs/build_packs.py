@@ -54,6 +54,7 @@ ROOT = HERE.parent
 for p in ("camera_raw", "capture_one", "dxo", "sonylook"):
     sys.path.insert(0, str(ROOT / p))
 import acr_auto as AUTO  # noqa: E402
+import acr_input as AI  # noqa: E402
 import acr_look as AL  # noqa: E402
 import acr_profiles as A  # noqa: E402
 import c1_look_profile as C  # noqa: E402
@@ -191,6 +192,7 @@ def build(cam, samples, out, as_shot=False, highlights="camera"):
     for d in (acr_dir, c1_dir, dxo_dir):
         d.mkdir(parents=True)
     A.OUT, A.MODEL, A.PREFIX, A.GROUP = acr_dir, f"Sony {model}", prefix, group
+    AI.set_clip(AW.main_tags(arw), model)   # Camera Raw's table input follows this body's front-end gain
     A.BASE_NAME, A.ADOBE_STD = f"{prefix} Linear Base", ADOBE / f"Sony {model} Adobe Standard.dcp"
     A.write_base()
     P.OUT, P.MODEL, P.ADOBE_STD = dxo_dir, f"Sony {model}", A.ADOBE_STD

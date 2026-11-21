@@ -26,14 +26,22 @@ channel. A curve that bends towards 1 too early (T(2) close to 1) clips there.
 The soft colour limit depends on the white balance; the table inverts it at SOFT_LIMIT_WB (4600K), which
 holds within about 0.3 ΔE2000 for highlights from 2600K to 7000K.
 
-BASELINE_EXPOSURE lists the bodies whose Camera Raw BaselineExposure is known; other bodies keep the
-chart calibration of acr_encoding.py on the base without an offset.
+BASELINE_EXPOSURE lists Camera Raw's BaselineExposure per body; the offset is chosen so that BaselineExposure
++ offset is the same for all. CLIP follows each body's front-end gain (set_clip). A body missing from the
+list keeps the chart calibration of acr_encoding.py on a base without an offset.
 """
 import numpy as np
 from scipy.interpolate import CubicSpline
 
-CLIP = 0.515625 * (16383 - 512)            # Sony linear at the green sensor clip
-BASELINE_EXPOSURE = {"ILCE-7M5": 0.35}     # Camera Raw's BaselineExposure (as written into its DNGs)
+CLIP = 0.515625 * (16383 - 512)            # Sony linear at the green sensor clip (α7 V; set_clip per body)
+BASELINE_EXPOSURE = {                      # Camera Raw's BaselineExposure (as written into its DNGs)
+    "ILCE-7M5": 0.35, "ILCE-7M4": 0.35, "ILCE-7CM2": 0.35, "ILCE-7CR": 0.35, "ILCE-7RM5": 0.35,
+    "ILCE-7RM6": 0.35, "ILME-FX2": 0.35, "DSC-RX1RM3": 0.35,
+    "ILCE-9M3": 0.25,
+    "ILCE-1": 0.15, "ILCE-1M2": 0.15, "ILCE-7RM3": 0.15, "ILCE-7SM3": 0.15, "ILME-FX3": 0.15, "ZV-E1": 0.15,
+    "ILCE-6700": 0.10, "ILME-FX30": 0.10, "ZV-E10M2": 0.10,
+}
+WHITE_LEVEL = {"ILME-FX30": 16380, "ZV-E10M2": 16380}    # Camera Raw's DNG white level where it is not 16383
 GAIN_EV = -3.15                            # BaselineExposure + offset + 1: E <= -1 up to log2 s = 2.15 + exposure
 K = 2.0 ** GAIN_EV
 SOFT_LIMIT_WB = np.array([2142, 1024, 1926]) / 1024.0    # Sony WB gains R, G, B at 4600K (α7 V)
@@ -46,13 +54,24 @@ _KNEE = 0.5 / _SLOPE
 _WIDTH = 1.0 - _KNEE
 
 
+def set_clip(main_tags, model=None):
+    """CLIP for a body from its ARW tags: Sony linear = 0x7311 / 32768 * G gain (0x7313) * 0x7809 / 256 / 16
+    * (raw - black) (0x7809 = 256 when absent, as in sony_render), and Camera Raw normalises by its DNG white
+    level (WHITE_LEVEL, else 16383) and the black level 0x7310."""
+    global CLIP
+    t = lambda k: [int(v) for v in str(main_tags[k]).split()]
+    gain = int(main_tags["0x7311"]) / 32768 * t("0x7313")[1] * int(main_tags.get("0x7809", 256)) / 256 * 0.0625
+    CLIP = gain * (WHITE_LEVEL.get(model, 16383) - t("0x7310")[1])
+    return CLIP
+
+
 def supported(model):
     return model in BASELINE_EXPOSURE
 
 
 def offset(model):
     """BaselineExposureOffset for the base DCP of this body."""
-    return GAIN_EV - 1.0 - BASELINE_EXPOSURE[model]
+    return round(GAIN_EV - 1.0 - BASELINE_EXPOSURE[model], 6)
 
 
 def _brightness_part(x):
