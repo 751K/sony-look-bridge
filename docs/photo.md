@@ -31,7 +31,7 @@ Sony Creative Look 可以视为一个逐像素映射 *f*：输入是白平衡后
 Camera Raw 的总曝光量为 BaselineExposure 加上最大白平衡倍率的 log2。总量大于 0 时，Exposure2012 按画面自身的亮度统计把它拆成线性增益和高光滚降，外观表的输入因画面而异。底座 DCP 带 BaselineExposureOffset，使 BaselineExposure 与之相加恒为 −4.15（α7 V 的 BaselineExposure 为 0.35，offset 为 −4.5；各机型的 BaselineExposure 为 0.10 至 0.35），2500K 至 10000K 的白平衡下总量都不大于 −1。此时 Camera Raw 走一条固定路径，与画面内容和白平衡均无关：
 
 1. 相机 RGB 转为线性 ProPhoto。超过自身裁切电平 1/4 的通道，会按平方关系被拉向较亮的通道。
-2. 线性增益。相对于 G 通道裁切电平，增益为 2^−3.15。G 通道裁切电平按各机型样张的前端增益、黑电平和 Camera Raw 的白电平（ILME-FX30 与 ZV-E10M2 为 16380，其余为 16383）换算为 Sony 线性值；α7R III 的 ARW 没有 0x7809，前端增益比其他机型低约 3%。
+2. 线性增益。相对于 G 通道裁切电平，增益为 2^−3.15。G 通道裁切电平按各机型样张的前端增益、黑电平和 Camera Raw 的白电平（ILME-FX30 与 ZV-E10M2 为 16380，其余为 16383）换算为 Sony 线性值；α7R III 的 ARW 没有 0x7809，前端增益比其他机型低约 3%。底座 DCP 的 DefaultBlackRender 为 None，Exposure2012 不构建逐通道黑场表，不做自动黑点。
 3. 色调曲线。−1 级亮度曲线（2.2 gamma 编码下的直线段与 Hermite 段之逆）之后接 DCP 的 ProfileToneCurve，以 RGBTone 方式作用：先把最大、最小通道向中间通道拉近，查表后再解回。
 4. 外观表。
 

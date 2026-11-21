@@ -38,7 +38,7 @@ import dcp
 NH, NS = 90, 30
 T1, T2 = 4150.0, 5500.0
 ILL1, ILL2 = 14, 20                     # EXIF LightSource: cool white fluorescent, D55
-ILLUMINANT_K = {17: 2856.0, 21: 6504.0, 20: 5503.0, 23: 5003.0, 24: 3200.0, 14: 4150.0}
+ILLUMINANT_K = {17: 2850.0, 21: 6500.0, 20: 5500.0, 23: 5000.0, 24: 3200.0, 14: 4150.0}   # dng_camera_profile::IlluminantToTemperature
 WHITE = 4000.0                          # Sony linear value of diffuse white
 EXPOSURES = (0.06, 0.15, 0.35, 0.7)     # x WHITE, value (max channel) of the 2D fit samples
 PROPHOTO_TO_XYZ = np.array([[0.7976749, 0.1351917, 0.0313534],
