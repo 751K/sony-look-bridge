@@ -32,6 +32,7 @@ vmax_from_arw(arw).
 """
 import numpy as np
 
+import acr_input
 import dcp
 
 NH, NS = 90, 30
@@ -175,6 +176,6 @@ def write_base(path, model, name, adobe_std, table, direction="warm"):
         ("ProfileHueSatMapDims", 4, [NH, NS, nv]),
         ("ProfileHueSatMapData1", 11, hsm1.reshape(-1)), ("ProfileHueSatMapData2", 11, hsm2.reshape(-1)),
         ("ProfileHueSatMapEncoding", 4, [0]),
-        ("ProfileToneCurve", 11, [0.0, 0.0, 1.0, 1.0]), ("ProfileEmbedPolicy", 4, [0]),
+        *acr_input.base_entries(model), ("ProfileEmbedPolicy", 4, [0]),
         ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "Sony Look Bridge (not an Adobe profile)")])
     return path

@@ -54,7 +54,6 @@ ROOT = HERE.parent
 for p in ("camera_raw", "capture_one", "dxo", "sonylook"):
     sys.path.insert(0, str(ROOT / p))
 import acr_auto as AUTO  # noqa: E402
-import acr_encoding as E  # noqa: E402
 import acr_look as AL  # noqa: E402
 import acr_profiles as A  # noqa: E402
 import c1_look_profile as C  # noqa: E402
@@ -176,7 +175,7 @@ def sources(arw, model, a7m5, weights, warm_only=False, highlights="camera"):
 
 
 def tables(src):
-    acr = AL.srgb_to_prophoto_v(src.srgb(np.minimum(E.inverse(A.grid(64)), E.CLIP)))
+    acr = AL.fit_table(src.srgb, 64)
     c1 = C.srgb_to_lab_d50(src.srgb(C.node_linear(65)))
     dxo = AL.srgb_to_prophoto_v(src.srgb(D.E_inv(P.grid(64))))
     return acr, c1, dxo

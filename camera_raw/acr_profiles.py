@@ -3,7 +3,9 @@
 
 Base: 'SonyA7M5 Linear Base.dcp' - Adobe Standard's ColorMatrix1/2 (white balance stays Adobe's),
 ForwardMatrix = linear ProPhoto -> XYZ D50 (so ACR's working RGB is the white-balanced camera RGB itself),
-identity ProfileToneCurve, DefaultBlackRender = none, no HueSatMap / LookTable.
+DefaultBlackRender = none, no HueSatMap / LookTable. For bodies listed in acr_input.BASELINE_EXPOSURE it also
+carries a BaselineExposureOffset and a stretching ProfileToneCurve (acr_input.py); otherwise the tone curve
+is the identity.
 Looks: XMP 'Look' presets on that base with an RGBTable (ProPhoto primaries, gamma 1.8).
 
 RGBTable binary (crs_table.py for the string form):
@@ -22,6 +24,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import acr_input as I  # noqa: E402
 import crs_table as T  # noqa: E402
 import dcp  # noqa: E402
 
@@ -44,7 +47,7 @@ def write_base():
            ("CalibrationIlluminant1", 3, a["CalibrationIlluminant1"]),
            ("CalibrationIlluminant2", 3, a["CalibrationIlluminant2"]),
            ("ForwardMatrix1", 10, PROPHOTO_TO_XYZ), ("ForwardMatrix2", 10, PROPHOTO_TO_XYZ),
-           ("ProfileToneCurve", 11, [0.0, 0.0, 1.0, 1.0]), ("ProfileEmbedPolicy", 4, [0]),
+           *I.base_entries(MODEL), ("ProfileEmbedPolicy", 4, [0]),
            ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "Sony Look Bridge (not an Adobe profile)")]
     path = OUT / f"{BASE_NAME}.dcp"
     dcp.write(path, ent)

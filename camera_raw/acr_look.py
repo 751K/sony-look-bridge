@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Sony look RGBTables for Camera Raw (on 'SonyA7M5 Linear Base').
 
-Node v (ProPhoto gamma 1.8, the table input) -> Sony linear = acr_encoding.inverse(v) (clamped at sensor
-clip) -> SSCS (sony_sscs, float path) -> verified look chain (pointwise) -> sRGB -> XYZ D50 -> linear ProPhoto -> gamma 1.8.
+Node v (ProPhoto gamma 1.8, the table input) -> Sony linear = acr_input.table_to_linear(v) (clamped at
+the green clip level) -> SSCS (sony_sscs, float path) -> verified look chain (pointwise) -> sRGB -> XYZ D50 -> linear ProPhoto -> gamma 1.8.
 usage: acr_look.py ARW [--grid 64] [--looks Standard,FL2,...] [--write] [--eval]
 """
 import argparse
@@ -14,7 +14,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE)); sys.path.insert(0, str(HERE.parent / "capture_one"))
 sys.path.insert(0, str(HERE.parent / "sonylook"))
-import acr_encoding as E  # noqa: E402
+import acr_input as I  # noqa: E402
 import acr_profiles as A  # noqa: E402
 import c1_look_profile as C  # noqa: E402
 import sony_render as R  # noqa: E402
@@ -42,9 +42,66 @@ def prophoto_v_to_srgb(v):
 
 
 def build(look, n):
-    lin = np.minimum(E.inverse(A.grid(n)), E.CLIP)
-    return srgb_to_prophoto_v(C.look_srgb(look, lin))
+    return fit_table(lambda lin: C.look_srgb(look, lin), n)
 
+
+TET = (((1, 0, 0), (1, 1, 0), (0, 1, 2)), ((1, 0, 0), (1, 0, 1), (0, 2, 1)), ((0, 0, 1), (1, 0, 1), (2, 0, 1)),
+       ((0, 1, 0), (1, 1, 0), (1, 0, 2)), ((0, 1, 0), (0, 1, 1), (1, 2, 0)), ((0, 0, 1), (0, 1, 1), (2, 1, 0)))
+
+
+def tet_weights(v, n):
+    """Node indices (m, 4) and weights (m, 4) of Camera Raw's tetrahedral RGBTable interpolation at v (m, 3)."""
+    p = np.clip(v, 0, 1) * (n - 1)
+    i = np.minimum(p.astype(int), n - 2)
+    f = p - i
+    fr, fg, fb = f[:, 0], f[:, 1], f[:, 2]
+    conds = [(fr >= fg) & (fg >= fb), (fr >= fb) & (fb > fg), (fb > fr) & (fr >= fg),
+             (fg > fr) & (fr >= fb), (fg >= fb) & (fb > fr), (fb > fg) & (fg > fr)]
+    which = np.select(conds, range(6), 5)
+    idx = np.empty((len(v), 4), np.int64)
+    w = np.empty((len(v), 4))
+    flat = lambda d: ((i[:, 0] + d[0]) * n + i[:, 1] + d[1]) * n + i[:, 2] + d[2]
+    for k, (a, b, order) in enumerate(TET):
+        m = which == k
+        x, y, z = (f[m, order[j]] for j in range(3))
+        idx[m] = np.stack([flat((0, 0, 0))[m], flat(a)[m], flat(b)[m], flat((1, 1, 1))[m]], -1)
+        w[m] = np.stack([1 - x, x - y, y - z, z], -1)
+    return idx, w
+
+
+def fit_table(srgb_of_linear, n, natural=300_000, natural_weight=3.0, iterations=300, seed=0):
+    """RGBTable (n, n, n, 3) whose tetrahedral interpolation (as Camera Raw applies it) best matches the look.
+
+    Sampling the look at the nodes leaves the interpolation error between them. Instead, node values are
+    solved by least squares (linear in them, the interpolation weights being fixed) over sample inputs and
+    their targets (table input -> Sony linear -> look -> ProPhoto gamma 1.8): one uniform sample per cell,
+    so every cell is constrained, and `natural` samples weighted `natural_weight` drawn like photographs
+    (brightness log-uniform from -11 to +1.2 stops around the green clip level, saturation mostly low),
+    so the fit favours the colours that occur. A uniform-only fit moves nodes off the neutral axis, where
+    sampling is already exact, and gains nothing on real images. The solve starts from the sampled table
+    and stops after `iterations` LSQR steps, which also regularises cells with few samples."""
+    from scipy import sparse
+    from scipy.sparse.linalg import lsqr
+    target = lambda v: srgb_to_prophoto_v(srgb_of_linear(I.table_to_linear(A.MODEL, v)))
+    t0 = target(A.grid(n)).reshape(-1, 3)
+    rng = np.random.default_rng(seed)
+    cells = np.stack(np.meshgrid(*(np.arange(n - 1),) * 3, indexing="ij"), -1).reshape(-1, 3)
+    uniform = (cells + rng.random(cells.shape)) / (n - 1)
+    peak = 2.0 ** rng.uniform(-11, 1.2, natural)
+    ratio = 1 - rng.beta(1, 4, natural)[:, None] * rng.random((natural, 3))
+    ratio /= ratio.max(1, keepdims=True)
+    photo = I.linear_to_table(A.MODEL, peak[:, None] * ratio * I.CLIP)
+    v = np.r_[uniform, photo]
+    weight = np.r_[np.ones(len(uniform)), np.full(natural, natural_weight)]
+    idx, w = tet_weights(v, n)
+    y = target(v)
+    a = sparse.csr_matrix(((w * weight[:, None]).ravel(), (np.repeat(np.arange(len(v)), 4), idx.ravel())),
+                          shape=(len(v), n ** 3))
+    out = t0.copy()
+    for c in range(3):
+        out[:, c] += lsqr(a, weight * (y[:, c] - (t0[idx, c] * w).sum(1)), atol=1e-10, btol=1e-10,
+                          iter_lim=iterations)[0]
+    return np.clip(out, 0, 1).reshape(n, n, n, 3)
 
 def interp(table, v, mode="tri"):
     n = table.shape[0]
@@ -98,8 +155,8 @@ def main():
         tab = build(look, a.grid)
         msg = f"{C.NAMES[name]:4s}"
         if a.eval:
-            ref = C.look_srgb(look, np.minimum(lin, E.CLIP))
-            v = E.forward(lin)
+            ref = C.look_srgb(look, np.minimum(lin, I.CLIP))
+            v = I.linear_to_table(A.MODEL, lin)
             for mode in ("tri", "tet"):
                 got = prophoto_v_to_srgb(interp(tab, v, mode))
                 e = np.abs(got - ref) * 255
