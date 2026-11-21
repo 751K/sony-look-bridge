@@ -2,7 +2,7 @@
 
 这套 LUT 使 S-Log3 视频呈现与 α7 V 照片 Creative Look 一致的颜色和影调。共包含 12 种外观 × 2 种输入色域 × 6 种色温版本，计 144 个 65³ `.cube`，输出为 Rec.709 / Gamma 2.4；另附 24 个可按白平衡调节的 DaVinci Resolve DCTL。
 
-**下载**：[Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v4.0.0/Sony-A7-V-SLog3-Video-LUTs.zip)（[v4.0.0 发布页](https://github.com/751K/sony-look-bridge/releases/tag/v4.0.0)）。LUT 文件不存放在仓库中；本目录保留生成记录 [`manifest.json`](manifest.json) 和独立校验结果 [`validation.json`](validation.json)。
+**下载**：[Sony-A7-V-SLog3-Video-LUTs.zip](https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7-V-SLog3-Video-LUTs.zip)（[v4.0.0 发布页](https://github.com/751K/sony-look-bridge/releases/tag/v4.0.0)）。LUT 文件不存放在仓库中；本目录保留生成记录 [`manifest.json`](manifest.json) 和独立校验结果 [`validation.json`](validation.json)。
 
 ## 选择文件
 
