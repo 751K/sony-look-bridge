@@ -22,7 +22,7 @@ Sony Creative Look 可以视为一个逐像素映射 *f*：输入是白平衡后
 
 | 软件 | 文件 | 查找表 | 工作方式 |
 | --- | --- | --- | --- |
-| Capture One | ICC | 65³ A2B0 CLUT | 输入经 `c1_encoding_table.json` 记录的 *E*，输出 Lab D50；曲线必须设为 Linear Response |
+| Capture One | ICC | 65³ A2B0 CLUT | 输入为 Capture One 曝光算子的输出 *E*（逐通道增益与高光肩部、EvenTone、平方根 gamma，见 `capture_one/c1_encoding.py`），逐节点求逆；输出 Lab D50；曲线必须设为 Linear Response |
 | Camera Raw / Lightroom | DCP + XMP | XMP RGBTable 64³ | 线性底座 DCP 保持 Camera Raw 的白平衡行为，XMP 保存 ProPhoto γ1.8 下的外观表 |
 | DxO PhotoLab Elite | DCP + `.cube` | 64³ CUBE | 底座 DCP 之后接 LUT Grading，LUT 色彩空间设为 ProPhoto RGB |
 

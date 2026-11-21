@@ -177,10 +177,7 @@ def sources(arw, model, a7m5, weights, warm_only=False, highlights="camera"):
 
 def tables(src):
     acr = AL.srgb_to_prophoto_v(src.srgb(np.minimum(E.inverse(A.grid(64)), E.CLIP)))
-    s = np.arange(65) / 64
-    lin1 = C.v_to_lin(s ** (1 / C.SHAPER))
-    lin = np.stack(np.meshgrid(lin1, lin1, lin1, indexing="ij"), -1)
-    c1 = C.srgb_to_lab_d50(src.srgb(lin))
+    c1 = C.srgb_to_lab_d50(src.srgb(C.node_linear(65)))
     dxo = AL.srgb_to_prophoto_v(src.srgb(D.E_inv(P.grid(64))))
     return acr, c1, dxo
 

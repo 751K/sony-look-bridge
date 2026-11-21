@@ -2,21 +2,20 @@
 """Build Capture One input ICC profiles that reproduce Sony Creative Looks (A7M5).
 
 With Linear Response, Capture One feeds the input ICC white-balanced camera RGB
-through a measured encoding E and expects Lab D50. Each profile node is:
+through its encoding E and expects Lab D50. Each profile node is:
 
     v -> E inverse -> Sony linear camera RGB -> SSCS -> pointwise look
       -> sRGB -> XYZ D50 -> Lab
 
-The synthetic-chart calibration (fit_c1_encoding.py -> c1_encoding_table.json)
-is roughly linear in the shadows and compressive above. It supersedes the early
-gamma-1.8 assumption; that assumption remains only as the fallback when the
-calibration file is absent. The ICC's sqrt input shaper is separate from E.
-See docs/capture_one.md for the calibration and validation conditions.
+E (c1_encoding.py) is Capture One's own exposure operator: a per channel gain with a highlight shoulder,
+EvenTone (cross channel once the brightest channel nears the raw white point) and a square-root gamma.
+Its inverse is solved per node. The ICC's sqrt input shaper is separate from E.
 
 usage: c1_look_profile.py ARW [--grid 65] [--looks Standard,FL2,...] [--out DIR]
        c1_look_profile.py --probes [--out DIR]     (calibration profiles, no ARW needed)
 """
 import argparse
+import functools
 import struct
 import sys
 from pathlib import Path
@@ -26,9 +25,8 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "sonylook"))
 import sony_render as R  # noqa: E402
+import c1_encoding  # noqa: E402
 
-SCALE = 0.515625 * (16383 - 512)
-GAMMA_IN = 1.8
 SHAPER = 0.5                    # grid coordinate s = v ** SHAPER (denser nodes in the shadows)
 NAMES = {"Standard": "ST", "Vivid": "VV", "Neutral": "NT", "Portrait": "PT", "FL": "FL", "VV2": "VV2",
          "IN": "IN", "SH": "SH", "BW": "BW", "Sepia": "SE", "FL2": "FL2", "FL3": "FL3"}
@@ -67,34 +65,16 @@ def look_srgb(look, lin):
     return out / 16383.0
 
 
-ENCODING = HERE / "c1_encoding_table.json"
-
-
-def v_to_lin(v):
-    """Inverse of Capture One's profile-input encoding. Measured (fit_c1_encoding.py, chart probe export):
-    table of log(Sony linear) -> log(v), monotone, extrapolated with the end slopes. Falls back to the
-    gamma-1.8 assumption when the table is missing."""
-    v = np.asarray(v, np.float64)
-    if not ENCODING.exists():
-        return SCALE * v ** GAMMA_IN
-    import json
-    E = json.loads(ENCODING.read_text())
-    ll, lv = np.array(E["log_lin"]), np.array(E["log_v"])
-    lv = np.maximum.accumulate(lv + np.arange(len(lv)) * 1e-9)       # strictly increasing for inversion
-    y = np.log(np.clip(v, 1e-9, None))
-    x = np.interp(y, lv, ll)
-    x = np.where(y < lv[0], ll[0] + (y - lv[0]) / E["slope_low"], x)
-    x = np.where(y > lv[-1], ll[-1] + (y - lv[-1]) / E["slope_high"], x)
-    return np.where(v > 0, np.exp(x), 0.0)
+@functools.lru_cache(maxsize=None)
+def node_linear(grid):
+    """Sony linear camera RGB (g, g, g, 3) at the CLUT nodes: Capture One's encoding E inverted per node."""
+    lin = c1_encoding.node_sony_linear(grid, SHAPER)
+    lin.setflags(write=False)
+    return lin
 
 
 def build_clut(look, grid):
-    s = np.arange(grid) / (grid - 1)
-    v = s ** (1 / SHAPER)
-    lin1 = v_to_lin(v)
-    R_, G_, B_ = np.meshgrid(lin1, lin1, lin1, indexing="ij")
-    lin = np.stack([R_, G_, B_], -1)
-    return srgb_to_lab_d50(look_srgb(look, lin))           # (g, g, g, 3), first index = R (ICC order)
+    return srgb_to_lab_d50(look_srgb(look, node_linear(grid)))           # (g, g, g, 3), first index = R (ICC order)
 
 
 # ---------------------------------------------------------------------------------------------

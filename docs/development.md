@@ -86,7 +86,7 @@ python3 -m unittest discover -s video -p 'test_*.py' -v
 `chart/SonyChart.ARW` 是一张合法的 α7 V ARW，包含 48 级灰阶和 6³ 个相机 RGB 色块，可由 Capture One 与 Camera Raw 直接打开。后期软件更新后输入行为可能改变，此时按以下顺序重新标定：
 
 1. 使用探针配置测量合成色卡的实际输入值。
-2. Capture One：生成 Probe 配置并导出，用 `capture_one/measure_chart.py` 测量，再用 `capture_one/fit_c1_encoding.py` 拟合并更新 `c1_encoding_table.json`。
+2. Capture One：生成 Probe 配置并导出，用 `capture_one/measure_chart.py` 测量，再用 `capture_one/fit_c1_encoding.py` 拟合出 `c1_encoding_table.json`，与 `capture_one/c1_encoding.py` 的中性轴编码比较。两者在实测范围内应相差约 0.001；差异明显时，说明 Capture One 的曝光算子已经改变。
 3. Camera Raw：生成 Probe 配置，关闭镜头校正后导出 16 位 ProPhoto，用 `camera_raw/measure_acr_chart.py` 与 `camera_raw/acr_encoding.py` 拟合。
 4. DxO PhotoLab：用 `dxo/dxo_profiles.py probes` 与 `base2` 生成探针和底座，按同样方法检验 `dxo/dxo_model.py`。
 5. 重新生成三种后期软件的配置，并以实拍 RAW 和 Edit 导出图做几何配准与色差检查。
