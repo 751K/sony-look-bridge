@@ -21,14 +21,14 @@
 | --- | --- |
 | α1 / α9 | [α1][sony-a1] · [α1 II][sony-a1-ii] · [α9 III][sony-a9-iii] |
 | α7 | [α7 IV][sony-a7-iv] · [α7 V][sony-a7-v] · [α7S III][sony-a7s-iii] |
-| α7R / α7C | [α7R V][sony-a7r-v] · [α7R VI][sony-a7r-vi] · [α7C II][sony-a7c-ii] · [α7CR][sony-a7cr] |
+| α7R / α7C | [α7R III][sony-a7r-iii] · [α7R V][sony-a7r-v] · [α7R VI][sony-a7r-vi] · [α7C II][sony-a7c-ii] · [α7CR][sony-a7cr] |
 | α6000 | [α6700][sony-a6700] |
 | Cinema Line | [FX2][sony-fx2] · [FX3][sony-fx3] · [FX30][sony-fx30] |
 | RX / ZV | [RX1R III][sony-rx1r-iii] · [ZV-E1][sony-zv-e1] · [ZV-E10 II][sony-zv-e10-ii] |
 
 视频 LUT：**[Sony-A7-V-SLog3-Video-LUTs.zip][video-luts]**，使用方法见[视频 LUT 使用说明](profiles/video/README.md)。
 
-α7 V、α7R VI、FX2 与 RX1R III 包含 12 种原生外观；其余机型包含 10 种原生外观，FL2 与 FL3 从 α7 V 移植。α7 V 的配置也直接保存在仓库的 `profiles/` 中。
+α7 V、α7R VI、FX2 与 RX1R III 包含 12 种原生外观；其余机型包含 10 种原生外观，FL2 与 FL3 从 α7 V 移植。α7R III 早于 Creative Look，机内只有 Creative Style，其 12 种外观全部从 α7 V 移植。α7 V 的配置也直接保存在仓库的 `profiles/` 中。
 
 [sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A1-Creative-Looks.zip
 
@@ -39,6 +39,8 @@
 [sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7-IV-Creative-Looks.zip
 
 [sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7-V-Creative-Looks.zip
+
+[sony-a7r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7R-III-Creative-Looks.zip
 
 [sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7R-V-Creative-Looks.zip
 

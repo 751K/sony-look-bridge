@@ -21,14 +21,14 @@ Photo profiles are downloaded per camera; each ZIP holds the profiles for all th
 | --- | --- |
 | α1 / α9 | [α1][sony-a1] · [α1 II][sony-a1-ii] · [α9 III][sony-a9-iii] |
 | α7 | [α7 IV][sony-a7-iv] · [α7 V][sony-a7-v] · [α7S III][sony-a7s-iii] |
-| α7R / α7C | [α7R V][sony-a7r-v] · [α7R VI][sony-a7r-vi] · [α7C II][sony-a7c-ii] · [α7CR][sony-a7cr] |
+| α7R / α7C | [α7R III][sony-a7r-iii] · [α7R V][sony-a7r-v] · [α7R VI][sony-a7r-vi] · [α7C II][sony-a7c-ii] · [α7CR][sony-a7cr] |
 | α6000 | [α6700][sony-a6700] |
 | Cinema Line | [FX2][sony-fx2] · [FX3][sony-fx3] · [FX30][sony-fx30] |
 | RX / ZV | [RX1R III][sony-rx1r-iii] · [ZV-E1][sony-zv-e1] · [ZV-E10 II][sony-zv-e10-ii] |
 
 Video LUTs: **[Sony-A7-V-SLog3-Video-LUTs.zip][video-luts]**; see the [video LUT guide](profiles/video/README.md).
 
-The α7 V, α7R VI, FX2 and RX1R III have 12 native looks; the other cameras have 10 native looks plus FL2 and FL3 ported from the α7 V. The α7 V profiles are also kept in `profiles/` in this repository.
+The α7 V, α7R VI, FX2 and RX1R III have 12 native looks; the other cameras have 10 native looks plus FL2 and FL3 ported from the α7 V. The α7R III predates Creative Look (it has Creative Style only), so all 12 of its looks are ported from the α7 V. The α7 V profiles are also kept in `profiles/` in this repository.
 
 [sony-a1]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A1-Creative-Looks.zip
 
@@ -39,6 +39,8 @@ The α7 V, α7R VI, FX2 and RX1R III have 12 native looks; the other cameras hav
 [sony-a7-iv]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7-IV-Creative-Looks.zip
 
 [sony-a7-v]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7-V-Creative-Looks.zip
+
+[sony-a7r-iii]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7R-III-Creative-Looks.zip
 
 [sony-a7r-v]: https://github.com/751K/sony-look-bridge/releases/download/v4.1.0/Sony-A7R-V-Creative-Looks.zip
 
