@@ -4,10 +4,12 @@
 
 本项目以 Sony Imaging Edge Edit 的显影管线为蓝本，用 Python 逐阶段复现相机的照片显影与 Creative Look，与相机直出不一致之处以相机直出为准；再将其转换为后期软件可用的配置文件和 LUT，使 RAW 在 Capture One、Camera Raw / Lightroom、DxO PhotoLab 和 DaVinci Resolve 中呈现与相机一致的颜色。
 
-- **照片**：17 款 Sony 机型的 Creative Look 配置，每款都提供 Capture One、Camera Raw / Lightroom 与 DxO PhotoLab 三种格式。
+- **照片**：18 款 Sony 机型的 Creative Look 配置，每款都提供 Capture One、Camera Raw / Lightroom 与 DxO PhotoLab 三种格式。
 - **视频**：α7 V 的 S-Log3 LUT，12 种外观 × 2 种输入色域 × 6 种色温版本，另附可按白平衡调节的 DaVinci Resolve DCTL。
 
 相关介绍：[Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube（英文）](https://youtu.be/LeK9HhhYosQ)
+
+专栏文章：[索尼 A7V 色彩科学简析](https://www.bilibili.com/opus/1274051947580620804)（哔哩哔哩）· [Inside the Color Pipeline of Sony’s A7 Cameras](https://jykong.substack.com/p/inside-the-color-pipeline-of-sonys)（Substack，英文）
 
 ![相机 HEIF 与本仓库解码器在三种色温下的 ColorChecker 对照，以及各外观的平均色差](images/compare_chart_zh.png)
 

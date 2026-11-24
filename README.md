@@ -4,10 +4,12 @@
 
 This project reproduces the camera's photo development and Creative Looks in Python, stage by stage, using the development pipeline of Sony Imaging Edge Edit as the blueprint and the camera's own output as the reference wherever the two differ. It turns them into profiles and LUTs for post-processing software, so that RAW files look as they do in the camera in Capture One, Camera Raw / Lightroom, DxO PhotoLab and DaVinci Resolve.
 
-- **Photo**: Creative Look profiles for 17 Sony cameras, each in Capture One, Camera Raw / Lightroom and DxO PhotoLab formats.
+- **Photo**: Creative Look profiles for 18 Sony cameras, each in Capture One, Camera Raw / Lightroom and DxO PhotoLab formats.
 - **Video**: S-Log3 LUTs for the α7 V, 12 looks × 2 input gamuts × 6 white-balance variants, plus DaVinci Resolve DCTLs with a white-balance control.
 
 Related presentations: [Bilibili](https://www.bilibili.com/video/BV1VUH56pECK/) · [YouTube (English)](https://youtu.be/LeK9HhhYosQ)
+
+Articles: [Inside the Color Pipeline of Sony’s A7 Cameras](https://jykong.substack.com/p/inside-the-color-pipeline-of-sonys) (Substack) · [索尼 A7V 色彩科学简析](https://www.bilibili.com/opus/1274051947580620804) (Bilibili, Chinese)
 
 ![ColorChecker comparison of the camera HEIF and this repository's decoder at three colour temperatures, with the mean colour difference of every look](images/compare_chart_en.png)
 
