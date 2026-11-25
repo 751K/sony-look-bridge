@@ -9,9 +9,14 @@ through its encoding E and expects Lab D50. Each profile node is:
 
 E (c1_encoding.py) is Capture One's own exposure operator: a per channel gain with a highlight shoulder,
 EvenTone (cross channel once the brightest channel nears the raw white point) and a square-root gamma.
-Its inverse is solved per node. The ICC's sqrt input shaper is separate from E.
+Its inverse is solved per node.
 
-usage: c1_look_profile.py ARW [--grid 65] [--looks Standard,FL2,...] [--out DIR]
+Capture One joins the look ICC and the output profile into one lcms transform (16-bit RGB in and out,
+flags NOCACHE | HIGHRESPRECALC), which lcms resamples on a 49³ grid uniform in v and interpolates
+tetrahedrally.  The profile therefore has a 49³ CLUT uniform in v with identity input curves: its nodes are
+the nodes lcms samples, so they reach the final table without a second interpolation.
+
+usage: c1_look_profile.py ARW [--grid 49] [--looks Standard,FL2,...] [--out DIR]
        c1_look_profile.py --probes [--out DIR]     (calibration profiles, no ARW needed)
 """
 import argparse
@@ -27,7 +32,8 @@ sys.path.insert(0, str(HERE.parent / "sonylook"))
 import sony_render as R  # noqa: E402
 import c1_encoding  # noqa: E402
 
-SHAPER = 0.5                    # grid coordinate s = v ** SHAPER (denser nodes in the shadows)
+GRID = 49                       # lcms resamples Capture One's transform on 49³ (HIGHRESPRECALC, 3 channels)
+SHAPER = 1.0                    # grid coordinate s = v ** SHAPER; identity keeps the nodes on lcms's grid
 NAMES = {"Standard": "ST", "Vivid": "VV", "Neutral": "NT", "Portrait": "PT", "FL": "FL", "VV2": "VV2",
          "IN": "IN", "SH": "SH", "BW": "BW", "Sepia": "SE", "FL2": "FL2", "FL3": "FL3"}
 
@@ -192,7 +198,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("arw", nargs="?", help="any A7M5 ARW (look parameters are read from it)")
     ap.add_argument("--probes", action="store_true")
-    ap.add_argument("--grid", type=int, default=65)
+    ap.add_argument("--grid", type=int, default=GRID)
     ap.add_argument("--looks", default=",".join(NAMES))
     ap.add_argument("--out", default=str(HERE.parent / "profiles" / "capture_one"))
     ap.add_argument("--highlights", default="camera", choices=["camera", "edit"],

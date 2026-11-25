@@ -29,7 +29,23 @@ cell's own hue / saturation and at several exposures (2D) or at the cell's value
 axis (saturation 0) is left unchanged.  The value axis is indexed by the pixel's maximum channel
 relative to the raw white level, which is what Camera Raw sees before exposure: v = Sony linear /
 vmax_from_arw(arw).
+
+Bodies other than the α7 V raise the daylight weight above 1024 at high colour temperatures (A7 IV
+library: 1024 up to about 5390K camera temperature, then linear in mired to 1348 at about 6420K).  For
+them write_base_triple makes a triple-illuminant base (DNG 1.6, IlluminantData lights): warm look,
+daylight look and the daylight look at weight 1348.  Camera Raw weights the three maps by inverse
+squared distance in (min(1500 / T, 1), 0.005 * tint) with a smoothstep (CalculateTripleIlluminantWeights),
+not linearly in mired; the light positions are fitted on 2500 A7 IV library shots (camera 0x7848 against
+their Camera Raw temperature and tint), which lowers the weight error from 0.46 (dual, no 1348 state) to
+0.10 rms.
+
+The same mechanism cannot carry the α7 V fluorescent set (0x7845): Fluor.CoolWhite sits at about 4200K
+/ +43 tint in Camera Raw, only 20-25 tint units from ordinary shots in the warm-daylight transition, so
+any light placement leaks 0.1-0.3 fluorescent weight into them (4200K chart 0.50 -> 0.75 ΔE2000).  The
+α7 V gets separate fluorescent profiles instead (camera_packs/build_packs.py).
 """
+import struct
+
 import numpy as np
 
 import acr_input
@@ -39,6 +55,13 @@ NH, NS = 90, 30
 T1, T2 = 4150.0, 5500.0
 ILL1, ILL2 = 14, 20                     # EXIF LightSource: cool white fluorescent, D55
 ILLUMINANT_K = {17: 2850.0, 21: 6500.0, 20: 5500.0, 23: 5000.0, 24: 3200.0, 14: 4150.0}   # dng_camera_profile::IlluminantToTemperature
+# Triple-illuminant lights as (temperature for the ColorMatrix, CIE xy of the IlluminantData): warm /
+# daylight / daylight at weight 1348, DNG temperature / tint (4070K, +19), (5170K, +22), (6550K, +18),
+# fitted on the A7 IV library.
+DAY_RAMP_LIGHTS = ((4070.0, (0.381608, 0.391190)), (5170.0, (0.341416, 0.363312)), (6550.0, (0.311268, 0.333005)))
+CAL3, CM3, FM3, HSM3 = 52529, 52531, 52532, 52537          # DNG 1.6 tags
+ILLUMINANT_DATA = (52533, 52534, 52535)
+OTHER = 255
 WHITE = 4000.0                          # Sony linear value of diffuse white
 EXPOSURES = (0.06, 0.15, 0.35, 0.7)     # x WHITE, value (max channel) of the 2D fit samples
 PROPHOTO_TO_XYZ = np.array([[0.7976749, 0.1351917, 0.0313534],
@@ -175,6 +198,35 @@ def write_base(path, model, name, adobe_std, table, direction="warm"):
         ("ForwardMatrix1", 10, PROPHOTO_TO_XYZ), ("ForwardMatrix2", 10, PROPHOTO_TO_XYZ),
         ("ProfileHueSatMapDims", 4, [NH, NS, nv]),
         ("ProfileHueSatMapData1", 11, hsm1.reshape(-1)), ("ProfileHueSatMapData2", 11, hsm2.reshape(-1)),
+        ("ProfileHueSatMapEncoding", 4, [0]),
+        *acr_input.base_entries(model), ("ProfileEmbedPolicy", 4, [0]),
+        ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "Sony Look Bridge (not an Adobe profile)")])
+    return path
+
+
+def _illuminant_data(xy):
+    """IlluminantData: type 0 (CIE xy) followed by two URATIONAL."""
+    return list(struct.pack("<HIIII", 0, round(xy[0] * 1e6), 1000000, round(xy[1] * 1e6), 1000000))
+
+
+def write_base_triple(path, model, name, adobe_std, maps, lights=DAY_RAMP_LIGHTS):
+    """Triple-illuminant base DCP.  maps: HueSatMaps (NH, NS, NV, 3) at the three lights, None for
+    identity (the light whose look the XMP table holds)."""
+    a = dcp.read(adobe_std)
+    cm1, cm2 = (np.array(a[k], float).reshape(3, 3) for k in ("ColorMatrix1", "ColorMatrix2"))
+    t1, t2 = ILLUMINANT_K[a["CalibrationIlluminant1"][0]], ILLUMINANT_K[a["CalibrationIlluminant2"][0]]
+    cms = [_cm_at(cm1, cm2, t1, t2, T) for T, _ in lights]
+    nv = next(m.shape[2] for m in maps if m is not None)
+    ident = np.zeros((NH, NS, nv, 3), np.float32); ident[..., 1:] = 1.0
+    data = [(ident if m is None else m).transpose(2, 0, 1, 3).astype(np.float32).reshape(-1) for m in maps]
+    dcp.write(path, [
+        ("UniqueCameraModel", 2, model), ("ProfileName", 2, name),
+        ("ColorMatrix1", 10, cms[0]), ("ColorMatrix2", 10, cms[1]), (CM3, 10, cms[2]),
+        ("CalibrationIlluminant1", 3, [OTHER]), ("CalibrationIlluminant2", 3, [OTHER]), (CAL3, 3, [OTHER]),
+        *[(tag, 7, _illuminant_data(xy)) for tag, (_, xy) in zip(ILLUMINANT_DATA, lights)],
+        ("ForwardMatrix1", 10, PROPHOTO_TO_XYZ), ("ForwardMatrix2", 10, PROPHOTO_TO_XYZ), (FM3, 10, PROPHOTO_TO_XYZ),
+        ("ProfileHueSatMapDims", 4, [NH, NS, nv]),
+        ("ProfileHueSatMapData1", 11, data[0]), ("ProfileHueSatMapData2", 11, data[1]), (HSM3, 11, data[2]),
         ("ProfileHueSatMapEncoding", 4, [0]),
         *acr_input.base_entries(model), ("ProfileEmbedPolicy", 4, [0]),
         ("DefaultBlackRender", 4, [1]), ("ProfileCopyright", 2, "Sony Look Bridge (not an Adobe profile)")])

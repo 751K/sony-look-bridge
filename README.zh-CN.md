@@ -81,10 +81,12 @@
 | --- | --- | --- | --- |
 | 日光版 | `Look XX` | 采用日光参数 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
 | 暖光版 | `Look XX Warm` | 采用暖光参数 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
-| 自动版 | `Look XX Auto` | 随白平衡变化：约 4150K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑过渡 | 仅 Camera Raw / Lightroom |
+| 荧光灯版 | `Look XX Fluor` | 采用荧光灯参数，仅 α7 V 提供 | Capture One、Camera Raw / Lightroom、DxO PhotoLab |
+| 自动版 | `Look XX Auto` | 随白平衡变化：约 4150K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑过渡；α7 IV 等机型在约 6100K 以上还会加强日光参数，自动版随之过渡 | 仅 Camera Raw / Lightroom |
 
 - 在 Camera Raw 与 Lightroom 中建议使用自动版，调整色温时无需更换外观。
 - 在 Capture One 与 DxO PhotoLab 中，约 4700K 以下拍摄的照片使用暖光版，其余使用日光版。
+- α7 V 以荧光灯白平衡预设拍摄、或相机判定为荧光灯光源时，使用荧光灯版。
 - BW 在任何白平衡下结果相同，只有一个版本；α7 V 的 SE 也是如此。
 
 视频 LUT 按拍摄白平衡分为 2500K 至 7500K 的六套；DaVinci Resolve 的 DCTL 可以在六套之间连续调节。
@@ -123,7 +125,7 @@
 
 - 实拍色卡验证只覆盖 α7 V。其他机型按样张参数生成，暖光版与自动版在暖光下的准确度低于 α7 V。
 - Capture One 与 DxO PhotoLab 只有日光与暖光两种状态，过渡色温下需要按画面选择。
-- 荧光灯等偏绿光源下，相机会混入第三组参数，各配置均不包含这组参数。
+- 荧光灯等偏绿光源下，相机会混入第三组参数；只有 α7 V 提供包含这组参数的荧光灯版，自动版不包含。
 - 配置只包含逐像素的颜色与影调；降噪、锐化和 DRO 等空间处理由各软件自己完成。
 
 完整说明见[照片配置 § 局限](docs/photo.md#局限)。

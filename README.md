@@ -80,10 +80,12 @@ The camera changes a look's colours with the as-shot white balance: it uses the 
 | --- | --- | --- | --- |
 | Daylight | `Look XX` | Daylight parameters | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
 | Warm | `Look XX Warm` | Warm-light parameters | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
-| Auto | `Look XX Auto` | Follows the white balance: matches Warm at about 4150K and below and Daylight at about 5500K and above, blending smoothly in between | Camera Raw / Lightroom only |
+| Fluorescent | `Look XX Fluor` | Fluorescent parameters, α7 V only | Capture One, Camera Raw / Lightroom, DxO PhotoLab |
+| Auto | `Look XX Auto` | Follows the white balance: matches Warm at about 4150K and below and Daylight at about 5500K and above, blending smoothly in between; on the α7 IV and similar cameras, which strengthen the daylight parameters above about 6100K, Auto follows that as well | Camera Raw / Lightroom only |
 
 - In Camera Raw and Lightroom, use Auto; the look does not need to be changed when the colour temperature is adjusted.
 - In Capture One and DxO PhotoLab, use Warm for photos shot below about 4700K and Daylight otherwise.
+- On the α7 V, use Fluorescent for photos shot with a fluorescent white-balance preset or when the camera judged the light fluorescent.
 - BW renders the same at every white balance and has a single version; so does SE on the α7 V.
 
 The video LUTs are split into six sets from 2500K to 7500K by the white balance of the footage; the DaVinci Resolve DCTLs blend continuously between them.
@@ -122,7 +124,7 @@ See the [video LUT guide](profiles/video/README.md).
 
 - Only the α7 V has been validated on a real ColorChecker. The other cameras are built from sample-file parameters, and their Warm and Auto profiles are less accurate under warm light than the α7 V's.
 - Capture One and DxO PhotoLab have only the daylight and warm states; at intermediate colour temperatures, choose by eye.
-- Under greenish light such as fluorescent tubes, the camera blends in a third parameter set that none of the profiles contains.
+- Under greenish light such as fluorescent tubes, the camera blends in a third parameter set; only the α7 V Fluorescent profiles contain it, and the Auto profiles do not.
 - The profiles contain only per-pixel colour and tone; noise reduction, sharpening and DRO are left to each application.
 
 See [Photo profiles § Limitations](docs/photo.md#局限) for details.

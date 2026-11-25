@@ -25,7 +25,7 @@ TAGS = {50708: "UniqueCameraModel", 50721: "ColorMatrix1", 50722: "ColorMatrix2"
         50932: "ProfileCalibrationSignature"}
 NAMES = {v: k for k, v in TAGS.items()}
 TSIZE = {1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8, 11: 4, 12: 8}
-TFMT = {1: "B", 3: "H", 4: "I", 9: "i", 11: "f", 12: "d"}
+TFMT = {1: "B", 7: "B", 3: "H", 4: "I", 9: "i", 11: "f", 12: "d"}
 
 
 ADOBE_FIELDS = ("ColorMatrix1", "ColorMatrix2", "ForwardMatrix1", "ForwardMatrix2",

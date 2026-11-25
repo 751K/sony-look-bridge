@@ -6,13 +6,13 @@
 
 相机按拍摄时的白平衡在暖光与日光两组色彩参数之间过渡。每个外观因此提供两个版本：名称不带后缀的为日光版（RGB2YCC 混合权重 `0 1024 0 0`），名称以 Warm 结尾的为暖光版（`1024 0 0 0`）。{{single}}
 
-以 α7 V 为例，白平衡设定在 4100K 及以下时相机完全采用暖光参数，5400K 及以上时完全采用日光参数，其间按色温混合。因此，约 4700K 以下拍摄的照片宜使用暖光版，其余宜使用日光版，接近 4700K 时按画面选择。各机型的过渡区间略有差异，α7 IV 约为 4100K 至 5200K。荧光灯等偏绿光源下，相机还会混入第三组参数，两种版本均不包含该组参数。
+以 α7 V 为例，白平衡设定在 4100K 及以下时相机完全采用暖光参数，5400K 及以上时完全采用日光参数，其间按色温混合。因此，约 4700K 以下拍摄的照片宜使用暖光版，其余宜使用日光版，接近 4700K 时按画面选择。各机型的过渡区间略有差异，α7 IV 约为 4100K 至 5200K。{{cool}}{{fluor}}
 
-Camera Raw / Lightroom 另提供名称以 Auto 结尾的自动版本（如 `{{prefix}} Look ST Auto`）。自动版本按当前白平衡在两组参数之间过渡：约 4150K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑混合，调整色温时无需更换外观。每个自动版本附带一个名称以 `Auto Base` 开头的底座 DCP，该底座仅供对应外观引用，无需单独选择。Capture One 与 DxO PhotoLab 不支持随白平衡变化的配置，仍按色温选择日光版或暖光版。
+Camera Raw / Lightroom 另提供名称以 Auto 结尾的自动版本（如 `{{prefix}} Look ST Auto`）。自动版本按当前白平衡过渡：{{auto}}，调整色温时无需更换外观。每个自动版本附带一个名称以 `Auto Base` 开头的底座 DCP，该底座仅供对应外观引用，无需单独选择。Capture One 与 DxO PhotoLab 不支持随白平衡变化的配置，仍按色温选择日光版或暖光版。
 
 ## Capture One
 
-将 Capture One 包内的 ICC 配置文件复制至 `~/Library/ColorSync/Profiles/`，随后重新启动 Capture One。在「基本特性」中将配置文件设为 `{{prefix}} Look XX` 或 `{{prefix}} Look XX Warm`，并将曲线设为 **Linear Response**。
+将 Capture One 包内的 ICC 配置文件复制至 `~/Library/ColorSync/Profiles/`，随后重新启动 Capture One。在「基本特性」中将配置文件设为 {{c1_names}}，并将曲线设为 **Linear Response**。
 
 ## Adobe Camera Raw / Lightroom
 

@@ -24,7 +24,13 @@ Look parameters come from one sample ARW per camera (README of each pack names t
 - Camera Raw also gets an "Auto" profile per colour look ("Look XX Auto"): one look table on a
   dual-illuminant base DCP whose HueSatMap follows the white balance, warm look at 4150K and below,
   daylight look at 5500K and above (camera_raw/acr_auto.py).  FL2 keeps the warm table and maps
-  towards the daylight look, with a value axis.  Capture One and DxO have no equivalent.
+  towards the daylight look, with a value axis.  Bodies in DAY_RAMP raise the daylight weight above
+  1024 at high colour temperatures; their Auto base is triple-illuminant with a third map to the
+  daylight look at weight 1348 (camera_raw/acr_auto.py).  Capture One and DxO have no equivalent.
+- The α7 V (FLUOR_BODIES) also gets a fluorescent variant "Fluor" (0, 0, 1024, 0) of every colour look:
+  the camera uses that set under fluorescent presets and when its light estimate says fluorescent
+  (Fluor.CoolWhite chart: daylight profile 4.1-5.2 ΔE2000, fluorescent state 0.7-1.5).  Its tables
+  come from sonylook/fluor_780f.json.
 - SSCS weights of 255 on all four CFA sites (α7S III, FX3 samples) are replaced by the default
   32/64/32.
 - The software input calibration (Camera Raw, Capture One, DxO encodings) is the α7 V one.  For the
@@ -69,6 +75,15 @@ import sony_sscs as SC  # noqa: E402
 ADOBE = Path("/Library/Application Support/Adobe/CameraRaw/CameraProfiles/Adobe Standard")
 DAYLIGHT = (0, 1024, 0, 0)
 WARM = (1024, 0, 0, 0)
+COOL = (0, 1348, 0, 0)
+# Bodies whose daylight weight rises above 1024 at high colour temperatures (to 1348 at about 6420K camera
+# temperature; seen in the A7 IV library and in the samples of the A1 II, A7C II, A7CR, A7R V, A7S III,
+# A9 III, FX3, RX1R III and ZV-E1; A1, A6700, FX30 and ZV-E10 II assumed from the same generation).  The
+# α7 V never does; the A7R VI sample does not; FX2 unknown.  Their Auto bases are triple-illuminant.
+DAY_RAMP = {"ILCE-1", "ILCE-1M2", "ILCE-6700", "ILCE-7M4", "ILCE-7CM2", "ILCE-7CR", "ILCE-7RM5", "ILCE-7SM3",
+            "ILCE-9M3", "ILME-FX3", "ILME-FX30", "DSC-RX1RM3", "ZV-E1", "ZV-E10M2"}
+FLUOR = (0, 0, 1024, 0)
+FLUOR_BODIES = {"ILCE-7M5"}       # "Fluor" profiles: fluorescent set 0x7845 + fluor_780f.json tables
 PORTED = ("FL2", "FL3")
 PORT_ALL = {"ILCE-7RM3"}          # Creative Style bodies: every look is ported from the α7 V
 A7M5_SAMPLE = "Sony-A7-V-ILCE-7M5.ARW"
@@ -136,18 +151,18 @@ class Source:
         return C.look_srgb(self.look, lin if self.pre is None else self.pre(lin))
 
 
-def warm_differs(looks, name, sscs, edit=False):
-    """True when the warm and daylight weights render this look differently (False for BW)."""
+def warm_differs(looks, name, sscs, edit=False, other=WARM):
+    """True when `other` and the daylight weights render this look differently (False for BW)."""
     x = np.linspace(0, 1, 9)
     lin = np.stack(np.meshgrid(x, x, x, indexing="ij"), -1).reshape(-1, 3) ** 2.2 * 12000
     out = [C.look_srgb(R.Look(name, looks, sscs=sscs, ycc_weights=w, chroma_suppress=edit), lin)
-           for w in (DAYLIGHT, WARM)]
+           for w in (DAYLIGHT, other)]
     return not np.array_equal(out[0], out[1])
 
 
 def sources(arw, model, a7m5, weights, warm_only=False, highlights="camera"):
-    """Look sources of one camera.  warm_only drops the looks whose warm variant renders the same
-    as the daylight one.  highlights "camera" leaves out SSCS and ChromaSuppress (the camera's own
+    """Look sources of one camera.  warm_only drops the looks that render the same at `weights` as at
+    the daylight weights.  highlights "camera" leaves out SSCS and ChromaSuppress (the camera's own
     JPEG has neither); "edit" keeps both as Imaging Edge Edit does."""
     edit = highlights == "edit"
     sscs = sscs_params(arw) if edit else None
@@ -156,7 +171,7 @@ def sources(arw, model, a7m5, weights, warm_only=False, highlights="camera"):
     else:
         looks = R.load_looks(arw, neutral=True)
         native = {n: Source(R.Look(n, looks, sscs=sscs, ycc_weights=weights, chroma_suppress=edit))
-                  for n in C.NAMES if n in looks and not (warm_only and not warm_differs(looks, n, sscs, edit))}
+                  for n in C.NAMES if n in looks and not (warm_only and not warm_differs(looks, n, sscs, edit, weights))}
         if all(n in looks for n in PORTED):
             return native
         ported = PORTED
@@ -169,7 +184,7 @@ def sources(arw, model, a7m5, weights, warm_only=False, highlights="camera"):
         return s @ m.T
 
     for n in ported:
-        if warm_only and not warm_differs(m5, n, None, edit):
+        if warm_only and not warm_differs(m5, n, None, edit, weights):
             continue
         native[n] = Source(R.Look(n, m5, sscs=None, ycc_weights=weights, chroma_suppress=edit), pre)
     return native
@@ -177,7 +192,7 @@ def sources(arw, model, a7m5, weights, warm_only=False, highlights="camera"):
 
 def tables(src):
     acr = AL.fit_table(src.srgb, 64)
-    c1 = C.srgb_to_lab_d50(src.srgb(C.node_linear(65)))
+    c1 = C.srgb_to_lab_d50(src.srgb(C.node_linear(C.GRID)))
     dxo = AL.srgb_to_prophoto_v(src.srgb(D.E_inv(P.grid(64))))
     return acr, c1, dxo
 
@@ -201,6 +216,8 @@ def build(cam, samples, out, as_shot=False, highlights="camera"):
         set_dxo_model(arw, model)
     try:
         variants = [("", None, False)] if as_shot else [("", DAYLIGHT, False), (" Warm", WARM, True)]
+        if model in FLUOR_BODIES and not as_shot:
+            variants.append((" Fluor", FLUOR, True))
         srcs, acrs = {}, {}
         for suffix, weights, warm_only in variants:
             for name, src in sources(arw, model, str(samples / A7M5_SAMPLE), weights, warm_only,
@@ -213,20 +230,28 @@ def build(cam, samples, out, as_shot=False, highlights="camera"):
                 P.write_cube(dxo_dir / f"{prefix} Look {short}.cube", dxo, f"{prefix} Look {short}")
                 print(f"  {short}", flush=True)
         if not as_shot:
-            write_auto(acr_dir, prefix, model, arw, srcs, acrs)
+            cool = {}
+            if model in DAY_RAMP:     # native looks only: the ported α7 V looks keep 1024
+                native = set(R.load_looks(arw, neutral=True))
+                cool = {n: s for n, s in sources(arw, model, str(samples / A7M5_SAMPLE), COOL, True,
+                                                 highlights).items() if n in native}
+            write_auto(acr_dir, prefix, model, arw, srcs, acrs, cool)
     finally:
         for k, v in DXO_DEFAULTS.items():
             setattr(D, k, v)
     single = [C.NAMES[n] for n, s in srcs if s == "" and (n, " Warm") not in srcs] if not as_shot else ["BW"]
     (pack / "安装说明.md").write_text(
-        render_note(stem, model, prefix, group, single), encoding="utf-8")
+        render_note(stem, model, prefix, group, single, fluor=model in FLUOR_BODIES and not as_shot,
+                    cool=model in DAY_RAMP and not as_shot), encoding="utf-8")
     return zip_pack(pack)
 
 
-def write_auto(acr_dir, prefix, model, arw, srcs, acrs):
-    """Camera Raw Auto profiles: base DCP with the fitted HueSatMap + XMP look table on it."""
+def write_auto(acr_dir, prefix, model, arw, srcs, acrs, cool=None):
+    """Camera Raw Auto profiles: base DCP with the fitted HueSatMap + XMP look table on it.  Looks in
+    cool (sources at the daylight weight 1348) get a triple-illuminant base: warm, daylight, cool."""
     vmax = AUTO.vmax_from_arw(AW.main_tags(arw))
     base_name = A.BASE_NAME
+    cool = cool or {}
     try:
         for name, suffix in list(srcs):
             if suffix != " Warm":
@@ -237,9 +262,18 @@ def write_auto(acr_dir, prefix, model, arw, srcs, acrs):
             hsm, before, after = AUTO.fit_hsm(table.srgb, target.srgb, vmax, nv)
             short = C.NAMES[name]
             A.BASE_NAME = f"{prefix} Auto Base {short}"
-            AUTO.write_base(acr_dir / f"{A.BASE_NAME}.dcp", A.MODEL, A.BASE_NAME, A.ADOBE_STD, hsm, direction)
+            path = acr_dir / f"{A.BASE_NAME}.dcp"
+            if name in cool:
+                hsm3, b3, a3 = AUTO.fit_hsm(table.srgb, cool[name].srgb, vmax, nv)
+                maps = (hsm, None, hsm3) if direction == "warm" else (None, hsm, hsm3)
+                AUTO.write_base_triple(path, A.MODEL, A.BASE_NAME, A.ADOBE_STD, maps)
+                extra = f"; cool {b3:.2f} -> {a3:.2f}"
+            else:
+                AUTO.write_base(path, A.MODEL, A.BASE_NAME, A.ADOBE_STD, hsm, direction)
+                extra = ""
             A.write_look(f"Look {short} Auto", acrs[name, key])
-            print(f"  {short} Auto ({direction}, NV {nv}): fit residual ΔE76 {before:.2f} -> {after:.2f}", flush=True)
+            print(f"  {short} Auto ({direction}, NV {nv}): fit residual ΔE76 {before:.2f} -> {after:.2f}{extra}",
+                  flush=True)
     finally:
         A.BASE_NAME = base_name
 

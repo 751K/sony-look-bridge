@@ -18,10 +18,13 @@ DEFAULT_VALIDATION = (
 )
 
 
-def render_note(stem: str, model: str, prefix: str, group: str, single=("BW",)) -> str:
+def render_note(stem: str, model: str, prefix: str, group: str, single=("BW",), fluor=False,
+                cool=False) -> str:
     """Return the Chinese installation note for one camera.
 
     single: looks built without a Warm variant (they render the same at both weights).
+    fluor: the pack has Fluor variants (fluorescent set).  cool: the camera raises the daylight weight
+    above 1024 at high colour temperatures and the Auto bases are triple-illuminant.
     """
     records = json.loads(NOTES.read_text(encoding="utf-8"))
     note = records[stem]
@@ -43,6 +46,17 @@ def render_note(stem: str, model: str, prefix: str, group: str, single=("BW",)) 
             )
     validation = note.get("validation", DEFAULT_VALIDATION)
     values = {
+        "cool": "本机型在约 5400K 以上还会逐步加强日光参数，约 6400K 时达到 1.32 倍（按 α7 IV 实测），"
+                "日光版对应约 5400K 及以下的状态。" if cool else "",
+        "fluor": "荧光灯等偏绿光源下，相机会改用第三组参数。本机型另提供名称以 Fluor 结尾的荧光灯版"
+                 "（`0 0 1024 0`），适用于以荧光灯白平衡预设拍摄、或相机判定为荧光灯光源的照片；"
+                 "三种软件均可使用，自动版本不包含该组参数。" if fluor else
+                 "荧光灯等偏绿光源下，相机还会混入第三组参数，各版本均不包含该组参数。",
+        "auto": "约 4300K 及以下与暖光版一致，约 5000K 前后与日光版一致，约 6100K 及以上与加强后的日光参数一致，"
+                "其间平滑混合" if cool else
+                "约 4150K 及以下与暖光版一致，约 5500K 及以上与日光版一致，其间平滑混合",
+        "c1_names": (f"`{prefix} Look XX`、`{prefix} Look XX Warm` 或 `{prefix} Look XX Fluor`" if fluor
+                     else f"`{prefix} Look XX` 或 `{prefix} Look XX Warm`"),
         "title": title,
         "intro": intro,
         "looks": looks,
