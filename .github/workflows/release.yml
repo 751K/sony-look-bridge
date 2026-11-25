@@ -28,7 +28,7 @@ concurrency:
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 120
+    timeout-minutes: 180
     env:
       VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version }}
     steps:
